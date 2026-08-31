@@ -129,6 +129,11 @@ npm test
   （`dist/` が必要なので、先に `npm run build` を実行しておく）
 - そのほかは FSRS・IndexedDB・記述問題採点など、既存の学習基盤の単体テスト
 
+## アイコン
+
+`node scripts/make-icons.mjs` が `public/icons/` の7枚を1枚のSVGから作り直す。
+医学アプリと同じアイコンだとホーム画面で見分けがつかないので、必ず別の図案にする。
+
 ## 原本PDFの置き場
 
 `sources/` は `.gitignore` で除外している。原本PDFと作業資料はそこへ置く。
