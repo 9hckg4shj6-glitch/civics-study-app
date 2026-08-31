@@ -216,6 +216,39 @@ describe("演習と採点", () => {
   });
 });
 
+describe("総合演習の提出と結果", () => {
+  it("30問すべてに答えて提出すると、得点と結果が出る", async () => {
+    hub("総合演習").click();
+    await tick(300);
+    click("#examCard");
+    await tick(450);
+    expect(visibleScreen()).toBe("quiz");
+
+    // 30ページを順に、その問題の正解を選んで進む
+    let answered = 0;
+    for (let page = 0; page < 30; page += 1) {
+      const shown = win.document.querySelector("#qBlocks .qtext")!.textContent!.trim();
+      const q = win.QUIZ_DATA.find((x: any) => shown.startsWith(x.question.trim().slice(0, 30)));
+      expect(q, `${page + 1}ページ目の問題を特定できません`).toBeTruthy();
+      const choices = win.document.querySelectorAll("#qBlocks .choice");
+      expect(choices.length).toBe(q.choices.length);
+      (choices[q.answer] as any).click();
+      answered += 1;
+      await tick(30);
+      click("#nextBtn");                    // 最後の1回で提出（confirm はテスト側で true）
+      await tick(60);
+    }
+    expect(answered).toBe(30);
+    await tick(400);
+
+    expect(visibleScreen()).toBe("result");
+    const result = win.document.getElementById("result")!.textContent!;
+    // 全問正解なので満点。配点の合計は93点
+    expect(result).toContain("93");
+    expect(result).toContain("公共・政治経済 総合演習 第1回");
+  }, 30_000);
+});
+
 describe("手動バックアップ（画面から）", () => {
   const PROGRESS_KEY = "civicsProgress_v1";
   let exported = "";

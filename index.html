@@ -906,7 +906,7 @@
   /* 入力欄は本文の行に収まる幅にする（広いと「）」だけが次行に落ちて読めなくなる） */
   .cwClozeIn{display:inline-block;width:7em;max-width:100%;font:inherit;font-size:14px;padding:2px 6px;
     vertical-align:baseline;border:none;border-bottom:2px solid var(--brand);border-radius:4px 4px 0 0;
-    background:var(--card2);color:var(--fg)}
+    background:var(--card2);color:var(--text)}
   @media (min-width:520px){ .cwClozeIn{width:9em} }
   .cwClozeIn:focus{outline:none;background:color-mix(in srgb,var(--brand) 10%,var(--card2))}
   .cwClozeIn:disabled{opacity:.75}
@@ -919,7 +919,8 @@
   .choices{display:grid;gap:10px;margin-top:16px}
   .choice{text-align:left;width:100%;border:1.5px solid var(--line);background:var(--card2);color:var(--text);
     border-radius:13px;padding:13px 14px;font-size:15px;font-family:inherit;cursor:pointer;
-    display:flex;gap:11px;align-items:flex-start;transition:.12s;font-weight:600}
+    display:flex;gap:11px;align-items:flex-start;transition:.12s;font-weight:600;
+    overflow-wrap:anywhere}
   .choice:hover:not(:disabled){border-color:var(--brand)} .choice:disabled{cursor:default}
   .choice .key{flex:0 0 auto;width:24px;height:24px;border-radius:7px;background:var(--card);border:1px solid var(--line);
     display:grid;place-items:center;font-size:12px;font-weight:900;color:var(--muted)}
@@ -3669,6 +3670,28 @@
     const n=Number(q.points);
     return Number.isFinite(n)&&n>0 ? n : EXAM_POINT;
   }
+  /* 提出は取り消せないので、未回答が残っていればその数を伝えてから確認する。 */
+  function unansweredExamCount(){
+    const s=session; if(!s) return 0;
+    return s.queue.reduce((n,cur,i)=>{
+      if(cur.type==="constructed"){
+        const raw=s.answers[i];
+        const answers=(raw&&raw.kind==="constructed")?raw.answers:null;
+        const filled=answers && Object.keys(answers).some(k=>String(answers[k]??"").trim()!=="");
+        return n+(filled?0:1);
+      }
+      const raw=(s.answers[i]===undefined?null:s.answers[i]);
+      const picks=raw===null?[]:(Array.isArray(raw)?raw:[raw]);
+      return n+(picks.length?0:1);
+    },0);
+  }
+  function confirmExamSubmit(){
+    const s=session; if(!s||!s.exam) return true;
+    const left=unansweredExamCount();
+    const head=`${s.label}を提出して採点します。`;
+    const warn=left?`\n\n⚠️ まだ ${left}問が未回答です。未回答は不正解として採点されます。`:"";
+    return confirm(`${head}${warn}\n\n提出すると解答は変更できません。よろしいですか？`);
+  }
   function submitExam(){
     stopExamTimer();
     const s=session; if(!s||!s.exam) return;
@@ -6272,7 +6295,7 @@
     }
     captureExamWritten();
     gradeUnratedOnPage();
-    if(session.exam) submitExam();
+    if(session.exam){ if(confirmExamSubmit()) submitExam(); }
     else if(session.batch) submitBatchQuiz();
     else renderResult();
   };

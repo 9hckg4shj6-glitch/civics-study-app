@@ -1,7 +1,7 @@
 /* 自動生成ファイル — 直接編集しないこと。
    元データ: content/questions/*.json
    生成コマンド: npm run build:questions
-   生成日時: 2026-08-31T09:03:29.832Z
+   生成日時: 2026-08-31T09:09:43.399Z
    収録数: 30問（3ファイル） */
 window.QUIZ_DATA = [
   {
