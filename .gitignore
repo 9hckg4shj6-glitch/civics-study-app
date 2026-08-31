@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+.DS_Store
+
+# 原本PDF・作業資料。著作物なので公開物とは必ず分ける。
+# 解説を作るときの参照用にローカルにだけ置く。索引は sources/INDEX.md
+sources/

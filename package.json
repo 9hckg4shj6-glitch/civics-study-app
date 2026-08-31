@@ -1,0 +1,32 @@
+{
+  "name": "civics-study-app",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "validate:content": "node scripts/validate-content.mjs",
+    "build:questions": "node scripts/build-questions.mjs",
+    "build": "npm run build:questions && npm run validate:content && tsc --noEmit && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run test && npm run build"
+  },
+  "dependencies": {
+    "dexie": "^4.0.11",
+    "ts-fsrs": "^5.2.0",
+    "zod": "^4.0.10"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^24.0.15",
+    "fake-indexeddb": "^6.0.1",
+    "jsdom": "^30.0.1",
+    "sharp": "^0.35.3",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.6",
+    "vite-plugin-pwa": "^1.0.2",
+    "vitest": "^3.2.4"
+  }
+}
