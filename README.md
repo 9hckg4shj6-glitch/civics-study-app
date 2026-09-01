@@ -12,8 +12,9 @@
 ```bash
 npm install
 npm run dev        # 開発サーバー（http://localhost:5173）
-npm run check      # テスト → 教材生成 → 教材検証 → 型検査 → 本番ビルド
+npm run check      # 教材生成 → 教材検証 → 型検査 → 本番ビルド → テスト
 npm run build      # 本番ビルド（dist/）
+npm run serve      # ビルド済み dist/ を同じLANへ配信（http://localhost:8080）
 ```
 
 `npm run build` は次の順で走る。どこかで落ちたら公開物は作られない。
@@ -23,20 +24,113 @@ npm run build      # 本番ビルド（dist/）
 3. `tsc --noEmit` — 型検査
 4. `vite build` — `dist/` を生成
 
+## 生徒の端末で使う
+
+`npm run build` でできる `dist/` が配布物のすべて。中身は静的ファイルだけなので、
+置いた先で index.html を開けば動く。渡し方は2つある。
+
+### 1. 同じWi-Fiから開いてもらう（すぐ試すとき）
+
+```bash
+npm run build
+npm run serve                       # 表示されたURLを生徒に伝える
+APP_PASSWORD=好きな文字列 npm run serve   # 簡易認証をかけるとき（利用者は quiz / その文字列）
+```
+
+同じLANにいる間だけ使える。手軽だが **http なのでPWAとしては動かない**
+（Service Worker は https と localhost でしか動かず、ホーム画面追加もオフラインも効かない）。
+授業中に画面を見せる用途向け。
+
+### 2. インターネットに公開する（生徒が普段使う本番／推奨）
+
+**公開URL: https://9hckg4shj6-glitch.github.io/civics-study-app/**
+
+このURLをスマートフォンに送れば、同じWi-Fiにいなくても・PCの電源が入っていなくても開ける。
+https なので Service Worker が動き、ホーム画面追加とオフライン起動もここで初めて使える。
+
+公開はこのコマンド1つ。
+
+```bash
+npm run deploy
+```
+
+中では 検査（`npm run check`）→ 公開用ビルド（`APP_BASE_PATH=/civics-study-app/`）→
+`gh-pages` ブランチへ push が順に走る。**検査で落ちたら公開されない**ので、
+壊れた版が生徒に届くことはない。ソースは `main`、生徒に届く成果物は `gh-pages`。
+
+問題を足したときの流れ:
+
+```bash
+git add -A && git commit -m "問題を追加"
+git push            # ソースの保存（これだけでは公開URLは変わらない）
+npm run deploy      # 公開URLへ反映
+```
+
+- 反映に1〜3分かかる。スマホ側は次に開いたときに新版へ入れ替わる（`registerType: "autoUpdate"`）
+- 生徒の端末では、ブラウザで開いたあと「ホーム画面に追加」してもらう
+- 一度開けば、以降は機内モードでも全問解ける（問題も解説も端末内にある）
+- 別の場所に置くときは `scripts/deploy.mjs` の `BASE` と、このREADMEの公開URLを一緒に直す
+
+#### push しただけで公開されるようにする（任意）
+
+いまローカルから公開しているのは、`gh` のトークンに `workflow` 権限が無く
+`.github/workflows/` を push できないため。次を通すと GitHub Actions 方式へ移せる。
+
+```bash
+gh auth refresh -h github.com -s workflow      # ブラウザで許可する
+mkdir -p .github/workflows
+cp scripts/pages-workflow.yml.example .github/workflows/deploy.yml
+git add -A && git commit -m "push で自動公開する" && git push
+```
+
+そのうえで リポジトリの Settings → Pages → Source を **GitHub Actions** に変える。
+以後は `main` へ push するだけで公開まで走る（`npm run deploy` は不要になる）。
+
+過去問の本文をそのまま載せているので、検索エンジンには載せない。効いているのは
+`index.html` の `<meta name="robots" content="noindex, nofollow, noarchive">` で、**これを消さないこと。**
+（`public/robots.txt` も置いてあるが、robots.txt はドメイン直下しか読まれない決まりなので、
+サブディレクトリ配信の今は効いていない。独自ドメインへ移したときのための備え。）
+
+URLを知っている人は誰でも開けるので、URLは生徒に直接渡す（SNS等に貼らない）。
+
+### 端末を移すとき
+
+「設定・データ → 手動バックアップ」で JSON を書き出し、新しい端末の同じ画面の
+「📁 ファイルから読む」で読み込む。学習記録はこの往復でしか端末間を移動しない。
+
+## どんな問題を載せるか
+
+**問題文と選択肢だけで完結する問題** だけを載せる。
+
+| 載せる | 載せない |
+| --- | --- |
+| 知識問題（一問一答で答えが決まる） | 長い会話文・メモ・ノートを読ませる考察問題 |
+| 時系列問題（できごとの順序） | 共通資料を前提に空欄ア・イを埋める問題 |
+| グラフ問題・計算問題 | 大問の他の小問と読み合わせないと解けない問題 |
+
+スマートフォンで隙間時間に解くアプリなので、画面をスクロールしないと
+設問にたどり着けない問題は入れない。共通テストの第1問のような
+長文の考察問題は、紙の過去問で解く前提にしている。
+
+外した問題は捨てずに `content/excluded/` に置いてある（ビルド対象外）。
+方針を変えるときは `content/questions/` へ戻して `npm run build` すればよい。
+
 ## 収録教材（試作版）
 
-30問。公共10問・政治10問・経済10問。
+10問。公共1問・政治5問・経済4問。
 
 | 出典区分 | 内訳 | 問数 |
 | --- | --- | --- |
-| `common-new` | 令和8年度・令和7年度 本試験「公共，政治・経済」 | 16 |
-| `common-legacy` | 令和7年度「旧政治・経済」／令和6年度「政治・経済」 | 14 |
+| `common-new` | 令和8年度・令和7年度 本試験「公共，政治・経済」 | 2 |
+| `common-legacy` | 令和7年度「旧政治・経済」／令和6年度「政治・経済」 | 8 |
 
 正解はすべて大学入試センター公表の正解PDFと照合済み（各問の `verifiedAt`）。
 全問に「問題全体の要点と正解理由」（`explanation`）と、
 選択肢ひとつひとつの説明（`choiceNotes`）を付けている。
 
-30問すべてが総合演習セット `pilot-001`（30問・60分）に登録されている。
+10問すべてが総合演習セット `pilot-001`（10問・15分）に登録されている。
+新課程の「公共，政治・経済」は考察問題の比率が高いため、この方針では
+旧課程「政治・経済」からの一問一答が中心になる。
 
 > センター試験「政治・経済」は、大学入試センターが問題・正解を公開していない
 > （公開は直近3年分のみ）。公式解答を確認できない問題の正解を推測で登録しない
@@ -97,6 +191,9 @@ npm run build      # 本番ビルド（dist/）
 - アカウント・Googleログイン・Supabase・クラウド同期
 - ランキング・掲示板・デッキの公開／共有
 - 実行時のAI API呼び出し（解説は開発中に作って静的データへ保存する）
+- 端末側から問題データを差し替える口（CSV/JSONの取り込み）
+  出典も選択肢別解説も持たない問題が混ざり、学習記録とIDが食い違うため。
+  問題を増やすのは `content/questions/*.json` とビルドだけ
 
 起動時も含めて外部への通信は発生しない。
 CSP の `connect-src` は `'self'` のみに絞ってある。
@@ -127,6 +224,8 @@ npm test
 - `tests/app-smoke.test.ts` — ビルド済み `dist/` を jsdom で実際に起動し、
   ログイン画面が出ないこと・演習と採点・60分の総合演習・バックアップ画面を確認する
   （`dist/` が必要なので、先に `npm run build` を実行しておく）
+- `tests/no-legacy-content.test.ts` — このアプリは基礎医学演習アプリの画面をもとに
+  作ったので、生化学の用語や医師のキャリアを使った文言が `dist/` に残っていないかを見張る
 - そのほかは FSRS・IndexedDB・記述問題採点など、既存の学習基盤の単体テスト
 
 ## アイコン

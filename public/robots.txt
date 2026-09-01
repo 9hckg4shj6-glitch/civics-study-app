@@ -1,0 +1,4 @@
+# 過去問の本文を載せているため、検索エンジンには載せない。
+# index.html の <meta name="robots" content="noindex, nofollow, noarchive"> と対にしている。
+User-agent: *
+Disallow: /

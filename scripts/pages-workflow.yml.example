@@ -1,0 +1,55 @@
+# main へ push するたびに、ビルド → テスト → GitHub Pages へ公開する。
+# 公開URL: https://9hckg4shj6-glitch.github.io/civics-study-app/
+# サブディレクトリ配信なので APP_BASE_PATH を必ず渡す（渡さないと資材の参照が / を向いて404になる）。
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 公開は同時に1本だけ。走行中のものは止めず、最後の push が最後に反映されるようにする。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # 先に既定のベース（/）で組んでテストする。
+      # tests/app-smoke.test.ts は dist をサイト直下として配信して読み込むため、
+      # サブディレクトリ用ビルドのままだと資材の参照が合わず落ちる。
+      - name: ビルド（教材生成 → 教材検証 → 型検査 → vite build）
+        run: npm run build
+      - name: テスト
+        run: npm test
+      # 検査を通ったので、公開先のパスへ合わせて組み直す。
+      - name: 公開用にベースパスを付けて組み直す
+        run: npm run build
+        env:
+          APP_BASE_PATH: /civics-study-app/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
