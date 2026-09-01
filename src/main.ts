@@ -79,10 +79,37 @@ window.STUDY_CORE = {
   },
 };
 
+/* subjects.js（科目マニフェスト）と updates.js（更新履歴）は、内容が古いまま出ないよう
+   プリキャッシュから外して NetworkFirst にしてある（vite.config.ts）。
+   ただし初回の起動では、この2つは Service Worker がまだページを制御していない間に
+   読み込まれるため、実行時キャッシュに一度も入らない。そのまま機内モードにされると
+   科目マニフェストが読めず、問題が0件のアプリが開いてしまう。
+   登録が済んだところで控えを1度だけ作り、初日からオフラインで使えるようにする。 */
+const MANIFEST_CACHE = "civics-manifest-v1";
+const MANIFEST_FILES = ["subjects.js", "updates.js"];
+
+async function warmManifestCache(): Promise<void> {
+  if (typeof caches === "undefined") return;
+  try {
+    const cache = await caches.open(MANIFEST_CACHE);
+    await Promise.all(
+      MANIFEST_FILES.map(async (file) => {
+        const url = new URL(file, document.baseURI).toString();
+        if (await cache.match(url)) return;           // すでに控えがあるので何もしない
+        const response = await fetch(url, { cache: "no-cache" });
+        if (response.ok) await cache.put(url, response.clone());
+      }),
+    );
+  } catch {
+    // オフライン起動・キャッシュ不可の環境では何もしない（次の起動でまた試す）
+  }
+}
+
 registerSW({
   immediate: true,
   onRegisteredSW(_swUrl, registration) {
     if (!registration) return;
+    void warmManifestCache();
     // 短時間に何度も叩かないよう最低30秒はあける（タブ切り替えのたびに走るため）。
     const MIN_GAP = 30 * 1000;
     let lastCheck = Date.now();

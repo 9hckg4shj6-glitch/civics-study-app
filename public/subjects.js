@@ -18,25 +18,26 @@ window.SUBJECTS = [
     id: "civics",
     name: "公共・政治経済",
     emoji: "⚖️",
-    accent: "#12657a",       // 紺〜青緑
+    accent: "#3a4192",       // 藍
     learningMode: "cards",
     questions: "subjects/civics/questions.js",
     idPrefix: "civics-",
     contentProfile: "civics", // 出典・確認日・選択肢別解説などの追加検査を有効にする
     hideLearning: true,       // 授業要点も用語カードも無いので「学習」の枠は総合演習にあてる
-    expectQuestions: 30,      // 件数の取りこぼし検知（増減させたらこの数も更新する）
-    expectDomainCounts: { 公共: 10, 政治: 10, 経済: 10 },
+    expectQuestions: 10,      // 件数の取りこぼし検知（増減させたらこの数も更新する）
+    expectDomainCounts: { 公共: 1, 政治: 5, 経済: 4 },
   },
 ];
 
-/* 総合演習セット（30問・60分）のマニフェスト。
-   本試験の年度別再現ではなく、過去問から抜粋した総合演習として提示する。 */
+/* 総合演習セットのマニフェスト。
+   本試験の年度別再現ではなく、過去問から抜粋した総合演習として提示する。
+   1問あたり1分半を目安に制限時間を決める。 */
 window.EXAM_SETS = [
   {
     id: "pilot-001",
     title: "公共・政治経済 総合演習 第1回",
-    questionCount: 30,
-    durationMinutes: 60,
-    description: "過去問抜粋による試作総合演習（公共10問・政治10問・経済10問）",
+    questionCount: 10,
+    durationMinutes: 15,
+    description: "問題文と選択肢で完結する過去問10問（公共1問・政治5問・経済4問）",
   },
 ];

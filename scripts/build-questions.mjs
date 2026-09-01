@@ -43,10 +43,11 @@ for (const name of files) {
 }
 
 fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
+/* 見出しに生成日時は入れない。生成物をリポジトリに置いているので、
+   中身が同じでもビルドのたびに差分が出てしまうため。 */
 const banner = `/* 自動生成ファイル — 直接編集しないこと。
    元データ: ${SRC_DIR}/*.json
    生成コマンド: npm run build:questions
-   生成日時: ${new Date().toISOString()}
    収録数: ${questions.length}問（${files.length}ファイル） */\n`;
 fs.writeFileSync(OUT_FILE, `${banner}window.QUIZ_DATA = ${JSON.stringify(questions, null, 2)};\n`, "utf8");
 console.log(`build:questions: ${questions.length} questions from ${files.length} file(s) -> ${OUT_FILE}`);

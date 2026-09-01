@@ -292,13 +292,13 @@ body:not(.has-subject) #subjectPicker{max-width:980px;margin-inline:auto}
   padding:20px;
   border-radius:22px;
   background:
-    linear-gradient(145deg,color-mix(in srgb,var(--hub-accent,var(--subject-accent,var(--brand))) 8%,transparent),transparent 58%),
+    linear-gradient(145deg,color-mix(in srgb,var(--hub-accent,var(--subject-accent,var(--brand))) 14%,transparent),transparent 60%),
     var(--card);
 }
 .hubBtn.primaryHub .hubIcon{
   width:48px;height:48px;border:0;
   color:var(--hub-accent,var(--subject-accent,var(--brand)));
-  background:color-mix(in srgb,var(--hub-accent,var(--subject-accent,var(--brand))) 12%,var(--card2));
+  background:color-mix(in srgb,var(--hub-accent,var(--subject-accent,var(--brand))) 20%,var(--card2));
 }
 .hubBtn.primaryHub .hubBody{align-self:center}
 .hubBtn.primaryHub .hubName{font-size:18px}

@@ -9,9 +9,10 @@
     "build:questions": "node scripts/build-questions.mjs",
     "build": "npm run build:questions && npm run validate:content && tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
+    "serve": "node server.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run test && npm run build"
+    "check": "npm run build && npm run test"
   },
   "dependencies": {
     "dexie": "^4.0.11",
@@ -23,6 +24,7 @@
     "@types/node": "^24.0.15",
     "fake-indexeddb": "^6.0.1",
     "jsdom": "^30.0.1",
+    "playwright": "^1.62.1",
     "sharp": "^0.35.3",
     "typescript": "^5.8.3",
     "vite": "^7.0.6",

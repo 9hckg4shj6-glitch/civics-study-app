@@ -26,15 +26,21 @@ describe("公共・政治経済の収録教材", () => {
     expect(civics.idPrefix).toBe("civics-");
   });
 
-  it("問題総数が30問である", () => {
-    expect(questions).toHaveLength(30);
-    expect(civics.expectQuestions).toBe(30);
+  it("収録数が subjects.js の宣言と合っている", () => {
+    expect(questions).toHaveLength(civics.expectQuestions);
   });
 
-  it("公共・政治・経済が各10問である", () => {
+  it("分野ごとの内訳が subjects.js の宣言と合っている", () => {
     const counts: Record<string, number> = {};
     for (const q of questions) counts[q.domain] = (counts[q.domain] ?? 0) + 1;
-    expect(counts).toEqual({ 公共: 10, 政治: 10, 経済: 10 });
+    expect(counts).toEqual(civics.expectDomainCounts);
+  });
+
+  it("問題文と選択肢だけで完結する（会話文・メモを読ませる考察問題を載せない）", () => {
+    // 長い共通資料を前提にした問題はアプリに載せない方針。
+    // 外した問題は content/excluded/ にそのまま置いてある。
+    const withStem = questions.filter((q) => String(q.stem ?? "").trim().length > 0);
+    expect(withStem.map((q) => q.id)).toEqual([]);
   });
 
   it("IDが重複せず、すべて civics- で始まる", () => {
@@ -75,24 +81,24 @@ describe("公共・政治経済の収録教材", () => {
     }
   });
 
-  it("総合演習 pilot-001 に30問すべてが登録され、出題順に重複がない", () => {
+  it("総合演習 pilot-001 に全問が登録され、出題順に重複がない", () => {
     const set = examSets.find((s) => s.id === "pilot-001");
     expect(set).toBeTruthy();
-    expect(set.durationMinutes).toBe(60);
+    expect(set.durationMinutes).toBeGreaterThan(0);
     const members = questions.filter((q) => q.examSetId === "pilot-001");
     expect(members).toHaveLength(set.questionCount);
-    expect(members).toHaveLength(30);
+    expect(members).toHaveLength(questions.length);
     const orders = members.map((q) => q.examOrder);
     expect(new Set(orders).size).toBe(orders.length);
     expect(Math.min(...orders)).toBe(1);
-    expect(Math.max(...orders)).toBe(30);
+    expect(Math.max(...orders)).toBe(members.length);
   });
 
   it("出典区分ごとの内訳を記録する（配分が変わったら気づけるように）", () => {
     const counts: Record<string, number> = {};
     for (const q of questions) counts[q.sourceType] = (counts[q.sourceType] ?? 0) + 1;
-    // 新課程「公共，政治・経済」16問／旧課程の共通テスト「政治・経済」14問。
+    // 新課程「公共，政治・経済」2問／旧課程の共通テスト「政治・経済」8問。
     // センター試験は大学入試センターが問題・正解を公開していないため試作版では収録していない。
-    expect(counts).toEqual({ "common-new": 16, "common-legacy": 14 });
+    expect(counts).toEqual({ "common-new": 2, "common-legacy": 8 });
   });
 });

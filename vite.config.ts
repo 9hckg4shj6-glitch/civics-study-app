@@ -15,9 +15,11 @@ export default defineConfig({
       manifest: {
         name: "公共・政治経済 演習",
         short_name: "公共政経",
+        lang: "ja",
+        dir: "ltr",
         description: "大学入学共通テスト「公共，政治・経済」の過去問演習アプリ。端末内保存・オフライン対応。",
-        theme_color: "#e8f1f4",
-        background_color: "#f2f6f8",
+        theme_color: "#efe8d9",
+        background_color: "#efe8d9",
         display: "standalone",
         start_url: ".",
         icons: [

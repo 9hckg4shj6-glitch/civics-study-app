@@ -9,7 +9,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <title>公共・政治経済 演習</title>
 <!-- PWA -->
-<meta name="theme-color" content="#e8f1f4" id="themeColorMeta">
+<meta name="theme-color" content="#efe8d9" id="themeColorMeta">
 <meta name="color-scheme" content="light dark">
 <meta name="application-name" content="公共・政治経済 演習">
 <meta name="mobile-web-app-capable" content="yes">
@@ -887,7 +887,7 @@
   .qGroupFoot{margin-top:20px}
   .qGroupFoot.hidden{display:none}
   .qGroupFoot .btn{width:100%}
-  /* 大問の共通設問文。長い実験文・症例文が小問ごとに繰り返されるので、折りたたんで置く */
+  /* 大問の共通資料。長い会話文・資料が小問ごとに繰り返されるので、折りたたんで置く */
   .qStem{margin:0 0 12px;border:1px solid var(--line);border-radius:12px;background:var(--card2);overflow:hidden}
   .qStem.hidden{display:none}
   .qStem>summary{list-style:none;cursor:pointer;padding:9px 12px;font-size:12px;font-weight:800;color:var(--brand);display:flex;align-items:center;gap:6px}
@@ -1188,50 +1188,56 @@
   input[type=file]{display:none}
 
   /* ===== polished home shell ===== */
+  /* 生成り色の紙に藍と菫。ひな型にした別科目のアプリ（寒色のティール＋青）とは
+     地の色から変えて、ホーム画面がひと目で見分けられるようにしてある。 */
   :root{
-    --bg:#f5f7fb; --bg2:#eef3f8; --card:#ffffff; --card2:#f6f8fb;
-    --line:#dfe7ef; --text:#152033; --muted:#627083; --brand:#0f6d80;
-    --brand2:#1e3f77; --good:#178a58; --good-bg:#e6f6ee; --bad:#cf334b;
-    --bad-bg:#fde8ec; --warn:#b86b00; --gold:#b8860b;
-    --shadow:0 18px 46px rgba(29,45,68,.12);
-    --glow:0 1px 0 rgba(255,255,255,.8), 0 1px 2px rgba(29,45,68,.05);
-    --surface-blur:rgba(255,255,255,.82);
-    --h0:#eef2f6; --h1:#b7dce3; --h2:#74c3d1; --h3:#259eb4; --h4:#0c6f82;
+    --bg:#efe8d9; --bg2:#e7dfcd; --card:#fffdf8; --card2:#f7f2e7;
+        --line:#e5dccb; --text:#1f1c33; --muted:#6b6456; --brand:#3a4192;
+        --brand2:#7a4aa8; --good:#2f7d4f; --good-bg:#e8f4ea; --bad:#c03a48;
+        --bad-bg:#fbe9ea; --warn:#a8690a; --gold:#a8791b;
+        --shadow:0 18px 46px rgba(60,52,35,.14);
+        --glow:0 1px 0 rgba(255,255,255,.85), 0 1px 2px rgba(60,52,35,.06);
+        --surface-blur:rgba(255,253,248,.84);
+        --h0:#efe9dc; --h1:#cfc7ea; --h2:#a79cd6; --h3:#7a6cc0; --h4:#4a3f92;
   }
   @media (prefers-color-scheme: dark){
     :root{
-      --bg:#121820; --bg2:#0d1118; --card:#18222d; --card2:#202c38;
-      --line:#30404f; --text:#eef5f8; --muted:#9fb0be; --brand:#4fc6d6;
-      --brand2:#7ea6e8; --good:#55d892; --good-bg:#123323; --bad:#ff6678;
-      --bad-bg:#3a1720; --warn:#ffd17a; --gold:#e6c266;
-      --shadow:0 18px 46px rgba(0,0,0,.34);
-      --glow:0 0 0 1px rgba(255,255,255,.04);
-      --surface-blur:rgba(24,34,45,.82);
-      --h0:#202c38; --h1:#1c5260; --h2:#267487; --h3:#35a3bd; --h4:#7ed6e5;
+      --bg:#1a1726; --bg2:#131020; --card:#221e33; --card2:#2b2740;
+          --line:#3d3757; --text:#f0ecf7; --muted:#a79fbb; --brand:#9aa2f0;
+          --brand2:#c79ae8; --good:#63d193; --good-bg:#14301f; --bad:#ff6b7c;
+          --bad-bg:#3a1722; --warn:#f0c274; --gold:#dcb668;
+          --shadow:0 18px 46px rgba(0,0,0,.42);
+          --glow:0 0 0 1px rgba(255,255,255,.05);
+          --surface-blur:rgba(34,30,51,.84);
+          --h0:#2b2740; --h1:#3b3470; --h2:#544a9c; --h3:#7a6cc8; --h4:#a99ce8;
     }
   }
   :root[data-theme="light"]{
-    color-scheme:light; --bg:#f5f7fb; --bg2:#eef3f8; --card:#ffffff; --card2:#f6f8fb;
-    --line:#dfe7ef; --text:#152033; --muted:#627083; --brand:#0f6d80;
-    --brand2:#1e3f77; --good:#178a58; --good-bg:#e6f6ee; --bad:#cf334b;
-    --bad-bg:#fde8ec; --warn:#b86b00; --gold:#b8860b;
-    --shadow:0 18px 46px rgba(29,45,68,.12); --glow:0 1px 0 rgba(255,255,255,.8), 0 1px 2px rgba(29,45,68,.05);
-    --surface-blur:rgba(255,255,255,.82);
-    --h0:#eef2f6; --h1:#b7dce3; --h2:#74c3d1; --h3:#259eb4; --h4:#0c6f82;
+    color-scheme:light;
+    --bg:#efe8d9; --bg2:#e7dfcd; --card:#fffdf8; --card2:#f7f2e7;
+        --line:#e5dccb; --text:#1f1c33; --muted:#6b6456; --brand:#3a4192;
+        --brand2:#7a4aa8; --good:#2f7d4f; --good-bg:#e8f4ea; --bad:#c03a48;
+        --bad-bg:#fbe9ea; --warn:#a8690a; --gold:#a8791b;
+        --shadow:0 18px 46px rgba(60,52,35,.14);
+        --glow:0 1px 0 rgba(255,255,255,.85), 0 1px 2px rgba(60,52,35,.06);
+        --surface-blur:rgba(255,253,248,.84);
+        --h0:#efe9dc; --h1:#cfc7ea; --h2:#a79cd6; --h3:#7a6cc0; --h4:#4a3f92;
   }
   :root[data-theme="dark"]{
-    color-scheme:dark; --bg:#121820; --bg2:#0d1118; --card:#18222d; --card2:#202c38;
-    --line:#30404f; --text:#eef5f8; --muted:#9fb0be; --brand:#4fc6d6;
-    --brand2:#7ea6e8; --good:#55d892; --good-bg:#123323; --bad:#ff6678;
-    --bad-bg:#3a1720; --warn:#ffd17a; --gold:#e6c266;
-    --shadow:0 18px 46px rgba(0,0,0,.34); --glow:0 0 0 1px rgba(255,255,255,.04);
-    --surface-blur:rgba(24,34,45,.82);
-    --h0:#202c38; --h1:#1c5260; --h2:#267487; --h3:#35a3bd; --h4:#7ed6e5;
+    color-scheme:dark;
+    --bg:#1a1726; --bg2:#131020; --card:#221e33; --card2:#2b2740;
+        --line:#3d3757; --text:#f0ecf7; --muted:#a79fbb; --brand:#9aa2f0;
+        --brand2:#c79ae8; --good:#63d193; --good-bg:#14301f; --bad:#ff6b7c;
+        --bad-bg:#3a1722; --warn:#f0c274; --gold:#dcb668;
+        --shadow:0 18px 46px rgba(0,0,0,.42);
+        --glow:0 0 0 1px rgba(255,255,255,.05);
+        --surface-blur:rgba(34,30,51,.84);
+        --h0:#2b2740; --h1:#3b3470; --h2:#544a9c; --h3:#7a6cc8; --h4:#a99ce8;
   }
   html{scroll-behavior:smooth}
   body{
     background:
-      linear-gradient(180deg, rgba(15,109,128,.09), transparent 280px),
+      linear-gradient(180deg, rgba(58,65,146,.10), transparent 280px),
       linear-gradient(180deg,var(--bg),var(--bg2));
     letter-spacing:0;
   }
@@ -1258,13 +1264,13 @@
   .logo{border-radius:14px;background:#f3f6fb}
   header.app h1{letter-spacing:0}
   .lvbadge{border-radius:16px;background:var(--surface-blur);backdrop-filter:blur(12px)}
-  .lvbadge .dot{background:linear-gradient(135deg,#0f6d80,#1e3f77)}
+  .lvbadge .dot{background:linear-gradient(135deg,#3a4192,#7a4aa8)}
 
   .homeLead{
     display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;
     position:relative;overflow:hidden;border-radius:22px;padding:24px;margin-bottom:18px;
     background:
-      linear-gradient(135deg, color-mix(in srgb,var(--brand) 13%,transparent), transparent 46%),
+      linear-gradient(135deg, color-mix(in srgb,var(--brand) 19%,transparent), transparent 48%),
       linear-gradient(180deg, var(--card), color-mix(in srgb,var(--card2) 58%,var(--card)));
   }
   .homeLead::after{
@@ -1316,7 +1322,7 @@
   .cat .chev{font-size:12px;font-weight:900;color:var(--brand);border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card2)}
   .cat-year{min-height:132px}
 
-  /* 年度別の小分け（五択問題／記述問題） */
+  /* 年度別の小分け（選択問題／記述問題） */
   .catWrap{display:flex;flex-direction:column;gap:0}
   .catWrap.open>.cat{border-bottom-left-radius:0;border-bottom-right-radius:0}
   .catSubs{display:flex;flex-direction:column;gap:1px;padding:10px 10px 12px;
@@ -1351,8 +1357,8 @@
   .kpis{gap:12px}.kpi{border-radius:18px;padding:16px 12px;text-align:left}.kpi .v{font-size:26px}
   .ach{border-radius:16px}
   .foot{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}
-  .btn{background:linear-gradient(135deg,#0f6d80,#1e3f77);border-radius:14px}
-  .score,.lvring .lc .num{background:linear-gradient(135deg,#0f6d80,#1e3f77);-webkit-background-clip:text;background-clip:text}
+  .btn{background:linear-gradient(135deg,#3a4192,#7a4aa8);border-radius:14px}
+  .score,.lvring .lc .num{background:linear-gradient(135deg,#3a4192,#7a4aa8);-webkit-background-clip:text;background-clip:text}
 
   @media(max-width:700px){
     .wrap{padding:12px 12px 56px}
@@ -1730,7 +1736,7 @@
         <span class="dueIcon">📖</span>
         <span class="dueBody">
           <span class="dueTitle">問題一覧（年度別）</span>
-          <span class="dueSub">年度（五択）・記述問題・予想問題ごとに全問を1ページ10問で閲覧</span>
+          <span class="dueSub">収録した過去問を年度ごとに、1ページ10問で通して確認できます</span>
         </span>
         <span class="dueRight"><span class="dueUnit" style="font-size:15px">一覧 →</span></span>
       </button>
@@ -1772,14 +1778,14 @@
         <span class="dueIcon">📝</span>
         <span class="dueBody">
           <span class="dueTitle" id="examCardTitle">総合演習</span>
-          <span class="dueSub" id="examCardSub">過去問抜粋の30問・制限60分・提出まで正誤は出ません</span>
+          <span class="dueSub" id="examCardSub">提出まで正誤は出ません</span>
         </span>
-        <span class="dueRight"><b class="dueCount" id="examCardCount">100</b><span class="dueUnit">点</span></span>
+        <span class="dueRight"><b class="dueCount" id="examCardCount">–</b><span class="dueUnit">点</span></span>
       </button>
     </div>
 
     <div class="homeSection rangeSection" id="domainSection">
-      <button type="button" class="sectToggle" data-toggle="domainList" aria-expanded="false" style="--accent:#0f6d80">
+      <button type="button" class="sectToggle" data-toggle="domainList" aria-expanded="false" style="--accent:#3a4192">
         <span class="stMain"><span class="stLabel">分野別（公共・政治・経済）</span><span class="stHint">タップして表示</span></span>
         <span class="stCount"></span><span class="stChev">›</span>
       </button>
@@ -1787,7 +1793,7 @@
     </div>
 
     <div class="homeSection rangeSection" id="sourceSection">
-      <button type="button" class="sectToggle" data-toggle="sourceList" aria-expanded="false" style="--accent:#1e3f77">
+      <button type="button" class="sectToggle" data-toggle="sourceList" aria-expanded="false" style="--accent:#7a4aa8">
         <span class="stMain"><span class="stLabel">出典別</span><span class="stHint">タップして表示</span></span>
         <span class="stCount"></span><span class="stChev">›</span>
       </button>
@@ -1795,7 +1801,7 @@
     </div>
 
     <div class="homeSection rangeSection" id="yearSection">
-      <button type="button" class="sectToggle" data-toggle="yearList" aria-expanded="false" style="--accent:#0f6d80">
+      <button type="button" class="sectToggle" data-toggle="yearList" aria-expanded="false" style="--accent:#9c4a86">
         <span class="stMain"><span class="stLabel">年度別</span><span class="stHint">タップして表示</span></span>
         <span class="stCount"></span><span class="stChev">›</span>
       </button>
@@ -1803,7 +1809,7 @@
     </div>
 
     <div class="homeSection rangeSection" id="predictionSection">
-      <button type="button" class="sectToggle" data-toggle="predictionList" aria-expanded="false" style="--accent:#2f7bdc">
+      <button type="button" class="sectToggle" data-toggle="predictionList" aria-expanded="false" style="--accent:#6b4aa0">
         <span class="stMain"><span class="stLabel">予想問題</span><span class="stHint">タップして表示</span></span>
         <span class="stCount"></span><span class="stChev">›</span>
       </button>
@@ -2004,9 +2010,7 @@
     <div class="foot homeSection" id="dataSection">
       学習記録はこの端末に自動保存されます。&nbsp;·&nbsp;
       <a id="backupBtn">手動バックアップ</a> &nbsp;·&nbsp;
-      <a id="importBtn">データ読込</a> &nbsp;·&nbsp;
       <a id="resetBtn">記録リセット</a>
-      <input type="file" id="fileInput" accept=".json,.csv,.txt">
     </div>
   </section>
 
@@ -2029,9 +2033,9 @@
         <span class="qtag" id="qtag"></span>
         <button type="button" class="bookmarkToggle" id="bookmarkBtn">☆ 見直す</button>
       </div>
-      <!-- 大問の見出し（問13 ウシガエル摘出心実験 など）。1問だけのページでは空 -->
+      <!-- 大問の見出し（第1問 生徒Ａ・生徒Ｂの会話 など）。1問だけのページでは空 -->
       <div class="qGroupHead hidden" id="qGroupHead"></div>
-      <!-- 大問の共通設問文（実験文・症例文など）。属する小問すべての上に出す -->
+      <!-- 大問の共通資料（会話文・図表など）。属する小問すべての上に出す -->
       <details class="qStem hidden" id="qStem" open></details>
       <!-- 小問の本体。大問のページでは .qBlock が小問の数だけ並ぶ -->
       <div id="qBlocks"></div>
@@ -2055,7 +2059,7 @@
     </div>
     <div class="searchBar">
       <span class="sbIcon">🔍</span>
-      <input type="search" id="searchInput" placeholder="キーワード（例：ケトン体、尿素回路）" inputmode="search" autocomplete="off" enterkeyhint="search">
+      <input type="search" id="searchInput" placeholder="キーワード（例：国会、社会保障）" inputmode="search" autocomplete="off" enterkeyhint="search">
       <button type="button" id="searchClear" class="searchClear hidden" aria-label="クリア">✕</button>
     </div>
     <div class="searchActions hidden" id="searchActions"></div>
@@ -2171,7 +2175,6 @@
 
   /* ---------- 設定 ---------- */
   const STORE_KEY   = "civicsProgress_v1";
-  const DATA_KEY    = "civicsCustomData_v1";
   const META_KEY    = "civicsMeta_v1";
   const THEME_KEY   = "civicsTheme_v1";
   const UPDATES_SEEN_KEY = "civicsUpdatesSeen_v1";
@@ -2190,7 +2193,7 @@
   const EXAM_POINT  = 3;       // 配点未指定の問題の1問あたりの点
   const EXAM_MIN    = 60;      // 総合演習の既定の制限時間（分）
   // 分野別カードの配色(dataviz カテゴリ順)
-  const ACCENTS = ["#0f6d80","#1e3f77","#b8860b","#2f6f8f","#7a6320","#8a4b52","#5a5a9c","#a8642c"];
+  const ACCENTS = ["#3a4192","#7a4aa8","#9c4a86","#a8791b","#b8474f","#5a5a9c","#6b4aa0","#7a6a2e"];
 
   /* 出典区分の表示名。questions.js の sourceType をそのまま画面に出さない。 */
   const SOURCE_TYPE_LABELS = {
@@ -2468,8 +2471,8 @@
   }
 
   function loadData(){
-    let custom = null;
-    try{ const raw = localStorage.getItem(DATA_KEY); if(raw) custom = JSON.parse(raw); }catch(e){}
+    // 問題は content/questions/*.json から生成した window.QUIZ_DATA だけを使う。
+    // 端末側から差し替える口はつくらない（学習記録とIDが食い違うのを防ぐため）。
     const src = [];
     const pos = new Map();
     function addSource(list, prefix){
@@ -2482,7 +2485,6 @@
       });
     }
     addSource(window.QUIZ_DATA || [], "auto");
-    addSource(custom || [], "custom");
     const normFigures=(list)=>Array.isArray(list)
       ? list.map(f=>({src:String(f&&f.src||""),alt:String(f&&f.alt||""),label:String(f&&f.label||"")})).filter(f=>f.src) : [];
     DATA = src.map((q,i)=>({
@@ -2935,17 +2937,17 @@
   }
 
   /* ---------- ゲーム要素のヘルパー ---------- */
-  // 医療テーマの称号ランク（レベル帯で決まる）
+  // 称号ランク（レベル帯で決まる）。共通テスト「公共，政治・経済」の学習段階に合わせる。
   const RANKS=[
     {min:1, icon:"📗", name:"公民入門"},
-    {min:3, icon:"📘", name:"公民学習者"},
-    {min:5, icon:"🩺", name:"研修医"},
-    {min:8, icon:"💉", name:"専攻医"},
-    {min:12,icon:"🏥", name:"専門医"},
-    {min:16,icon:"🎓", name:"指導医"},
-    {min:21,icon:"🧪", name:"講師"},
-    {min:26,icon:"⚗️", name:"准教授"},
-    {min:31,icon:"👑", name:"教授"}
+    {min:3, icon:"📘", name:"基礎固め"},
+    {min:5, icon:"📝", name:"演習中級"},
+    {min:8, icon:"🗳", name:"政治に強い"},
+    {min:12,icon:"💹", name:"経済に強い"},
+    {min:16,icon:"⚖️", name:"公共に強い"},
+    {min:21,icon:"🏛", name:"過去問上級"},
+    {min:26,icon:"🎓", name:"共通テスト実戦"},
+    {min:31,icon:"👑", name:"公民マスター"}
   ];
   function rankInfo(level){ let r=RANKS[0]; for(const x of RANKS){ if(level>=x.min) r=x; } return r; }
   // コンボ倍率：セッション中の連続正解でXPが増える
@@ -3038,7 +3040,7 @@
     if(mode==="source") keys.sort((a,b)=>SOURCE_ORDER.indexOf(a)-SOURCE_ORDER.indexOf(b));
     return keys.map((k,i)=>({key:k,label:k,idx:i,items:map.get(k)}));
   }
-  /* --- 年度別の小分け（五択問題／記述問題） ---
+  /* --- 年度別の小分け（選択問題／記述問題） ---
      記述問題を含む年度だけが2つに分かれる。片方しか無い年度は従来どおり1枚のカードのまま。 */
   const SUBSEP="||";
   function splitByType(items){
@@ -3049,7 +3051,7 @@
     const t=splitByType(g.items||[]);
     if(!t.choice.length || !t.written.length) return [];   // 混在しているときだけ小分けする
     return [
-      {key:g.key+SUBSEP+"choice",      label:g.label+" ・ 五択問題", short:"五択問題", icon:"🔘", idx:g.idx, items:t.choice},
+      {key:g.key+SUBSEP+"choice",      label:g.label+" ・ 選択問題", short:"選択問題", icon:"🔘", idx:g.idx, items:t.choice},
       {key:g.key+SUBSEP+"constructed", label:g.label+" ・ 記述問題", short:"記述問題", icon:"✎", idx:g.idx, items:t.written}
     ];
   }
@@ -3131,7 +3133,14 @@
       window.scrollTo(0,0);
     };
     const reduce=matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if(document.startViewTransition&&!reduce){ document.startViewTransition(()=>change(false)); }
+    if(document.startViewTransition&&!reduce){
+      // 画面を素早く切り替えると前の遷移が捨てられ、finished が reject する。
+      // 拾わないと「Transition was skipped」が未処理の例外として上がるので、握りつぶす。
+      const vt=document.startViewTransition(()=>change(false));
+      if(vt&&vt.finished&&vt.finished.catch) vt.finished.catch(()=>{});
+      if(vt&&vt.ready&&vt.ready.catch) vt.ready.catch(()=>{});
+      if(vt&&vt.updateCallbackDone&&vt.updateCallbackDone.catch) vt.updateCallbackDone.catch(()=>{});
+    }
     else change(true);
   }
   function learningDestination(){
@@ -3251,22 +3260,22 @@
     // 授業要点も用語カードも持たない科目では「学習」の枠を総合演習にあてる
     const learnTile = subjectFlag("hideLearning")
       ? (examItems.length
-          ? {icon:"⏱",name:"総合演習",accent:"#6d5bd0",
+          ? {icon:"⏱",name:"総合演習",accent:"#3a4192",
              sub:`${examItems.length}問・${(examSet&&examSet.durationMinutes)||EXAM_MIN}分でまとめて解く`,
              go:openExamSection}
           : null)
-      : {icon:"▤",name:"学習",accent:"#6d5bd0",
+      : {icon:"▤",name:"学習",accent:"#3a4192",
          sub:cardMode?`${learningCards}枚のカードから理解を深める`:(decks.length?`${decks.length}回の授業要点を読む`:"授業要点を順次追加中"),
          go:openLearning};
     const items=[
       learnTile,
-      {icon:"▶",name:"問題演習",accent:"#0f6d80",sub:`${DATA.length}問から範囲を選んで解く`,go:()=>openView("practiceView")},
-      {icon:"☷",name:"問題一覧",accent:"#2f7bdc",sub:`全${DATA.length}問を年度・形式別に確認`,go:openQBrowse},
-      {icon:"↻",name:"復習",accent:"#c5525a",
+      {icon:"▶",name:"問題演習",accent:"#6b4aa0",sub:`${DATA.length}問から範囲を選んで解く`,go:()=>openView("practiceView")},
+      {icon:"☷",name:"問題一覧",accent:"#9c4a86",sub:`全${DATA.length}問を年度・形式別に確認`,go:openQBrowse},
+      {icon:"↻",name:"復習",accent:"#b8474f",
         sub:reviewN?`今日 ${reviewN}件 ・ 苦手 ${weakN}問`:`苦手 ${weakN}問 ・ 見直し ${bmN}問`,
         go:()=>openView("reviewView")},
-      {icon:"▧",name:"暗記カード",accent:"#b45309",sub:"自分のデッキと、科目の公式デッキ",go:()=>openView("memoryCardsView")},
-      {icon:"⌕",name:"問題検索",accent:"#8a6f2a",sub:"キーワードから目的の問題をすばやく探す",wide:true,go:openSearch}
+      {icon:"▧",name:"暗記カード",accent:"#b06a1e",sub:"自分のデッキと、科目の公式デッキ",go:()=>openView("memoryCardsView")},
+      {icon:"⌕",name:"問題検索",accent:"#7a6a2e",sub:"キーワードから目的の問題をすばやく探す",wide:true,go:openSearch}
     ].filter(Boolean);
     grid.innerHTML=items.map((it,i)=>`<button type="button" class="hubBtn primaryHub${it.wide?" searchHub":""}" data-i="${i}" style="--hub-accent:${it.accent}">
       <span class="hubIcon">${it.icon}</span>
@@ -3552,7 +3561,7 @@
       const right=(isWeak||isBookmark)?`<span class="badge">${g.items.length}問</span>`:`<span class="badge">${s.total}問</span>${mastered}`;
       const subs = mode==="year" ? subGroups(g) : [];
       const meta2 = subs.length
-        ? `<div class="meta"><span>${s.seen}/${s.total}問 学習</span><span>五択 ${subs[0].items.length}問</span><span>記述 ${subs[1].items.length}問</span></div>`
+        ? `<div class="meta"><span>${s.seen}/${s.total}問 学習</span><span>選択 ${subs[0].items.length}問</span><span>記述 ${subs[1].items.length}問</span></div>`
         : `<div class="meta"><span>${s.seen}/${s.total}問 学習</span><span>${accText}</span>${s.weak?`<span>苦手 ${s.weak}問</span>`:''}</div>`;
       const card = `<button type="button" class="cat ${isWeak?'weakcat':''} ${isBookmark?'bookmarkcat':''} ${mode==="year"||mode==="prediction"||mode==="special"||mode==="source"?'cat-year':'cat-field'}" data-key="${esc(g.key)}" style="--accent:${accent};--pct:${pct}%">
         <div class="info">
@@ -3967,7 +3976,7 @@
   }
   function renderSearchResults(query, matches){
     const box=$("#searchResults"), act=$("#searchActions"), qs=String(query||"").trim();
-    if(!qs){ act.classList.add("hidden"); box.innerHTML=`<div class="empty">キーワードを入力すると、該当する問題が一覧表示されます。<br>例：「ケトン体」「尿素回路」「コレステロール」「フェロケラターゼ」<br><br>複数の語をスペースで区切ると絞り込めます（例：脂肪酸 合成）。</div>`; return; }
+    if(!qs){ act.classList.add("hidden"); box.innerHTML=`<div class="empty">キーワードを入力すると、該当する問題が一覧表示されます。<br>例：「国会」「裁判所」「社会保障」「企業」<br><br>複数の語をスペースで区切ると絞り込めます（例：市場 価格）。</div>`; return; }
     if(!matches.length){ act.classList.add("hidden"); box.innerHTML=`<div class="empty">「${esc(qs)}」に一致する問題は見つかりませんでした。<br>別のキーワードでお試しください。</div>`; return; }
     act.classList.remove("hidden");
     act.innerHTML=`<span class="srCount">${matches.length}問 ヒット</span><button type="button" class="btn small" id="srPracticeAll">この${matches.length}問をまとめて演習</button>`;
@@ -4513,7 +4522,7 @@
     const g=qbGroups();
     let html="";
     if(g.exam.length){
-      html+=`<div class="qbSectLabel">📅 年度別（本試験・五択問題）</div><div class="qbGroupList">`+
+      html+=`<div class="qbSectLabel">📅 年度別（本試験）</div><div class="qbGroupList">`+
         g.exam.map((x,i)=>qbGroupBtn(x,QB_EXAM_ICONS[i%QB_EXAM_ICONS.length])).join("")+`</div>`;
     }
     if(g.written.length){
@@ -4682,7 +4691,7 @@
   function sameSet(a,b){ if(a.length!==b.length) return false; const s2=new Set(b); return a.every(v=>s2.has(v)); }
 
   /* ---------- 大問（groupId）のまとまり ----------
-     原本で1つの大問になっている小問は、バラバラに出すと実験文・症例文との対応が追えない。
+     原本で1つの大問になっている小問は、バラバラに出すと会話文・資料との対応が追えない。
      出題の単位は「ページ」にして、同じ大問の小問は1画面へまとめて並べる。
      採点・XP・苦手判定・FSRSは今までどおり小問ごとに記録する（学習履歴の互換のため）。 */
 
@@ -5961,7 +5970,7 @@
     }).catch(()=>{});
   }
 
-  /* 大問の共通設問文（実験文・症例文と共通の図）。
+  /* 大問の共通資料（会話文・図表）。
      大問のページでは小問の上に1回だけ出す。長いので折りたたみにして既定は開いておく。 */
   function renderStem(q,figures){
     const box=$("#qStem"); if(!box) return;
@@ -6031,7 +6040,7 @@
     $("#qtag").textContent=s.exam ? s.label : (s.batch?`${baseTag} ・ まとめて採点`:baseTag);
     updateBookmarkBtn(first.id);
 
-    // 大問の見出し（問13 ウシガエル摘出心実験 ・ 17点 ・ 小問5問）
+    // 大問の見出し（第1問 生徒Ａ・生徒Ｂの会話 ・ 17点 ・ 小問5問）
     const gh=$("#qGroupHead");
     if(page.groupId){
       const cat=splitCategory(first.category);
@@ -6652,7 +6661,7 @@
 
   /* ---------- 演出 ---------- */
   function confetti(){
-    const cols=["#0f6d80","#1e3f77","#2fd27a","#b8860b","#e6c266","#4fc6d6"];
+    const cols=["#3a4192","#7a4aa8","#9c4a86","#a8791b","#2f7d4f","#c79ae8"];
     for(let i=0;i<60;i++){ const p=document.createElement("div"); p.className="confetti";
       p.style.left=Math.random()*100+"vw"; p.style.background=cols[i%cols.length];
       p.style.animationDuration=(1.6+Math.random()*1.4)+"s"; p.style.animationDelay=(Math.random()*.4)+"s";
@@ -6780,7 +6789,7 @@
 
   /* ---------- テーマ切替 ---------- */
   function applyTheme(mode){ if(mode) document.documentElement.setAttribute("data-theme",mode); else document.documentElement.removeAttribute("data-theme"); updateThemeColor(); }
-  function updateThemeColor(){ try{ const cur=document.documentElement.getAttribute("data-theme"); const isDark=cur?cur==="dark":matchMedia("(prefers-color-scheme: dark)").matches; const m=document.getElementById("themeColorMeta"); if(m) m.setAttribute("content", isDark?"#0d1118":"#e8f1f4"); }catch(e){} }
+  function updateThemeColor(){ try{ const cur=document.documentElement.getAttribute("data-theme"); const isDark=cur?cur==="dark":matchMedia("(prefers-color-scheme: dark)").matches; const m=document.getElementById("themeColorMeta"); if(m) m.setAttribute("content", isDark?"#131020":"#efe8d9"); }catch(e){} }
   (function(){ try{ const t=localStorage.getItem(THEME_KEY); if(t) applyTheme(t); }catch(e){} })();
   function toggleTheme(){
     const cur=document.documentElement.getAttribute("data-theme");
@@ -6800,42 +6809,12 @@
   // 科目が1つしかないときはメニューの「科目をえらぶ」も出さない
   (function(){ const b=$("#menuSubjects"); if(b && SUBJECTS.length<2) b.classList.add("hidden"); })();
 
-  /* ---------- データ読込 / リセット ---------- */
-  $("#importBtn").onclick=()=>$("#fileInput").click();
-  $("#fileInput").onchange=e=>{
-    const f=e.target.files[0]; if(!f)return; const rd=new FileReader();
-    rd.onload=()=>{ try{
-        let data; if(/\.(csv|txt)$/i.test(f.name)) data=parseCSV(rd.result); else data=JSON.parse(rd.result);
-        if(!Array.isArray(data)||!data.length) throw new Error("配列形式の問題データが見つかりません");
-        localStorage.setItem(DATA_KEY, JSON.stringify(data)); loadData(); renderHome(); toast(`✅ ${DATA.length}問を読み込みました`);
-      }catch(err){ alert("読み込みに失敗しました:\n"+err.message); } };
-    rd.readAsText(f,"utf-8"); e.target.value="";
-  };
+  /* ---------- 記録リセット ---------- */
   $("#resetBtn").onclick=()=>{
     if(!confirm("学習記録（正誤・苦手・見直したい問題・レベル・実績・記述問題の答案履歴・採点待ちの試験）をすべて削除しますか？\n\n※ この端末にしか記録はありません。消すと元に戻せません。")) return;
     progress={}; meta={}; loadMeta(); saveProgress(); saveMeta();
     const wa=WA(); if(wa){ try{ wa.deleteAll(); }catch(e){} }
     renderHome(); toast("🗑 記録をリセットしました"); };
-
-  function parseCSV(text){
-    const rows=csvRows(text).filter(r=>r.some(c=>c.trim()!=="")); if(!rows.length) return [];
-    let start=0; const h=rows[0].map(x=>x.toLowerCase());
-    if(h.includes("question")||h.includes("問題")||h.includes("問題文")) start=1;
-    const out=[];
-    for(let i=start;i<rows.length;i++){ const r=rows[i];
-      const choices=[r[3],r[4],r[5],r[6],r[7]].filter(c=>c!=null&&c.trim()!=="");
-      let ans=parseInt(r[8],10); if(isNaN(ans))ans=1;
-      out.push({ id:"csv_"+i, year:(r[0]||"").trim(), field:(r[1]||"").trim(), question:(r[2]||"").trim(),
-        choices, answer:Math.max(0,Math.min(choices.length-1,ans-1)), explanation:(r[9]||"").trim() }); }
-    return out;
-  }
-  function csvRows(text){
-    const rows=[]; let row=[],cell="",q=false; text=text.replace(/\r\n?/g,"\n");
-    for(let i=0;i<text.length;i++){ const ch=text[i];
-      if(q){ if(ch==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else q=false; } else cell+=ch; }
-      else { if(ch==='"')q=true; else if(ch===','){row.push(cell);cell="";} else if(ch==='\n'){row.push(cell);rows.push(row);row=[];cell="";} else cell+=ch; } }
-    if(cell!==""||row.length){ row.push(cell); rows.push(row); } return rows;
-  }
 
   /* ---------- 起動 ---------- */
   // 科目データは非同期で読むため、DATAが入るまで renderHome() を待つ。

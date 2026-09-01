@@ -108,19 +108,22 @@ describe("ビルド済みアプリの起動", () => {
     expect(win.document.getElementById("subjectPicker")!.classList.contains("hidden")).toBe(true);
   });
 
-  it("公共・政治経済の30問を読み込んでいる", () => {
-    expect(win.QUIZ_DATA).toHaveLength(30);
+  it("subjects.js が宣言した問題数をそのまま読み込んでいる", () => {
+    expect(win.QUIZ_DATA).toHaveLength(win.SUBJECTS[0].expectQuestions);
     expect(win.SUBJECTS).toHaveLength(1);
     expect(win.document.getElementById("appTitle")!.textContent).toContain("公共・政治経済");
   });
 
-  it("ホームに総合演習カードが出て、30問・60分と案内される", () => {
+  it("演習画面に総合演習カードが出て、問題数と制限時間が案内される", async () => {
+    const set = win.EXAM_SETS[0];
+    hub("問題演習").click();
+    await tick(250);
     const section = win.document.getElementById("examSection")!;
     expect(section.classList.contains("hidden")).toBe(false);
     expect(win.document.getElementById("examCardTitle")!.textContent).toContain("総合演習");
     const sub = win.document.getElementById("examCardSub")!.textContent!;
-    expect(sub).toContain("30問");
-    expect(sub).toContain("60分");
+    expect(sub).toContain(`${set.questionCount}問`);
+    expect(sub).toContain(`${set.durationMinutes}分`);
   });
 
   it("ホームのハブに総合演習が並び、「学習」は出ない", () => {
@@ -150,9 +153,10 @@ describe("ビルド済みアプリの起動", () => {
     // field：細かい単元
     expect(labels("fieldList").length).toBeGreaterThan(5);
 
-    // 各分野が10問ずつであることが画面にも出ている
+    // 分野ごとの問題数が subjects.js の宣言どおり画面にも出ている
+    const counts = win.SUBJECTS[0].expectDomainCounts;
     const badges = [...win.document.querySelectorAll("#domainList .cat .badge")].map((e: any) => e.textContent);
-    expect(badges).toEqual(["10問", "10問", "10問"]);
+    expect(badges).toEqual(["公共", "政治", "経済"].map((d) => `${counts[d]}問`));
   });
 });
 
@@ -189,7 +193,8 @@ describe("演習と採点", () => {
     expect(notes[q.answer].textContent).toContain(q.choiceNotes[q.answer].slice(0, 15));
   });
 
-  it("60分の総合演習は30問で始まり、提出まで正誤も解説も出さない", async () => {
+  it("総合演習は制限時間つきで始まり、提出まで正誤も解説も出さない", async () => {
+    const set = win.EXAM_SETS[0];
     hub("総合演習").click();
     await tick(300);
     expect(win.document.getElementById("practiceView")!.classList.contains("hidden")).toBe(false);
@@ -199,11 +204,11 @@ describe("演習と採点", () => {
 
     const timer = win.document.getElementById("examTimer")!;
     expect(timer.classList.contains("hidden")).toBe(false);
-    expect(timer.textContent).toMatch(/^⏱ (59|60):/);
+    expect(timer.textContent).toMatch(new RegExp(`^⏱ (${set.durationMinutes - 1}|${set.durationMinutes}):`));
 
-    // 出題数は総合演習セットの30問
+    // 出題数は総合演習セットの宣言どおり
     expect(win.document.querySelectorAll("#qBlocks .qtext").length).toBeGreaterThan(0);
-    expect(win.document.getElementById("counter")!.textContent).toContain("/ 30");
+    expect(win.document.getElementById("counter")!.textContent).toContain(`/ ${set.questionCount}`);
 
     // 解答しても、提出するまで正誤も解説も出さない
     const choices = win.document.querySelectorAll("#qBlocks .choice");
@@ -217,16 +222,20 @@ describe("演習と採点", () => {
 });
 
 describe("総合演習の提出と結果", () => {
-  it("30問すべてに答えて提出すると、得点と結果が出る", async () => {
+  it("総合演習の全問に答えて提出すると、得点と結果が出る", async () => {
+    const set = win.EXAM_SETS[0];
+    const total = win.QUIZ_DATA
+      .filter((q: any) => q.examSetId === set.id)
+      .reduce((sum: number, q: any) => sum + (q.points ?? 0), 0);
     hub("総合演習").click();
     await tick(300);
     click("#examCard");
     await tick(450);
     expect(visibleScreen()).toBe("quiz");
 
-    // 30ページを順に、その問題の正解を選んで進む
+    // 各ページを順に、その問題の正解を選んで進む
     let answered = 0;
-    for (let page = 0; page < 30; page += 1) {
+    for (let page = 0; page < set.questionCount; page += 1) {
       const shown = win.document.querySelector("#qBlocks .qtext")!.textContent!.trim();
       const q = win.QUIZ_DATA.find((x: any) => shown.startsWith(x.question.trim().slice(0, 30)));
       expect(q, `${page + 1}ページ目の問題を特定できません`).toBeTruthy();
@@ -238,13 +247,13 @@ describe("総合演習の提出と結果", () => {
       click("#nextBtn");                    // 最後の1回で提出（confirm はテスト側で true）
       await tick(60);
     }
-    expect(answered).toBe(30);
+    expect(answered).toBe(set.questionCount);
     await tick(400);
 
     expect(visibleScreen()).toBe("result");
     const result = win.document.getElementById("result")!.textContent!;
-    // 全問正解なので満点。配点の合計は93点
-    expect(result).toContain("93");
+    // 全問正解なので満点（配点の合計）
+    expect(result).toContain(String(total));
     expect(result).toContain("公共・政治経済 総合演習 第1回");
   }, 30_000);
 });
