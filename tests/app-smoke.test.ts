@@ -114,21 +114,9 @@ describe("ビルド済みアプリの起動", () => {
     expect(win.document.getElementById("appTitle")!.textContent).toContain("公共・政治経済");
   });
 
-  it("演習画面に総合演習カードが出て、問題数と制限時間が案内される", async () => {
-    const set = win.EXAM_SETS[0];
-    hub("問題演習").click();
-    await tick(250);
-    const section = win.document.getElementById("examSection")!;
-    expect(section.classList.contains("hidden")).toBe(false);
-    expect(win.document.getElementById("examCardTitle")!.textContent).toContain("総合演習");
-    const sub = win.document.getElementById("examCardSub")!.textContent!;
-    expect(sub).toContain(`${set.questionCount}問`);
-    expect(sub).toContain(`${set.durationMinutes}分`);
-  });
-
-  it("ホームのハブに総合演習が並び、「学習」は出ない", () => {
+  it("ホームのハブに「学習」も「総合演習」も出ない", () => {
     const names = [...win.document.querySelectorAll("#hubGrid .hubName")].map((e: any) => e.textContent);
-    expect(names).toContain("総合演習");
+    expect(names).not.toContain("総合演習");
     expect(names).not.toContain("学習");
     expect(names).toEqual(expect.arrayContaining(["問題演習", "問題一覧", "復習", "暗記カード", "問題検索"]));
   });
@@ -192,70 +180,6 @@ describe("演習と採点", () => {
     const notes = win.document.querySelectorAll("#qBlocks .choiceNote");
     expect(notes[q.answer].textContent).toContain(q.choiceNotes[q.answer].slice(0, 15));
   });
-
-  it("総合演習は制限時間つきで始まり、提出まで正誤も解説も出さない", async () => {
-    const set = win.EXAM_SETS[0];
-    hub("総合演習").click();
-    await tick(300);
-    expect(win.document.getElementById("practiceView")!.classList.contains("hidden")).toBe(false);
-    click("#examCard");                        // confirm はテスト側で true
-    await tick(450);
-    expect(visibleScreen()).toBe("quiz");
-
-    const timer = win.document.getElementById("examTimer")!;
-    expect(timer.classList.contains("hidden")).toBe(false);
-    expect(timer.textContent).toMatch(new RegExp(`^⏱ (${set.durationMinutes - 1}|${set.durationMinutes}):`));
-
-    // 出題数は総合演習セットの宣言どおり
-    expect(win.document.querySelectorAll("#qBlocks .qtext").length).toBeGreaterThan(0);
-    expect(win.document.getElementById("counter")!.textContent).toContain(`/ ${set.questionCount}`);
-
-    // 解答しても、提出するまで正誤も解説も出さない
-    const choices = win.document.querySelectorAll("#qBlocks .choice");
-    (choices[0] as any).click();
-    await tick(200);
-    expect(win.document.querySelector("#qBlocks .choice.correct")).toBeNull();
-    expect(win.document.querySelector("#qBlocks .choice.wrong")).toBeNull();
-    const explain = win.document.querySelector("#qBlocks .explain") as HTMLElement | null;
-    expect(explain === null || explain.classList.contains("hidden") || !explain.textContent!.trim()).toBe(true);
-  });
-});
-
-describe("総合演習の提出と結果", () => {
-  it("総合演習の全問に答えて提出すると、得点と結果が出る", async () => {
-    const set = win.EXAM_SETS[0];
-    const total = win.QUIZ_DATA
-      .filter((q: any) => q.examSetId === set.id)
-      .reduce((sum: number, q: any) => sum + (q.points ?? 0), 0);
-    hub("総合演習").click();
-    await tick(300);
-    click("#examCard");
-    await tick(450);
-    expect(visibleScreen()).toBe("quiz");
-
-    // 各ページを順に、その問題の正解を選んで進む
-    let answered = 0;
-    for (let page = 0; page < set.questionCount; page += 1) {
-      const shown = win.document.querySelector("#qBlocks .qtext")!.textContent!.trim();
-      const q = win.QUIZ_DATA.find((x: any) => shown.startsWith(x.question.trim().slice(0, 30)));
-      expect(q, `${page + 1}ページ目の問題を特定できません`).toBeTruthy();
-      const choices = win.document.querySelectorAll("#qBlocks .choice");
-      expect(choices.length).toBe(q.choices.length);
-      (choices[q.answer] as any).click();
-      answered += 1;
-      await tick(30);
-      click("#nextBtn");                    // 最後の1回で提出（confirm はテスト側で true）
-      await tick(60);
-    }
-    expect(answered).toBe(set.questionCount);
-    await tick(400);
-
-    expect(visibleScreen()).toBe("result");
-    const result = win.document.getElementById("result")!.textContent!;
-    // 全問正解なので満点（配点の合計）
-    expect(result).toContain(String(total));
-    expect(result).toContain("公共・政治経済 総合演習 第1回");
-  }, 30_000);
 });
 
 describe("手動バックアップ（画面から）", () => {

@@ -16,7 +16,6 @@ function loadBrowserData(file: string, globalName: string): any[] {
 }
 
 const subjects = loadBrowserData("public/subjects.js", "SUBJECTS");
-const examSets = loadBrowserData("public/subjects.js", "EXAM_SETS");
 const civics = subjects.find((s) => s.id === "civics");
 const questions = loadBrowserData(path.join("public", civics.questions), "QUIZ_DATA");
 
@@ -79,19 +78,6 @@ describe("公共・政治経済の収録教材", () => {
         expect(String(q[altKey] ?? "").trim().length).toBeGreaterThan(0);
       }
     }
-  });
-
-  it("総合演習 pilot-001 に全問が登録され、出題順に重複がない", () => {
-    const set = examSets.find((s) => s.id === "pilot-001");
-    expect(set).toBeTruthy();
-    expect(set.durationMinutes).toBeGreaterThan(0);
-    const members = questions.filter((q) => q.examSetId === "pilot-001");
-    expect(members).toHaveLength(set.questionCount);
-    expect(members).toHaveLength(questions.length);
-    const orders = members.map((q) => q.examOrder);
-    expect(new Set(orders).size).toBe(orders.length);
-    expect(Math.min(...orders)).toBe(1);
-    expect(Math.max(...orders)).toBe(members.length);
   });
 
   it("出典区分ごとの内訳を記録する（配分が変わったら気づけるように）", () => {

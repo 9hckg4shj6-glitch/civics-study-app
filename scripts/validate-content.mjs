@@ -164,7 +164,6 @@ function main() {
 
 const subjects = loadBrowserData("public/subjects.js", "SUBJECTS");
 if (!subjects.length) throw new Error("public/subjects.js に科目が1つも登録されていません");
-const examSets = loadBrowserData("public/subjects.js", "EXAM_SETS", { optional: true });
 
 const errors = [];
 const ids = new Set();          // IDは科目をまたいで一意でなければならない
@@ -321,16 +320,6 @@ for (const subject of subjects) {
     ids.add(id);
     if (!term?.term) errors.push(`[${label}] 用語カード ${id}: 表面がありません`);
     if (term.image && !fs.existsSync(path.join("public", term.image))) errors.push(`[${label}] 用語カード ${id}: 画像がありません (${term.image})`);
-  }
-
-  // 総合演習セット（window.EXAM_SETS）に宣言した問題数と、実際の収録数を突き合わせる
-  for (const set of examSets) {
-    const members = questions.filter((q) => q?.examSetId === set.id);
-    if (!members.length) continue;
-    if (typeof set.questionCount === "number" && members.length !== set.questionCount) {
-      errors.push(`[${label}] 総合演習 ${set.id}: 問題数が想定と異なります: ${members.length} / ${set.questionCount}`);
-    }
-    if (!(Number(set.durationMinutes) > 0)) errors.push(`[${label}] 総合演習 ${set.id}: durationMinutes が正の数ではありません`);
   }
 
   // 分野（公共・政治・経済）の配分。均等配分を宣言した科目だけ検査する。

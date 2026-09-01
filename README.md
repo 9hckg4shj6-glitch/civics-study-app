@@ -128,7 +128,6 @@ URLを知っている人は誰でも開けるので、URLは生徒に直接渡�
 全問に「問題全体の要点と正解理由」（`explanation`）と、
 選択肢ひとつひとつの説明（`choiceNotes`）を付けている。
 
-10問すべてが総合演習セット `pilot-001`（10問・15分）に登録されている。
 新課程の「公共，政治・経済」は考察問題の比率が高いため、この方針では
 旧課程「政治・経済」からの一問一答が中心になる。
 
@@ -142,8 +141,7 @@ URLを知っている人は誰でも開けるので、URLは生徒に直接渡�
 
 1. `content/questions/*.json` に問題を足す（ファイル名順 → 配列順に連結される）
 2. 図を使うなら `public/images/civics/` に置き、`imageAlt` を必ず付ける
-3. `public/subjects.js` の `expectQuestions` と `expectDomainCounts`、
-   総合演習を増やすなら `window.EXAM_SETS` を更新する
+3. `public/subjects.js` の `expectQuestions` と `expectDomainCounts` を更新する
 
 `public/subjects/civics/questions.js` は**生成物なので直接編集しない**。
 
@@ -222,7 +220,7 @@ npm test
 - `tests/civics-content.test.ts` — 収録教材そのものの検証（問数・分野配分・ID・出典・選択肢別解説）
 - `tests/backup.test.ts` — 手動バックアップの往復（暗記カード・デッキ・復習予定・分類）
 - `tests/app-smoke.test.ts` — ビルド済み `dist/` を jsdom で実際に起動し、
-  ログイン画面が出ないこと・演習と採点・60分の総合演習・バックアップ画面を確認する
+  ログイン画面が出ないこと・演習と採点・バックアップ画面を確認する
   （`dist/` が必要なので、先に `npm run build` を実行しておく）
 - `tests/no-legacy-content.test.ts` — このアプリは基礎医学演習アプリの画面をもとに
   作ったので、生化学の用語や医師のキャリアを使った文言が `dist/` に残っていないかを見張る
