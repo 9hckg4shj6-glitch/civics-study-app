@@ -326,6 +326,7 @@
     font-size:15px;font-weight:900;color:var(--accent,var(--brand));background:var(--card2);
     border:1px solid var(--line);transition:transform .22s ease}
   .sectToggle[aria-expanded="true"] .stChev{transform:rotate(90deg)}
+
   .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;
     padding:16px;box-shadow:var(--shadow)}
   .homeLead{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 15px;
@@ -1288,7 +1289,7 @@
   .sectlabel::after{background:linear-gradient(90deg,var(--line),transparent)}
   .grid{gap:12px}
   @media(min-width:760px){
-    #fieldList.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    #fieldList.grid,#themeFieldList.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   }
   .cat{
     width:100%;min-height:112px;align-items:stretch;text-align:left;color:var(--text);
@@ -1364,7 +1365,7 @@
     .homeLead{grid-template-columns:1fr;padding:19px;border-radius:18px}
     .leadStats{grid-template-columns:repeat(3,1fr)}
     .leadStat{padding:10px 6px}.leadStat b{font-size:20px}
-    #fieldList.grid{grid-template-columns:1fr}
+    #fieldList.grid,#themeFieldList.grid{grid-template-columns:1fr}
     .cat{min-height:106px;padding:14px;gap:11px}
     .cat .rt{min-width:auto}.cat .badge{display:none}
     .sectToggle{padding:13px 14px;gap:10px}
@@ -1755,53 +1756,71 @@
       </div>
     </div>
 
+    <div class="homeMainLabel"><b>演習範囲</b><span>解きたい範囲を選んで始める</span></div>
+
+    <div class="homeSection rangeSection" id="fieldSection">
+      <button type="button" class="sectToggle" data-toggle="fieldList" data-hint="static" aria-expanded="false" style="--accent:#1f8a62">
+        <span class="stIcon" aria-hidden="true">◈</span>
+        <span class="stMain"><span class="stLabel">テーマ別</span><span class="stHint">公共・政治・経済を選ぶと、その分野の項目が開く</span></span>
+        <span class="stCount"></span><span class="stChev">›</span>
+      </button>
+      <div id="fieldList" class="grid hidden"></div>
+    </div>
+
     <div class="homeSection rangeSection" id="domainSection">
-      <button type="button" class="sectToggle" data-toggle="domainList" aria-expanded="false" style="--accent:#3a4192">
-        <span class="stMain"><span class="stLabel">分野別（公共・政治・経済）</span><span class="stHint">タップして表示</span></span>
+      <button type="button" class="sectToggle" data-toggle="domainList" data-hint="static" aria-expanded="false" style="--accent:#3a4192">
+        <span class="stIcon" aria-hidden="true">◧</span>
+        <span class="stMain"><span class="stLabel">分野別</span><span class="stHint">公共・政治・経済から選ぶ</span></span>
         <span class="stCount"></span><span class="stChev">›</span>
       </button>
       <div id="domainList" class="grid hidden"></div>
     </div>
 
     <div class="homeSection rangeSection" id="sourceSection">
-      <button type="button" class="sectToggle" data-toggle="sourceList" aria-expanded="false" style="--accent:#7a4aa8">
-        <span class="stMain"><span class="stLabel">出典別</span><span class="stHint">タップして表示</span></span>
+      <button type="button" class="sectToggle" data-toggle="sourceList" data-hint="static" aria-expanded="false" style="--accent:#7a4aa8">
+        <span class="stIcon" aria-hidden="true">▥</span>
+        <span class="stMain"><span class="stLabel">出典別</span><span class="stHint">課程・試験の種類から選ぶ</span></span>
         <span class="stCount"></span><span class="stChev">›</span>
       </button>
       <div id="sourceList" class="grid hidden"></div>
     </div>
 
     <div class="homeSection rangeSection" id="yearSection">
-      <button type="button" class="sectToggle" data-toggle="yearList" aria-expanded="false" style="--accent:#9c4a86">
-        <span class="stMain"><span class="stLabel">年度別</span><span class="stHint">タップして表示</span></span>
+      <button type="button" class="sectToggle" data-toggle="yearList" data-hint="static" aria-expanded="false" style="--accent:#9c4a86">
+        <span class="stIcon" aria-hidden="true">◷</span>
+        <span class="stMain"><span class="stLabel">年度別</span><span class="stHint">出題された年度から選ぶ</span></span>
         <span class="stCount"></span><span class="stChev">›</span>
       </button>
       <div id="yearList" class="grid hidden"></div>
     </div>
 
     <div class="homeSection rangeSection" id="predictionSection">
-      <button type="button" class="sectToggle" data-toggle="predictionList" aria-expanded="false" style="--accent:#6b4aa0">
-        <span class="stMain"><span class="stLabel">予想問題</span><span class="stHint">タップして表示</span></span>
+      <button type="button" class="sectToggle" data-toggle="predictionList" data-hint="static" aria-expanded="false" style="--accent:#6b4aa0">
+        <span class="stIcon" aria-hidden="true">◇</span>
+        <span class="stMain"><span class="stLabel">予想問題</span><span class="stHint">過去問にない論点を補う自作問題</span></span>
         <span class="stCount"></span><span class="stChev">›</span>
       </button>
       <div id="predictionList" class="grid hidden"></div>
     </div>
 
     <div class="homeSection rangeSection" id="specialSection">
-      <button type="button" class="sectToggle" data-toggle="specialList" aria-expanded="false" style="--accent:#c2410c">
-        <span class="stMain"><span class="stLabel">直前スペシャル問題</span><span class="stHint">タップして表示</span></span>
+      <button type="button" class="sectToggle" data-toggle="specialList" data-hint="static" aria-expanded="false" style="--accent:#c2410c">
+        <span class="stIcon" aria-hidden="true">◆</span>
+        <span class="stMain"><span class="stLabel">直前スペシャル問題</span><span class="stHint">試験前に要点をまとめて確かめる</span></span>
         <span class="stCount"></span><span class="stChev">›</span>
       </button>
       <div id="specialList" class="grid hidden"></div>
     </div>
+  </section>
 
-    <div class="homeSection rangeSection" id="fieldSection">
-      <button type="button" class="sectToggle" data-toggle="fieldList" aria-expanded="false" style="--accent:#1f8a62">
-        <span class="stMain"><span class="stLabel">テーマ別（細かい単元）</span><span class="stHint">タップして表示</span></span>
-        <span class="stCount"></span><span class="stChev">›</span>
-      </button>
-      <div id="fieldList" class="grid hidden"></div>
+  <!-- ===== VIEW: テーマ別の小分け項目（公共・政治・経済を選んだあとに開く） ===== -->
+  <section id="themeFieldView" class="hidden">
+    <div class="reviewTop">
+      <button class="btn ghost small" id="themeFieldBack">← 問題演習</button>
+      <span class="pill" id="themeFieldPill">テーマ別</span>
     </div>
+    <div class="homeMainLabel"><b id="themeFieldTitle">テーマ別</b><span id="themeFieldSub">項目を選んで演習を始める</span></div>
+    <div id="themeFieldList" class="grid"></div>
   </section>
 
   <!-- ===== VIEW: カード ===== -->
@@ -2160,6 +2179,15 @@
   };
   const DOMAIN_ORDER = ["公共", "政治", "経済"];
   const SOURCE_ORDER = Object.keys(SOURCE_TYPE_LABELS).map(k=>SOURCE_TYPE_LABELS[k]);
+  /* 小分け項目（単元）の並び順。NEXT_WORK.md「4. 分野分類の基本表」＝政治経済塾の単元順に合わせる。
+     ここに無い field は末尾へ回す（表を改訂したらこの配列も一緒に直すこと）。 */
+  const FIELD_ORDER = [
+    "民主政治","世界の政治","平和主義","基本的人権","国会","内閣","裁判所","地方自治",
+    "政党・選挙","国際連合","東西冷戦","地域紛争",
+    "資本主義・社会主義","日本の企業","需要・供給曲線","国民所得の計算","金融","財政",
+    "日本経済史","経済諸問題","労働問題","社会保障","国際貿易体制","国際経済の課題","地球規模の問題",
+    "青年期と自己形成","現代の思想","宗教と文化","思考の方法","情報社会とメディア"
+  ];
 
 
   /* ---------- データ読み込み ---------- */
@@ -3005,10 +3033,33 @@
       {key:g.key+SUBSEP+"constructed", label:g.label+" ・ 記述問題", short:"記述問題", icon:"✎", idx:g.idx, items:t.written}
     ];
   }
+  /* --- テーマ別：公共・政治・経済 → その分野に属する小分け項目（単元） ---
+     field だけで束ねると「基本的人権（公共・政治）」のように大分野をまたいで混ざるので、
+     テーマ別のキーは「大分野::単元」にして、選んだ分野の中だけで演習できるようにする。 */
+  const THEME_SEP="::";
+  function fieldOrderIndex(f){ const i=FIELD_ORDER.indexOf(f); return i<0?FIELD_ORDER.length:i; }
+  function themeFieldGroups(domain){
+    if(!domain) return [];
+    const map=new Map();
+    DATA.forEach(q=>{ if(q.domain!==domain||!q.field) return; if(!map.has(q.field)) map.set(q.field,[]); map.get(q.field).push(q); });
+    return [...map.keys()]
+      .sort((a,b)=>fieldOrderIndex(a)-fieldOrderIndex(b)||a.localeCompare(b,"ja"))
+      .map((f,i)=>({key:domain+THEME_SEP+f, label:domain+" ・ "+f, short:f, domain, idx:i, items:map.get(f)}));
+  }
+  function themeDomains(){
+    return DOMAIN_ORDER
+      .map(d=>({key:d, label:d, items:DATA.filter(q=>q.domain===d), fields:themeFieldGroups(d)}))
+      .filter(d=>d.items.length)
+      .map((d,i)=>({...d, idx:i}));
+  }
   // 「続きから」やカード再取得で、年度キーだけでなく小分けキーも引けるようにする
   function resolveGroup(mode,key){
     const gs=groups(mode), k=String(key);
     const hit=gs.find(x=>String(x.key)===k); if(hit) return hit;
+    if(mode==="field" && k.includes(THEME_SEP)){
+      const t=themeFieldGroups(k.slice(0,k.indexOf(THEME_SEP))).find(x=>x.key===k);
+      if(t) return t;
+    }
     for(const g of gs){ const s=subGroups(g).find(x=>x.key===k); if(s) return s; }
     return null;
   }
@@ -3027,7 +3078,7 @@
   }
 
   /* ---------- ホーム（ハブ）と各画面（ビュー） ---------- */
-  const VIEWS=["inputView","practiceView","memoryCardsView","cardsView","reviewView","weakFieldView","statsView","mistakesView","moreView"];
+  const VIEWS=["inputView","practiceView","themeFieldView","memoryCardsView","cardsView","reviewView","weakFieldView","statsView","mistakesView","moreView"];
   const SCREEN_IDS=["home","quiz","result","search","flash","browse","qbrowse","subjectPicker","slideView","lessonView"].concat(VIEWS);
   let currentScreenId=null;
   let historyNavigation=false;
@@ -3041,7 +3092,7 @@
     if(ui&&ui.primaryNavKey) return ui.primaryNavKey(id);
     if(id==="home") return "home";
     if(["inputView","lessonView","memoryCardsView","cardsView","browse","flash"].includes(id)) return "learn";
-    if(["practiceView","quiz","result"].includes(id)) return "practice";
+    if(["practiceView","themeFieldView","quiz","result"].includes(id)) return "practice";
     if(id==="qbrowse") return qbrowseState.origin==="reviewView" ? "review" : "questions";
     if(id==="search") return "search";
     if(["reviewView","mistakesView","weakFieldView"].includes(id)) return "review";
@@ -3124,6 +3175,7 @@
   const SCREEN_RENDER={
     home:()=>{ renderLead(); renderDue(); },
     practiceView:()=>{ renderScopeLists(); renderQuick(); renderExamDay(); },
+    themeFieldView:()=>{ renderThemeFieldView(); },
     statsView:()=>{ renderHero(); renderKpis(); renderHeatmap(); renderAch(); },
     reviewView:()=>{ renderDue(); renderPlaylists(); renderReviewHub(); },
     moreView:()=>{ renderUpdatesHome(); }
@@ -3432,7 +3484,7 @@
     renderGroupList("year", "#yearList");
     renderGroupList("prediction", "#predictionList");
     renderGroupList("special", "#specialList");
-    renderGroupList("field", "#fieldList");
+    renderThemeDomainList();
   }
   function renderGroupList(mode, selector){
     const gs=groups(mode), list=$(selector);
@@ -3492,6 +3544,69 @@
     list.querySelectorAll(".catSub").forEach(el=>{ el.onclick=()=>{
       const sg=resolveGroup(mode, el.dataset.subkey); if(!sg) return;
       if(sg.items.length>1){ openCountModal(sg,mode); } else { startQuiz(sg.items,sg.label,{mode,key:sg.key}); } }; });
+  }
+
+  /* --- テーマ別（1段目）：公共・政治・経済の三択 --- */
+  function themeCard(o){
+    const s=catStats(o.items), pct=s.total?Math.round(s.seen/s.total*100):0;
+    return `<button type="button" class="cat cat-field" data-key="${esc(o.key)}" style="--accent:${o.accent};--pct:${pct}%">
+      <div class="info">
+        <div class="cat-kicker">${esc(o.kicker)}</div>
+        <h3>${esc(o.title)}</h3>
+        <div class="meta">${o.meta.map(m=>`<span>${esc(m)}</span>`).join("")}</div>
+        <div class="pbar"><i></i></div>
+      </div>
+      <div class="rt"><span class="badge">${s.total}問</span><span class="chev">${esc(o.chev)}</span></div>
+    </button>`;
+  }
+  function renderThemeDomainList(){
+    const list=$("#fieldList"); if(!list) return;
+    const ds=themeDomains();
+    updateSectionCount("fieldList", ds.reduce((n,d)=>n+d.fields.length,0));
+    if(!ds.length){
+      list.innerHTML=`<div class="empty">この分類の問題がありません。<br>questions.js に <b>domain</b> と <b>field</b> を設定してください。</div>`;
+      return;
+    }
+    list.innerHTML=ds.map(d=>{
+      const st=catStats(d.items);
+      return themeCard({
+        key:d.key, accent:ACCENTS[d.idx%ACCENTS.length], kicker:"テーマ別演習", title:d.label,
+        items:d.items, chev:"項目へ",
+        meta:[`${d.fields.length}項目`, `${st.seen}/${st.total}問 学習`].concat(st.weak?[`苦手 ${st.weak}問`]:[])
+      });
+    }).join("");
+    list.querySelectorAll(".cat").forEach(el=>{ el.onclick=()=>openThemeFields(el.dataset.key); });
+  }
+
+  /* --- テーマ別（2段目）：選んだ分野に属する小分け項目 --- */
+  let themeDomain=null;
+  function openThemeFields(domain){
+    if(!domain) return;
+    themeDomain=domain;
+    openView("themeFieldView");
+  }
+  function renderThemeFieldView(){
+    const list=$("#themeFieldList"); if(!list) return;
+    // 戻る操作などで分野が失われたときは、先頭の分野を開いておく
+    if(!themeDomain||!DATA.some(q=>q.domain===themeDomain)){ const first=themeDomains()[0]; themeDomain=first?first.key:null; }
+    const gs=themeFieldGroups(themeDomain);
+    const total=gs.reduce((n,g)=>n+g.items.length,0);
+    const pill=$("#themeFieldPill"); if(pill) pill.textContent=themeDomain?`テーマ別 ・ ${themeDomain}`:"テーマ別";
+    const title=$("#themeFieldTitle"); if(title) title.textContent=themeDomain?`${themeDomain}の項目`:"テーマ別";
+    const sub=$("#themeFieldSub");
+    if(sub) sub.textContent=gs.length?`${gs.length}項目 ・ ${total}問から選んで解く`:"この分野の問題はまだありません";
+    if(!gs.length){ list.innerHTML=`<div class="empty">この分野の問題はまだありません。</div>`; return; }
+    list.innerHTML=gs.map(g=>{
+      const st=catStats(g.items);
+      return themeCard({
+        key:g.key, accent:ACCENTS[g.idx%ACCENTS.length], kicker:`${themeDomain}のテーマ別演習`, title:g.short,
+        items:g.items, chev:"開始",
+        meta:[`${st.seen}/${st.total}問 学習`, st.seen?`正答率 ${st.acc}%`:"未学習"].concat(st.weak?[`苦手 ${st.weak}問`]:[])
+      });
+    }).join("");
+    list.querySelectorAll(".cat").forEach(el=>{ el.onclick=()=>{
+      const g=themeFieldGroups(themeDomain).find(x=>x.key===el.dataset.key); if(!g) return;
+      if(g.items.length>1){ openCountModal(g,"field"); } else { startQuiz(g.items,g.label,{mode:"field",key:g.key}); } }; });
   }
 
   const ACH=[
@@ -6056,6 +6171,7 @@
   document.querySelectorAll(".viewBack").forEach(b=>{ b.onclick=()=>renderHome("back"); });
   $("#mistakesBack").onclick=()=>openView("reviewView");
   $("#weakFieldBack").onclick=()=>openView("reviewView");
+  $("#themeFieldBack").onclick=()=>openView("practiceView");
   /* 問題検索 */
   $("#slideBack").onclick=closeSlideView;
   $("#lessonGroupBack").onclick=()=>{ lessonGroupOpen=null; renderLessonList(); window.scrollTo({top:0,behavior:"smooth"}); };
@@ -6358,7 +6474,8 @@
   function setSectionExpanded(btn, target, open){
     target.classList.toggle("hidden", !open);
     btn.setAttribute("aria-expanded", open ? "true" : "false");
-    const hint=btn.querySelector(".stHint");
+    // data-hint="static" のトグルは説明文をそのまま残す（開閉はシェブロンの向きで示す）
+    const hint=btn.dataset.hint==="static" ? null : btn.querySelector(".stHint");
     if(hint) hint.textContent = open ? "タップして閉じる" : "タップして表示";
   }
   document.querySelectorAll(".sectToggle").forEach(btn=>{

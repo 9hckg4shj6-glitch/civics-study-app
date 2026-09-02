@@ -16,6 +16,7 @@ describe("primary navigation state", () => {
   it("詳細画面も親タブへ対応付ける", () => {
     expect(primaryNavKey("lessonView")).toBe("learn");
     expect(primaryNavKey("quiz")).toBe("practice");
+    expect(primaryNavKey("themeFieldView")).toBe("practice");
     expect(primaryNavKey("qbrowse")).toBe("questions");
     expect(primaryNavKey("search")).toBe("search");
     expect(primaryNavKey("mistakesView")).toBe("review");

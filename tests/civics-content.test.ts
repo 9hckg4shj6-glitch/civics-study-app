@@ -83,8 +83,9 @@ describe("公共・政治経済の収録教材", () => {
   it("出典区分ごとの内訳を記録する（配分が変わったら気づけるように）", () => {
     const counts: Record<string, number> = {};
     for (const q of questions) counts[q.sourceType] = (counts[q.sourceType] ?? 0) + 1;
-    // 新課程「公共，政治・経済」2問／旧課程の共通テスト「政治・経済」8問。
-    // センター試験は大学入試センターが問題・正解を公開していないため試作版では収録していない。
-    expect(counts).toEqual({ "common-new": 2, "common-legacy": 8 });
+    // 新課程「公共，政治・経済」2問／旧課程の共通テスト「政治・経済」96問
+    //（令和7年度「旧政治・経済」3問、令和6年度26問、令和5年度24問、令和4年度16問、令和3年度第1日程27問）。
+    // センター試験は大学入試センターが問題・正解を公開していないため収録していない。
+    expect(counts).toEqual({ "common-new": 2, "common-legacy": 96 });
   });
 });

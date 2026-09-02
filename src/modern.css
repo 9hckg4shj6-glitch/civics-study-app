@@ -315,6 +315,44 @@ body:not(.has-subject) #subjectPicker{max-width:980px;margin-inline:auto}
   align-items:center;
 }
 .hubBtn.searchHub .hubIcon{margin-bottom:0}
+
+/* 問題演習の範囲えらび（テーマ別・分野別・出典別・年度別…）は、
+   ホームの学習メニューと同じタイルで見せる。横1列に積むので、寸法は
+   ホーム最下段の横長タイル（.hubBtn.searchHub）に合わせている。
+   .sectToggle は設定画面の「更新履歴」などでも使うため、
+   .rangeSection の中だけを上書きすること。
+   開閉するアコーディオンなので、右上のシェブロンだけは開いた向きへ回る。 */
+.rangeSection + .rangeSection{margin-top:14px}
+.rangeSection .sectToggle{
+  min-height:108px;
+  align-items:center;
+  margin:0;
+  padding:20px;
+  border-radius:22px;
+  gap:13px;
+  background:
+    linear-gradient(145deg,color-mix(in srgb,var(--accent,var(--brand)) 14%,transparent),transparent 60%),
+    var(--card);
+}
+.rangeSection .sectToggle::before{content:none}   /* 左端の色帯はホームのタイルには無い */
+.rangeSection .stIcon{
+  flex:0 0 auto;width:48px;height:48px;border-radius:14px;
+  display:grid;place-items:center;font-size:24px;
+  color:var(--accent,var(--brand));
+  background:color-mix(in srgb,var(--accent,var(--brand)) 20%,var(--card2));
+}
+.rangeSection .stLabel{font-size:18px}
+.rangeSection .stHint{white-space:normal;line-height:1.55;font-size:12px}
+/* シェブロンは絶対配置なので、件数バッジがその下へ潜り込まないよう右を空ける */
+.rangeSection .stCount{margin-right:34px}
+.rangeSection .stChev{
+  position:absolute;right:18px;top:18px;
+  width:28px;height:28px;border-radius:50%;
+  display:grid;place-items:center;font-size:15px;
+  color:var(--accent,var(--brand));
+  background:var(--card2);border:1px solid var(--line);
+}
+.rangeSection .grid:not(.hidden){margin-top:12px}
 .homeUtility{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
@@ -463,6 +501,12 @@ section.screen-enter-tab{animation:screenTab var(--motion-ui) ease both}
   .hubBtn.primaryHub .hubChev{right:12px;top:12px;width:24px;height:24px}
   .hubBtn.searchHub{min-height:96px;display:flex}
   .hubBtn.searchHub .hubIcon{margin:0 13px 0 0}
+  .rangeSection + .rangeSection{margin-top:10px}
+  .rangeSection .sectToggle{min-height:96px;padding:14px;gap:13px;border-radius:18px}
+  .rangeSection .stIcon{width:40px;height:40px;border-radius:13px;font-size:20px}
+  .rangeSection .stLabel{font-size:15px;line-height:1.35}
+  .rangeSection .stHint{font-size:10.5px;margin-top:4px}
+  .rangeSection .stChev{right:12px;top:12px;width:24px;height:24px}
   .homeUtility{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:16px;padding-top:14px}
   .utilityBtn{min-height:48px;padding:8px}
   .reviewTop{margin-bottom:14px}

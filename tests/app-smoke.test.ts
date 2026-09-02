@@ -54,6 +54,13 @@ function click(selector: string): void {
 }
 const tick = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** 折りたたみの開閉状態は localStorage に残るので、閉じているときだけ開く。 */
+function openFieldSection(): void {
+  if (win.document.getElementById("fieldList")!.classList.contains("hidden")) {
+    click('.sectToggle[data-toggle="fieldList"]');
+  }
+}
+
 /** 「今の画面」を id で返す。hidden が外れている section を探す。 */
 function visibleScreen(): string {
   const ids = ["home", "quiz", "result", "search", "browse", "qbrowse", "flash", "subjectPicker"];
@@ -137,9 +144,16 @@ describe("ビルド済みアプリの起動", () => {
       "共通テスト「政治・経済」（旧課程）",
     ]);
     // year：新しい年度から並ぶ
-    expect(labels("yearList")).toEqual(["令和8年度", "令和7年度", "令和6年度"]);
-    // field：細かい単元
-    expect(labels("fieldList").length).toBeGreaterThan(5);
+    expect(labels("yearList")).toEqual([
+      "令和8年度",
+      "令和7年度",
+      "令和6年度",
+      "令和5年度",
+      "令和4年度",
+      "令和3年度",
+    ]);
+    // テーマ別：まず公共・政治・経済の三択が出る（項目はこのあとの画面）
+    expect(labels("fieldList")).toEqual(["公共", "政治", "経済"]);
 
     // 分野ごとの問題数が subjects.js の宣言どおり画面にも出ている
     const counts = win.SUBJECTS[0].expectDomainCounts;
@@ -148,13 +162,53 @@ describe("ビルド済みアプリの起動", () => {
   });
 });
 
-describe("演習と採点", () => {
-  it("分野を選んで演習を始め、正解を押すと正誤と解説が出る", async () => {
+describe("テーマ別の階層", () => {
+  it("テーマ別 →（公共・政治・経済）→ その分野の項目、の順に進む", async () => {
     hub("問題演習").click();
     await tick(250);
-    click('.sectToggle[data-toggle="fieldList"]');      // 分野別を開く
+    openFieldSection();                                // テーマ別を開く
     await tick(120);
-    click("#fieldList .cat");                          // 先頭の分野で演習を始める
+
+    // 2段目は別画面。政治を選ぶと、政治に属する単元だけが並ぶ
+    const seiji = [...win.document.querySelectorAll("#fieldList .cat")]
+      .find((el: any) => el.querySelector("h3")?.textContent === "政治");
+    expect(seiji).toBeTruthy();
+    (seiji as any).click();
+    await tick(250);
+    expect(win.document.getElementById("themeFieldView")!.classList.contains("hidden")).toBe(false);
+    expect(win.document.getElementById("practiceView")!.classList.contains("hidden")).toBe(true);
+
+    const fields = [...win.document.querySelectorAll("#themeFieldList .cat h3")].map((e: any) => e.textContent);
+    expect(fields.length).toBeGreaterThan(1);
+    const seijiFields = new Set(
+      win.QUIZ_DATA.filter((q: any) => q.domain === "政治").map((q: any) => q.field),
+    );
+    expect(new Set(fields)).toEqual(seijiFields);
+    // 政治経済塾の単元順（民主政治→…→国際連合）で並ぶ
+    expect(fields[0]).toBe("民主政治");
+
+    // 「← 問題演習」で1段目へ戻る
+    click("#themeFieldBack");
+    await tick(250);
+    expect(win.document.getElementById("practiceView")!.classList.contains("hidden")).toBe(false);
+  });
+});
+
+describe("演習と採点", () => {
+  it("テーマ別の項目を選んで演習を始め、正解を押すと正誤と解説が出る", async () => {
+    hub("問題演習").click();
+    await tick(250);
+    openFieldSection();                                // テーマ別を開く
+    await tick(120);
+    click("#fieldList .cat");                          // 先頭の分野（公共）を選ぶ
+    await tick(250);
+    click("#themeFieldList .cat");                     // その分野の先頭の項目を選ぶ
+    await tick(200);
+    // 2問以上ある範囲では出題数のモーダルが挟まるので、「全部」を選んで開始する
+    if (!win.document.getElementById("countModal")!.classList.contains("hidden")) {
+      click('#countChips .countChip[data-n="all"]');
+      click("#countStart");
+    }
     await tick(450);
     expect(visibleScreen()).toBe("quiz");
 

@@ -10,6 +10,7 @@ const SCREEN_TO_NAV: Record<string, PrimaryNavKey> = {
   browse: "learn",
   flash: "learn",
   practiceView: "practice",
+  themeFieldView: "practice",
   quiz: "practice",
   result: "practice",
   qbrowse: "questions",
