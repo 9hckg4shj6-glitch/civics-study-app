@@ -3396,6 +3396,7 @@
         <div class="maQ">${qUnderlineHTML(q)}</div>
         <div class="maFacts">
           <span class="maField">${esc(q.field||"")}</span>
+          ${q.topic?`<span class="maField">${esc(q.topic)}</span>`:""}
           <span class="maWrong">✗ ${r.wrong||0}回</span>
           ${(r.correct||0)===0?`<span class="maUnsolved">未正解</span>`:""}
           ${cw?`<span class="maField">記述 ${writtenPoints(q)}点</span>`:""}
@@ -3740,7 +3741,7 @@
     $("#srPracticeAll").onclick=()=>startQuiz(matches, `「${qs}」の検索結果`);
     const cap=matches.slice(0,80);
     box.innerHTML=cap.map(q=>{
-      const r=progress[q.id], tag=[q.year||q.mockTitle,q.field].filter(Boolean).join(" ・ ");
+      const r=progress[q.id], tag=[q.year||q.mockTitle,q.field,q.topic].filter(Boolean).join(" ・ ");
       const status=(r&&r.seen)?(r.correct>=r.wrong?'<span class="srOk">学習済</span>':'<span class="srNg">要復習</span>'):"";
       return `<button type="button" class="srItem" data-id="${esc(q.id)}"><div class="srQ">${highlight(q.question,qs,q.underlines)}</div><div class="srMeta"><span>${esc(tag)}</span>${status}</div></button>`;
     }).join("") + (matches.length>cap.length?`<div class="srMore">ほか ${matches.length-cap.length} 問（キーワードを絞ると探しやすくなります）</div>`:"");
@@ -4366,7 +4367,7 @@
     $("#qbPracticeGroup").onclick=()=>openCountModal({items:items.slice(), label:g.label, key:g.key, kicker:"まとめて演習"}, g.mode||"playlist");
     $("#qbrowseList").innerHTML=slice.map((q,i)=>{
       const fig=q.image?`<span class="brFig">🖼 図</span>`:"";
-      const field=q.field?`<span class="brField">${esc(q.field)}</span>`:"";
+      const field=[q.field,q.topic].filter(Boolean).map(t=>`<span class="brField">${esc(t)}</span>`).join("");
       const r=progress[q.id], status=(r&&r.seen)?(r.correct>=r.wrong?'<span class="srOk">学習済</span>':'<span class="srNg">要復習</span>'):"";
       const bm=isBookmarked(q.id);
       const sel=qbrowseState.selected.has(q.id);

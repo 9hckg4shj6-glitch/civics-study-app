@@ -35,11 +35,19 @@ describe("公共・政治経済の収録教材", () => {
     expect(counts).toEqual(civics.expectDomainCounts);
   });
 
-  it("問題文と選択肢だけで完結する（会話文・メモを読ませる考察問題を載せない）", () => {
-    // 長い共通資料を前提にした問題はアプリに載せない方針。
-    // 外した問題は content/excluded/ にそのまま置いてある。
-    const withStem = questions.filter((q) => String(q.stem ?? "").trim().length > 0);
-    expect(withStem.map((q) => q.id)).toEqual([]);
+  it("1問だけで解ける（資料は stem に転記し、外部の資料を参照させない）", () => {
+    // 会話文・メモ・表を前提にする問題も、その資料を stem へ転記して1問で完結させたうえで収録する。
+    // 転記しきれない長い共通資料や、図そのものを読み取る問題は content/excluded/ に置く。
+    for (const q of questions) {
+      const stem = String(q.stem ?? "").trim();
+      if (!stem) continue;
+      // 資料があるのに見出しが無いと、折りたたみが何の資料か分からない
+      expect(String(q.stemTitle ?? "").trim().length).toBeGreaterThan(0);
+      // スマートフォンで読み通せる長さに収める
+      expect(stem.length).toBeLessThanOrEqual(1200);
+      // 画像に頼る資料は載せない（stem の文章だけで解けること）
+      expect(q.stemImages ?? []).toEqual([]);
+    }
   });
 
   it("IDが重複せず、すべて civics- で始まる", () => {
@@ -83,9 +91,10 @@ describe("公共・政治経済の収録教材", () => {
   it("出典区分ごとの内訳を記録する（配分が変わったら気づけるように）", () => {
     const counts: Record<string, number> = {};
     for (const q of questions) counts[q.sourceType] = (counts[q.sourceType] ?? 0) + 1;
-    // 新課程「公共，政治・経済」2問／旧課程の共通テスト「政治・経済」96問
+    // 新課程「公共，政治・経済」54問（令和8年度26問、令和7年度28問）／
+    // 旧課程の共通テスト「政治・経済」96問
     //（令和7年度「旧政治・経済」3問、令和6年度26問、令和5年度24問、令和4年度16問、令和3年度第1日程27問）。
     // センター試験は大学入試センターが問題・正解を公開していないため収録していない。
-    expect(counts).toEqual({ "common-new": 2, "common-legacy": 96 });
+    expect(counts).toEqual({ "common-new": 54, "common-legacy": 96 });
   });
 });
