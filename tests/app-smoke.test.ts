@@ -138,10 +138,11 @@ describe("ビルド済みアプリの起動", () => {
 
     // domain：公共・政治・経済の3つが、この順で並ぶ
     expect(labels("domainList")).toEqual(["公共", "政治", "経済"]);
-    // sourceType：収録した2つの出典区分が表示名で並ぶ
+    // sourceType：収録した3つの出典区分が表示名で並ぶ
     expect(labels("sourceList")).toEqual([
       "共通テスト「公共，政治・経済」（新課程）",
       "共通テスト「政治・経済」（旧課程）",
+      "センター試験「政治・経済」",
     ]);
     // year：新しい年度から並ぶ
     expect(labels("yearList")).toEqual([
@@ -151,6 +152,8 @@ describe("ビルド済みアプリの起動", () => {
       "令和5年度",
       "令和4年度",
       "令和3年度",
+      "令和2年度",
+      "平成31年度",
     ]);
     // テーマ別：まず公共・政治・経済の三択が出る（項目はこのあとの画面）
     expect(labels("fieldList")).toEqual(["公共", "政治", "経済"]);

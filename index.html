@@ -2987,6 +2987,14 @@
     DATA.forEach(q=>{ const r=progress[q.id]; if(r){ const isWeak=syncWeak(r); corr+=r.correct; ans+=r.correct+r.wrong; if(r.seen)seenQ++; if(isWeak)weak++; if(r.wrong>=WEAK_WRONGS&&!isWeak)conquered++; } });
     return { total:DATA.length, seenQ, answered:ans, correct:corr, acc: ans?Math.round(corr/ans*100):0, weak, conquered };
   }
+  /* 年度は「令和8年度」「平成31年度」のような和暦なので、文字列のまま並べると
+     元号の文字コード順になってしまう。西暦に直してから新しい順に並べる。 */
+  const ERA_BASE={ 令和:2018, 平成:1988, 昭和:1925 };
+  function yearOrder(label){
+    const m=/^(令和|平成|昭和)(元|\d+)年度/.exec(String(label||""));
+    if(!m) return -1;
+    return ERA_BASE[m[1]] + (m[2]==="元" ? 1 : Number(m[2]));
+  }
   function groups(mode){
     if(mode==="weak"){ const list=DATA.filter(q=>syncWeak(rec(q.id))); return list.length?[{key:"__weak__",label:"苦手問題",items:list}]:[]; }
     if(mode==="bookmark"){ const list=DATA.filter(q=>isBookmarked(q.id)); return list.length?[{key:"__bookmark__",label:"見直したい問題",items:list}]:[]; }
@@ -3012,7 +3020,7 @@
       if(!key)return; if(!map.has(key))map.set(key,[]); map.get(key).push(q);
     });
     let keys=[...map.keys()];
-    if(mode==="year") keys.sort().reverse();
+    if(mode==="year") keys.sort((a,b)=>yearOrder(b)-yearOrder(a) || (a<b?1:a>b?-1:0));
     // 公共→政治→経済、出典は新しい課程から。学習の順序が毎回変わらないようにする
     if(mode==="domain") keys.sort((a,b)=>DOMAIN_ORDER.indexOf(a)-DOMAIN_ORDER.indexOf(b));
     if(mode==="source") keys.sort((a,b)=>SOURCE_ORDER.indexOf(a)-SOURCE_ORDER.indexOf(b));
