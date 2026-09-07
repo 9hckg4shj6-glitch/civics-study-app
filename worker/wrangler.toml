@@ -1,0 +1,14 @@
+# 同期コード方式の中継サーバー。デプロイ手順は worker/README.md を参照。
+name = "civics-sync"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+# 同期する端末が読み書きする置き場所。id は自分の環境で作ったものに置き換える
+# （npx wrangler kv namespace create SYNC_ROOMS が id を表示する）。
+[[kv_namespaces]]
+binding = "SYNC_ROOMS"
+id = "ここに wrangler が表示した id を貼る"
+
+[vars]
+# アプリを置いている配信元だけに絞る。"*" にすると誰の配信元からでも呼べる。
+ALLOWED_ORIGINS = "https://9hckg4shj6-glitch.github.io"

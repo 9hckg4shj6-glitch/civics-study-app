@@ -3,6 +3,7 @@ import type { StoredSchedule } from "./types";
 import type { SaveAttemptInput } from "./written";
 import type { CardHomeSnapshot } from "./card-home";
 import type { ImportStudyResult, StudyBackup } from "./backup";
+import type { SyncHost, SyncResult, SyncStatusView } from "./sync";
 
 declare global {
   interface Window {
@@ -19,6 +20,10 @@ declare global {
       cards: Array<{ id: string; front: string; back: string; explanation?: string; tags?: string[] }>;
     }>;
     __legacyAppRefresh?: () => void;
+    /** 端末間同期の接続先。public/sync-config.js が入れる */
+    SYNC_CONFIG?: { endpoint?: string };
+    /** 同期する学習記録の出し入れ口。index.html が用意し、src/sync.ts が使う */
+    STUDY_SYNC_HOST?: SyncHost;
     STUDY_CORE?: {
       ready: boolean;
       ui: {
@@ -38,6 +43,17 @@ declare global {
       backup: {
         exportStudy: () => Promise<StudyBackup>;
         importStudy: (payload: unknown, options?: { replace?: boolean }) => Promise<ImportStudyResult>;
+      };
+      /** 端末間同期（src/sync.ts）。接続していない間は何も通信しない */
+      sync: {
+        status: () => SyncStatusView;
+        config: () => { endpoint: string };
+        saveConfig: (patch: { endpoint?: string }) => { endpoint: string };
+        createCode: () => Promise<string>;
+        connectCode: (code: string) => Promise<string>;
+        disconnect: () => void;
+        setAuto: (auto: boolean) => void;
+        now: () => Promise<SyncResult>;
       };
       undoLastReview: (cardId: string) => Promise<StoredSchedule | null>;
       memory: {

@@ -22,17 +22,30 @@ import { learningDestination, primaryNavKey } from "./navigation";
 import { getCardHomeSnapshot } from "./card-home";
 import { exportStudyData, importStudyData } from "./backup";
 import { renderMemoryCards } from "./memory-cards";
+import {
+  connectWithCode,
+  createSyncCode,
+  disconnect as disconnectSync,
+  getStatus as getSyncStatus,
+  installAutoSync,
+  readConfig as readSyncConfig,
+  saveConfig as saveSyncConfig,
+  setAuto as setSyncAuto,
+  syncNow,
+} from "./sync";
 import type { LegacyProgress, ReviewRating } from "./types";
 
 /**
- * このアプリは端末内だけで完結する。アカウント・クラウド同期・ランキング・掲示板は持たず、
- * 起動時に外部へ通信しない。端末を移すときは「設定・データ」の手動バックアップを使う。
+ * 学習記録は端末の中に保存する。外部へ出るのは、利用者が「端末間同期」を自分で
+ * 接続したときだけで、接続していなければ起動時も学習中も外部へ通信しない。
+ * 同期はログインを伴わず、預け先も自分で用意した中継サーバーだけに限る。
  */
 async function bootstrap(): Promise<void> {
   await migrateLegacyStorage();
   await mirrorCustomCardsToLegacy();
   await mirrorSchedulesToLegacy(); // ホームの復習予定を Dexie/FSRS と一致させる
   await installCardManager();
+  installAutoSync();
   document.documentElement.dataset.studyReady = "1";
   window.STUDY_CORE!.ready = true;
   window.dispatchEvent(new Event("study:review-saved"));
@@ -59,6 +72,17 @@ window.STUDY_CORE = {
     exportStudy: exportStudyData,
     importStudy: importStudyData,
   },
+  // 端末間同期。画面（index.html）はこの窓口だけを使う
+  sync: {
+    status: getSyncStatus,
+    config: readSyncConfig,
+    saveConfig: saveSyncConfig,
+    createCode: createSyncCode,
+    connectCode: connectWithCode,
+    disconnect: disconnectSync,
+    setAuto: setSyncAuto,
+    now: syncNow,
+  },
   undoLastReview,
   memory: {
     retrievability: (progress, atMs) =>
@@ -83,14 +107,14 @@ window.STUDY_CORE = {
   },
 };
 
-/* subjects.js（科目マニフェスト）と updates.js（更新履歴）は、内容が古いまま出ないよう
-   プリキャッシュから外して NetworkFirst にしてある（vite.config.ts）。
-   ただし初回の起動では、この2つは Service Worker がまだページを制御していない間に
+/* subjects.js（科目マニフェスト）・updates.js（更新履歴）・sync-config.js（同期の接続先）は、
+   内容が古いまま出ないようプリキャッシュから外して NetworkFirst にしてある（vite.config.ts）。
+   ただし初回の起動では、この3つは Service Worker がまだページを制御していない間に
    読み込まれるため、実行時キャッシュに一度も入らない。そのまま機内モードにされると
    科目マニフェストが読めず、問題が0件のアプリが開いてしまう。
    登録が済んだところで控えを1度だけ作り、初日からオフラインで使えるようにする。 */
 const MANIFEST_CACHE = "civics-manifest-v1";
-const MANIFEST_FILES = ["subjects.js", "updates.js"];
+const MANIFEST_FILES = ["subjects.js", "updates.js", "sync-config.js"];
 
 async function warmManifestCache(): Promise<void> {
   if (typeof caches === "undefined") return;

@@ -31,15 +31,16 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{html,js,css,json,svg,png,webp,woff2}"],
-        // subjects.js（科目マニフェスト）と updates.js（更新履歴）はプリキャッシュしない。
-        // この2つは「何が存在するか」を決めるファイルなので、古いものが使われると
-        // Service Worker が入れ替わるまで内容が古いまま出る。どちらも小さいので、
+        // subjects.js（科目マニフェスト）・updates.js（更新履歴）・sync-config.js（同期の接続先）は
+        // プリキャッシュしない。この3つは「何が存在するか」「どこへつなぐか」を決めるファイルで、
+        // 古いものが使われると Service Worker が入れ替わるまで内容が古いまま出る。どれも小さいので、
         // オンラインなら必ずネットワークから取り直し、オフラインのときだけキャッシュへ落とす。
-        globIgnores: ["images/**", "subjects.js", "updates.js"],
+        globIgnores: ["images/**", "subjects.js", "updates.js", "sync-config.js"],
         runtimeCaching: [
           {
             urlPattern: ({ url }) =>
-              url.pathname.endsWith("/subjects.js") || url.pathname.endsWith("/updates.js"),
+              url.pathname.endsWith("/subjects.js") || url.pathname.endsWith("/updates.js")
+              || url.pathname.endsWith("/sync-config.js"),
             handler: "NetworkFirst",
             options: {
               cacheName: "civics-manifest-v1",

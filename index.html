@@ -6,7 +6,8 @@
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="googlebot" content="noindex, nofollow, noarchive">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<!-- 端末間同期の中継サーバーだけを許可する。独自ドメインで動かすときは、そのドメインを connect-src に足すこと（足さないと通信が黙って失敗する）。 -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://*.workers.dev; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <title>公共・政治経済 演習</title>
 <!-- PWA -->
 <meta name="theme-color" content="#efe8d9" id="themeColorMeta">
@@ -561,6 +562,29 @@
   .bkBtn:hover{border-color:var(--brand)} .bkBtn:active{transform:scale(.97)}
   .bkReplace{width:100%;margin-top:8px;border:none;background:transparent;color:var(--bad);font-family:inherit;
     font-weight:800;font-size:12.5px;padding:8px;cursor:pointer;text-decoration:underline}
+  /* ===== 端末間同期モーダル ===== */
+  .syState{display:flex;flex-direction:column;gap:3px;background:var(--card2);border:1px solid var(--line);
+    border-radius:14px;padding:11px 13px;margin-top:12px;font-size:12.5px;color:var(--muted)}
+  .syState b{font-size:14px;font-weight:900;color:var(--text)}
+  .syState .syErr,.syNote.syErr{color:var(--bad);font-weight:800}
+  .syNote{font-size:11.5px;line-height:1.6;color:var(--muted);margin:0 0 9px}
+  .syCode{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:21px;font-weight:900;letter-spacing:.08em;
+    text-align:center;color:var(--text);background:var(--card);border:1.5px dashed var(--line);border-radius:12px;
+    padding:12px 6px;user-select:all;word-break:break-all}
+  .syJoin{display:flex;gap:8px;margin-top:8px}
+  .syInput{flex:1;min-width:0;box-sizing:border-box;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--text);background:var(--card);
+    border:1.5px solid var(--line);border-radius:10px;padding:10px}
+  .syInput:focus{outline:none;border-color:var(--brand)}
+  .syJoin .bkBtn{flex:0 0 auto;min-width:72px}
+  .syToggle{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:700;color:var(--text);cursor:pointer}
+  .syToggle input{width:17px;height:17px;flex:0 0 auto;accent-color:var(--brand)}
+  .syAdvanced{margin-top:12px;font-size:12px;color:var(--muted)}
+  .syAdvanced summary{cursor:pointer;font-weight:800;padding:6px 0}
+  .syAdvanced .syInput{width:100%;font-family:inherit;letter-spacing:normal;text-transform:none;margin-top:5px;font-size:12.5px}
+  .syAdvField{margin-top:8px}
+  .syAdvField span{font-weight:800;color:var(--text);font-size:12px}
+  .cmStart:disabled,.bkBtn:disabled{opacity:.45;cursor:not-allowed}
   /* ===== PWA バナー（インストール / 更新） ===== */
   .pwaBanner{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:260;
     display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
@@ -1542,6 +1566,45 @@
     </div>
   </div>
 </div>
+<div class="countModalBackdrop hidden" id="syncModal">
+  <div class="countModal bkCard" role="dialog" aria-modal="true" aria-labelledby="syTitle">
+    <button type="button" class="countModalClose" id="syncClose" aria-label="閉じる">✕</button>
+    <div class="cmKicker">学習記録</div>
+    <h3 id="syTitle">端末間同期</h3>
+    <p class="cmSub">スマートフォンとPCなど、複数の端末で同じ記録を使うための設定です。<br>つないだ端末どうしで、解いた記録・復習予定・自作カード・答案が<b>統合</b>されます（どちらの記録も消えません）。</p>
+    <div class="syState" id="syState"><b>読み込み中…</b></div>
+    <div class="bkBlock">
+      <div class="bkLabel">🔑 同期コードでつなぐ</div>
+      <p class="syNote">1台目でコードを発行し、2台目でそのコードを入力します。アカウントの登録もログインも要りません。<br>記録はコードから作った鍵で暗号化して預けるため、コードを知らない人には読めません。<b>コードは他人に教えないでください。</b></p>
+      <div id="syCodeOn" class="hidden">
+        <div class="syCode" id="syCodeValue">----</div>
+        <div class="bkBtns">
+          <button type="button" class="bkBtn" id="syCodeCopy">📋 コピー</button>
+          <button type="button" class="bkBtn" id="syNow">🔄 今すぐ同期</button>
+        </div>
+      </div>
+      <div id="syCodeOff">
+        <p class="syNote syErr hidden" id="syCodeWarn">同期サーバーのURLが未設定です。下の「詳細設定」で設定してください（作り方は worker/README.md）。</p>
+        <button type="button" class="cmStart" id="syCreate" style="margin-top:0">この端末のコードを発行する</button>
+        <div class="syJoin">
+          <input type="text" id="syCodeInput" class="syInput" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="同期コード">
+          <button type="button" class="bkBtn" id="syJoin">参加</button>
+        </div>
+      </div>
+    </div>
+    <div class="bkBlock hidden" id="syActive">
+      <label class="syToggle"><input type="checkbox" id="syAuto"><span>自動で同期する（起動時・学習の区切り・アプリを開き直したとき）</span></label>
+      <button type="button" class="bkReplace" id="syDisconnect">この端末の同期を解除する</button>
+    </div>
+    <details class="syAdvanced">
+      <summary>詳細設定（接続先）</summary>
+      <p class="syNote">配布物の <code>sync-config.js</code> に書いた値が既定です。ここに入力するとこの端末だけ上書きできます（空欄にすると既定へ戻ります）。</p>
+      <label class="syAdvField"><span>同期サーバーのURL</span>
+        <input type="url" id="syEndpoint" class="syInput" placeholder="https://civics-sync.〜.workers.dev" autocomplete="off" spellcheck="false"></label>
+      <button type="button" class="bkBtn" id="sySaveConfig" style="margin-top:9px">接続先を保存する</button>
+    </details>
+  </div>
+</div>
 <div class="countModalBackdrop hidden" id="flashChooser">
   <div class="countModal" role="dialog" aria-modal="true" aria-labelledby="fcChooserTitle">
     <button type="button" class="countModalClose" id="flashChooserClose" aria-label="閉じる">✕</button>
@@ -2000,8 +2063,10 @@
 
     <div class="foot homeSection" id="dataSection">
       学習記録はこの端末に自動保存されます。&nbsp;·&nbsp;
+      <a id="syncBtn">端末間同期</a> &nbsp;·&nbsp;
       <a id="backupBtn">手動バックアップ</a> &nbsp;·&nbsp;
       <a id="resetBtn">記録リセット</a>
+      <div id="syncFoot"></div>
     </div>
   </section>
 
@@ -2159,6 +2224,7 @@
 
 <script src="subjects.js"></script>
 <script src="updates.js"></script>
+<script src="sync-config.js"></script>
 <script>
 (function(){
   "use strict";
@@ -3205,7 +3271,7 @@
     themeFieldView:()=>{ renderThemeFieldView(); },
     statsView:()=>{ renderHero(); renderKpis(); renderHeatmap(); renderAch(); },
     reviewView:()=>{ renderDue(); renderPlaylists(); renderReviewHub(); },
-    moreView:()=>{ renderUpdatesHome(); }
+    moreView:()=>{ renderUpdatesHome(); renderSyncFoot(); }
   };
   // screenId 省略時はいま開いている画面。遷移中は currentScreenId が古いため呼び出し側が渡す。
   function refreshData(screenId){
@@ -3780,16 +3846,18 @@
   const BACKUP_VERSION = 1;
   function BK(){ return (window.STUDY_CORE && window.STUDY_CORE.backup) || null; }
   function currentThemeSetting(){ try{ return localStorage.getItem(THEME_KEY)||null; }catch(e){ return null; } }
-  async function buildExportString(){
+  // 手動バックアップと端末間同期は同じ形のオブジェクトをやり取りする（片方だけ形が変わらないように）
+  async function buildBackupObject(){
     const wa=WA();
     let attempts=[];
     if(wa){ try{ attempts=await wa.exportAll(); }catch(e){ attempts=[]; } }
     const bk=BK();
     let study=null;
     if(bk){ try{ study=await bk.exportStudy(); }catch(e){ study=null; } }
-    return JSON.stringify({ app:BACKUP_APP, version:BACKUP_VERSION, exportedAt:new Date().toISOString(),
-      data:{ progress:progress, meta:meta, writtenAttempts:attempts, study:study, settings:{ theme:currentThemeSetting() } } });
+    return { app:BACKUP_APP, version:BACKUP_VERSION, exportedAt:new Date().toISOString(),
+      data:{ progress:progress, meta:meta, writtenAttempts:attempts, study:study, settings:{ theme:currentThemeSetting() } } };
   }
+  async function buildExportString(){ return JSON.stringify(await buildBackupObject()); }
   function openBackupModal(){
     const ta=$("#bkExport");
     ta.value="バックアップを作成中です…";
@@ -3807,21 +3875,26 @@
       a.href=url; a.download=filename; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },500); }
     catch(e){ toast("ファイルの作成に失敗しました"); }
   }
-  function parseImport(text){
-    const t=(text||"").trim(); if(!t){ toast("取り込む記録を貼り付けてください"); return null; }
-    let obj; try{ obj=JSON.parse(t); }catch(e){ toast("記録の形式が正しくありません（貼り付け内容を確認してください）"); return null; }
-    if(!obj || typeof obj!=="object" || Array.isArray(obj)){ toast("記録の形式が正しくありません"); return null; }
-    if(obj.app!==BACKUP_APP){ toast("このアプリ（公共・政治経済 演習）の記録データではありません"); return null; }
+  // quiet のときは画面に出さない（同期は裏で走るため、失敗は同期の状態欄に出す）
+  function readBackupObject(obj,quiet){
+    const say=(m)=>{ if(!quiet) toast(m); };
+    if(!obj || typeof obj!=="object" || Array.isArray(obj)){ say("記録の形式が正しくありません"); return null; }
+    if(obj.app!==BACKUP_APP){ say("このアプリ（公共・政治経済 演習）の記録データではありません"); return null; }
     const ver=Number(obj.version);
-    if(!Number.isFinite(ver)||ver<1||ver>BACKUP_VERSION){ toast(`この記録は対応していない版です（version: ${obj.version}）`); return null; }
+    if(!Number.isFinite(ver)||ver<1||ver>BACKUP_VERSION){ say(`この記録は対応していない版です（version: ${obj.version}）`); return null; }
     const d=obj.data;
     if(!d || typeof d!=="object" || Array.isArray(d) || typeof d.progress!=="object" || d.progress===null || Array.isArray(d.progress)){
-      toast("記録の中身が壊れているため取り込めません"); return null; }
+      say("記録の中身が壊れているため取り込めません"); return null; }
     const meta=(d.meta && typeof d.meta==="object" && !Array.isArray(d.meta)) ? d.meta : {};
     const attempts=Array.isArray(d.writtenAttempts) ? d.writtenAttempts : null;
     const study=(d.study && typeof d.study==="object" && !Array.isArray(d.study)) ? d.study : null;
     const settings=(d.settings && typeof d.settings==="object" && !Array.isArray(d.settings)) ? d.settings : {};
     return { app:obj.app, version:ver, progress:d.progress, meta:meta, writtenAttempts:attempts, study:study, settings:settings };
+  }
+  function parseImport(text){
+    const t=(text||"").trim(); if(!t){ toast("取り込む記録を貼り付けてください"); return null; }
+    let obj; try{ obj=JSON.parse(t); }catch(e){ toast("記録の形式が正しくありません（貼り付け内容を確認してください）"); return null; }
+    return readBackupObject(obj,false);
   }
   function mergeProgress(cur,inc){
     const out=Object.assign({},cur);
@@ -3869,7 +3942,8 @@
       out.mastery[s]=a?{ certified:!!(a.certified||b.certified), certifiedAt:a.certifiedAt||b.certifiedAt, passes:[...new Set([...(a.passes||[]),...(b.passes||[])])] }:b; });
     return out;
   }
-  function applyImport(obj,replace){
+  // IndexedDB側の取り込みが終わるまで待てるようにしておく（同期は「取り込む→書き戻す」の順で行うため）
+  async function applyBackupObject(obj,replace){
     if(replace){ progress=obj.progress||{}; meta=obj.meta||{}; }
     else { progress=mergeProgress(progress,obj.progress||{}); meta=mergeMeta(meta,obj.meta||{}); }
     Object.keys(progress).forEach(id=>{ if(progress[id]&&typeof progress[id]==="object") syncWeak(progress[id]); });
@@ -3878,23 +3952,112 @@
     // v2 の答案履歴。置き換え読込では既存答案を消してから取り込む
     const wa=WA(), rows=Array.isArray(obj.writtenAttempts)?obj.writtenAttempts:null;
     if(wa && (rows || replace)){
-      Promise.resolve(wa.importMany(rows||[], {replace:!!replace}))
-        .then(res=>{ if(res && res.skipped) console.warn(`答案履歴：${res.skipped}件は形式が不正なため取り込みませんでした`); })
-        .catch(()=>{});
+      try{
+        const res=await wa.importMany(rows||[], {replace:!!replace});
+        if(res && res.skipped) console.warn(`答案履歴：${res.skipped}件は形式が不正なため取り込みませんでした`);
+      }catch(e){}
     }
     // 暗記カード・デッキ・復習予定（IndexedDB側）。取り込み後に復習予定をホームへ反映する
     const bk=BK();
     if(bk && obj.study){
-      Promise.resolve(bk.importStudy(obj.study, {replace:!!replace}))
-        .then(res=>{ if(res && res.skipped) console.warn(`暗記カード：${res.skipped}件は形式が不正なため取り込みませんでした`); })
-        .then(()=>{ loadProgress(); renderHome(); })
-        .catch(()=>{});
+      try{
+        const res=await bk.importStudy(obj.study, {replace:!!replace});
+        if(res && res.skipped) console.warn(`暗記カード：${res.skipped}件は形式が不正なため取り込みませんでした`);
+        loadProgress();
+      }catch(e){}
     }
     // 表示設定（テーマ）
     const th=obj.settings && obj.settings.theme;
     if(th==="dark"||th==="light"){ applyTheme(th); try{ localStorage.setItem(THEME_KEY,th); }catch(e){} }
-    closeBackupModal(); renderHome();
-    toast(replace?"✅ 記録を置き換えました":"✅ 記録を統合しました");
+  }
+  function applyImport(obj,replace){
+    applyBackupObject(obj,replace)
+      .then(()=>{ closeBackupModal(); renderHome(); toast(replace?"✅ 記録を置き換えました":"✅ 記録を統合しました"); })
+      .catch(()=>{ toast("記録を取り込めませんでした"); });
+  }
+
+  /* ---------- 端末間同期 ---------- */
+  /* 学習記録の出し入れ口を src/sync.ts へ渡す。統合の中身は手動バックアップとまったく同じで、
+     多い方・新しい方を採るため、どちらの端末から同期しても記録は消えない。 */
+  window.STUDY_SYNC_HOST={
+    build:()=>buildBackupObject(),
+    apply:async(snapshot)=>{
+      const obj=readBackupObject(snapshot,true);
+      if(!obj) throw new Error("同期された記録を読み取れませんでした");
+      await applyBackupObject(obj,false);
+      refreshAfterSync();
+    }
+  };
+  // 同期は演習中でも裏で走る。画面は移動させず、数字だけ描き直す。
+  function refreshAfterSync(){
+    if(!currentSubjectId) return;
+    loadProgress(); refreshData();
+    if(currentScreenId==="cardsView") renderCardHome();
+  }
+  function SY(){ return (window.STUDY_CORE&&window.STUDY_CORE.sync)||null; }
+  let syncBusy=false, syncWaitTimer=0;
+  function syncAgo(iso){
+    if(!iso) return "まだ同期していません";
+    const t=Date.parse(iso); if(isNaN(t)) return "まだ同期していません";
+    const min=Math.floor((Date.now()-t)/60000);
+    if(min<1) return "たった今";
+    if(min<60) return `${min}分前`;
+    const hour=Math.floor(min/60); if(hour<24) return `${hour}時間前`;
+    return `${Math.floor(hour/24)}日前`;
+  }
+  function renderSyncFoot(){
+    const box=$("#syncFoot"); if(!box) return;
+    const sy=SY(), st=sy?sy.status():null;
+    if(!st||!st.connected){ box.textContent="端末間同期：未接続"; return; }
+    const err=st.lastError?` ・ ⚠️ ${st.lastError}`:"";
+    box.textContent=`端末間同期：接続中 ・ 最終同期 ${syncAgo(st.lastSyncedAt)}${err}`;
+  }
+  function renderSync(){
+    clearTimeout(syncWaitTimer);
+    const sy=SY(), st=sy?sy.status():null, state=$("#syState");
+    if(!state) return;
+    if(!st){
+      state.innerHTML="<b>読み込み中…</b><span>学習データの準備が終わるのを待っています</span>";
+      if(!$("#syncModal").classList.contains("hidden")) syncWaitTimer=setTimeout(renderSync,400);
+      return;
+    }
+    const busy=syncBusy||st.running;
+    if(busy) state.innerHTML="<b>同期中…</b><span>取り込み → 統合 → 書き戻しの順に進んでいます</span>";
+    else if(!st.connected) state.innerHTML="<b>この端末は同期していません</b><span>コードを発行するか、もう一方の端末のコードを入力するとつながります</span>";
+    else state.innerHTML=`<b>同期コードで接続中</b><span>最終同期：${esc(syncAgo(st.lastSyncedAt))}</span>`;
+    if(st.lastError&&!busy) state.insertAdjacentHTML("beforeend",`<span class="syErr">⚠️ ${esc(st.lastError)}</span>`);
+    if(!st.online) state.insertAdjacentHTML("beforeend","<span>オフラインです。回線が戻ったときに自動で同期します</span>");
+
+    $("#syCodeOn").classList.toggle("hidden",!st.connected);
+    $("#syCodeOff").classList.toggle("hidden",st.connected);
+    $("#syCodeValue").textContent=st.code||"----";
+    $("#syCodeWarn").classList.toggle("hidden",st.endpointConfigured);
+    $("#syCreate").disabled=busy||!st.endpointConfigured;
+    $("#syJoin").disabled=busy||!st.endpointConfigured;
+    $("#syCodeInput").disabled=busy;
+    $("#syNow").disabled=busy;
+    $("#syActive").classList.toggle("hidden",!st.connected);
+    $("#syAuto").checked=!!st.auto;
+    $("#syAuto").disabled=busy;
+    $("#syDisconnect").disabled=busy;
+    renderSyncFoot();
+  }
+  function openSyncModal(){
+    const sy=SY(), config=sy?sy.config():null;
+    if(config) $("#syEndpoint").value=config.endpoint||"";
+    $("#syCodeInput").value="";
+    $("#syncModal").classList.remove("hidden");
+    renderSync();
+  }
+  function closeSyncModal(){ clearTimeout(syncWaitTimer); $("#syncModal").classList.add("hidden"); }
+  // 接続・同期・解除はどれも「押している間は触れない」「終わったら結果を出す」で同じ扱いにする
+  function syncAct(run,okMsg){
+    const sy=SY(); if(!sy){ toast("学習データの準備中です。少し待ってからお試しください"); return; }
+    syncBusy=true; renderSync();
+    Promise.resolve().then(run)
+      .then(()=>{ toast(okMsg); })
+      .catch(err=>{ toast(`⚠️ ${(err&&err.message)||"同期に失敗しました"}`, 3200); })
+      .finally(()=>{ syncBusy=false; renderSync(); });
   }
 
   /* ---------- カード学習ホーム ---------- */
@@ -6344,6 +6507,23 @@
   $("#bkMerge").onclick=()=>{ const obj=parseImport($("#bkImport").value); if(obj) applyImport(obj,false); };
   $("#bkReplace").onclick=()=>{ const obj=parseImport($("#bkImport").value); if(!obj) return; if(confirm("現在の学習記録をすべて消して、取り込む記録で置き換えます。よろしいですか？")) applyImport(obj,true); };
 
+  /* 端末間同期 */
+  $("#syncBtn").onclick=openSyncModal;
+  $("#syncClose").onclick=closeSyncModal;
+  $("#syncModal").onclick=(e)=>{ if(e.target.id==="syncModal") closeSyncModal(); };
+  $("#syCreate").onclick=()=>syncAct(()=>SY().createCode(),"✅ 同期コードを発行しました。もう一方の端末で入力してください");
+  $("#syJoin").onclick=()=>{ const v=$("#syCodeInput").value; if(!v.trim()){ toast("同期コードを入力してください"); return; }
+    syncAct(()=>SY().connectCode(v),"✅ 同期しました"); };
+  $("#syCodeInput").onkeydown=(e)=>{ if(e.key==="Enter"){ e.preventDefault(); $("#syJoin").click(); } };
+  $("#syCodeCopy").onclick=()=>copyText($("#syCodeValue").textContent||"");
+  $("#syNow").onclick=()=>syncAct(()=>SY().now(),"✅ 同期しました");
+  $("#syAuto").onchange=()=>{ const sy=SY(); if(sy) sy.setAuto($("#syAuto").checked); };
+  $("#syDisconnect").onclick=()=>{ if(!confirm("この端末の同期を解除します。学習記録はこの端末に残ります。よろしいですか？")) return;
+    syncAct(()=>SY().disconnect(),"同期を解除しました"); };
+  $("#sySaveConfig").onclick=()=>{ const sy=SY(); if(!sy){ toast("学習データの準備中です"); return; }
+    sy.saveConfig({endpoint:$("#syEndpoint").value}); toast("接続先を保存しました"); renderSync(); };
+  window.addEventListener("study:sync-status",()=>{ renderSync(); });
+
   /* フラッシュカード */
   $("#cardHomeReviewBtn").onclick=openDueReview;
   $("#cardHomeNewBtn").onclick=startNewCards;
@@ -6710,7 +6890,12 @@
 
   /* ---------- 記録リセット ---------- */
   $("#resetBtn").onclick=()=>{
-    if(!confirm("学習記録（正誤・苦手・見直したい問題・レベル・実績・記述問題の答案履歴・採点待ちの試験）をすべて削除しますか？\n\n※ この端末にしか記録はありません。消すと元に戻せません。")) return;
+    const st=SY()?SY().status():null;
+    // 同期中は「消す→次の同期で戻る」になるため、先に解除してもらう
+    const note=(st&&st.connected)
+      ? "※ 端末間同期が接続されています。このまま消しても、次の同期でほかの端末から記録が戻ります。\n完全に消すときは、先に「端末間同期」で解除してください。"
+      : "※ この端末にしか記録はありません。消すと元に戻せません。";
+    if(!confirm(`学習記録（正誤・苦手・見直したい問題・レベル・実績・記述問題の答案履歴・採点待ちの試験）をすべて削除しますか？\n\n${note}`)) return;
     progress={}; meta={}; loadMeta(); saveProgress(); saveMeta();
     const wa=WA(); if(wa){ try{ wa.deleteAll(); }catch(e){} }
     renderHome(); toast("🗑 記録をリセットしました"); };
