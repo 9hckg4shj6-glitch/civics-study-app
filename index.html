@@ -691,6 +691,9 @@
   .brFlipOne:hover{border-color:var(--brand);color:var(--brand)} .brFlipOne:active{transform:scale(.97)}
   /* ===== 問題一覧（qbrowse） ===== */
   .qbSectLabel{font-size:12.5px;font-weight:900;color:var(--muted);margin:16px 2px 9px;letter-spacing:.02em}
+  /* 年度別・分野別のフォルダは「開く」ことがわかるよう矢印を出す */
+  .qbFolder .brDeckHead::after{content:"›";flex:0 0 auto;color:var(--muted);font-size:19px;font-weight:900;line-height:1;margin-left:2px}
+  .qbFolder:hover .brDeckHead::after{color:var(--brand)}
   .qbSectLabel:first-child{margin-top:2px}
   .qbGroupList{display:grid;gap:10px;margin-bottom:6px}
   .qbNum{flex:0 0 auto;min-width:28px;height:24px;padding:0 7px;white-space:nowrap;border-radius:8px;background:color-mix(in srgb,var(--brand) 13%,var(--card2));color:var(--brand);font-weight:900;font-size:12.5px;display:flex;align-items:center;justify-content:center}
@@ -1730,8 +1733,8 @@
       <button type="button" class="dueCard browseEntry" id="qbrowseBtn">
         <span class="dueIcon">📖</span>
         <span class="dueBody">
-          <span class="dueTitle">問題一覧（年度別）</span>
-          <span class="dueSub">収録した過去問を年度ごとに、1ページ10問で通して確認できます</span>
+          <span class="dueTitle">問題一覧（年度別・分野別）</span>
+          <span class="dueSub">収録した過去問を年度別・分野別に、1ページ10問で通して確認できます</span>
         </span>
         <span class="dueRight"><span class="dueUnit" style="font-size:15px">一覧 →</span></span>
       </button>
@@ -2876,7 +2879,7 @@
     const bookmark=kind==="bookmark";
     const items=qbSortByQNo(bookmark?bookmarkItems():weakItems());
     qbrowseState={group:{key:bookmark?"__bookmark__":"__weak__",label:bookmark?"見直したい問題":"苦手問題",items,mode:"playlist"},
-      page:0,selected:new Set(),origin:"reviewView"};
+      folder:"",page:0,selected:new Set(),origin:"reviewView"};
     transitionToScreen("qbrowse","forward",renderQBrowse);
   }
 
@@ -3256,7 +3259,7 @@
     const items=[
       learnTile,
       {icon:"▶",name:"問題演習",accent:"#6b4aa0",sub:`${DATA.length}問から範囲を選んで解く`,go:()=>openView("practiceView")},
-      {icon:"☷",name:"問題一覧",accent:"#9c4a86",sub:`全${DATA.length}問を年度・形式別に確認`,go:openQBrowse},
+      {icon:"☷",name:"問題一覧",accent:"#9c4a86",sub:`全${DATA.length}問を年度別・分野別に確認`,go:openQBrowse},
       {icon:"↻",name:"復習",accent:"#b8474f",
         sub:reviewN?`今すぐ復習 ${reviewN}件`:(()=>{const nx=nextDueInfo();return nx?`次の復習：${reviewText(progress[nx.id])}`:"問題を解くと復習予定が表示されます";})(),
         go:()=>openView("reviewView")},
@@ -4223,12 +4226,17 @@
 
   /* ---------- 問題一覧（年度別ブラウズ） ---------- */
   // origin は戻り先（"home"＝問題一覧タブ / "reviewView"＝復習画面の見直し・苦手の一覧）
-  let qbrowseState={group:null,page:0,selected:new Set(),origin:"home"};
+  // folder は一覧の階層。"" = 最上位 ／ "year" = 年度別 ／ "field" = 分野別 ／ "field::公共" = その分野の項目
+  let qbrowseState={group:null,folder:"",page:0,selected:new Set(),origin:"home"};
   const QB_PAGE=10;
   const QB_EXAM_ICONS=["📄","📝","🗓"];
   const QB_PRED_ICONS=["🔮","📗","📘","📙"];
   const QB_SPEC_ICONS=["🔥","⚡"];
   const QB_WRITTEN_ICONS=["✎","🖊"];
+  const QB_DOMAIN_ICONS=["🏛","⚖","💹"];
+  const QB_FIELD_ICONS=["📘","📗","📙","📕","📓","📔"];
+  // 分野別グループのキーは年度キーと混ざらないよう接頭辞を付けて一覧内だけで使う
+  const QB_F_PREFIX="__f__";
   const QB_W_PREFIX="__w__";
   // 原本の出題順に並べる。IDの「末尾の数字だけ」で並べると 問7(2)・問13(2)・問14(2) が
   // どれも 2 になって順序が崩れるので、IDに含まれる数字を上位から順に比べる。
@@ -4275,19 +4283,48 @@
              // 年度キーが本試験と重なるので、記述側は接頭辞で区別する
              written:wk.map(k=>({key:QB_W_PREFIX+k,label:k+" ・ 記述問題",items:wr.get(k),mode:"playlist"})) };
   }
+  // 分野別は問題演習の「テーマ別」と同じ束ね方（公共・政治・経済 → その分野の単元）にそろえる。
+  // 演習に渡す key はテーマ別と同じ「大分野::単元」のまま、一覧の中だけ browseKey で区別する。
+  function qbFieldGroups(domain){
+    return themeFieldGroups(domain).map(g=>({
+      key:g.key, browseKey:QB_F_PREFIX+g.key, label:g.label, short:g.short, domain:g.domain, items:g.items, mode:"field"
+    }));
+  }
+  function qbFieldDomains(){
+    return themeDomains().map(d=>({key:d.key,label:d.label,items:d.items,fields:qbFieldGroups(d.key)}));
+  }
   function qbFindGroup(key){
+    const k=String(key);
+    if(k.indexOf(QB_F_PREFIX)===0){
+      const t=k.slice(QB_F_PREFIX.length);
+      return qbFieldGroups(t.slice(0,t.indexOf(THEME_SEP))).find(x=>x.browseKey===k)||null;
+    }
     const g=qbGroups();
-    return g.exam.find(x=>x.key===key)||g.pred.find(x=>x.key===key)||g.spec.find(x=>x.key===key)||g.written.find(x=>x.key===key)||null;
+    return g.exam.find(x=>x.key===k)||g.pred.find(x=>x.key===k)||g.spec.find(x=>x.key===k)||g.written.find(x=>x.key===k)||null;
+  }
+  // 一覧のフォルダ名。"" は最上位（＝問題一覧そのもの）
+  function qbFolderTitle(f){
+    if(f==="year") return "年度別";
+    if(f==="field") return "分野別";
+    if(f&&f.indexOf("field"+THEME_SEP)===0) return "分野別 ・ "+f.slice(("field"+THEME_SEP).length);
+    return "問題一覧";
+  }
+  function qbParentFolder(f){
+    return (f&&f.indexOf("field"+THEME_SEP)===0) ? "field" : "";
   }
   function renderQBrowse(){
-    const g=qbrowseState.group;
-    $("#qbrowseTitle").textContent=g?g.label:"問題一覧";
-    $("#qbrowseBackLabel").textContent=qbrowseState.origin==="reviewView"?"← 復習・苦手":g?"← 年度一覧":"← ホーム";
+    const g=qbrowseState.group, f=qbrowseState.folder||"";
+    $("#qbrowseTitle").textContent=g?g.label:qbFolderTitle(f);
+    $("#qbrowseBackLabel").textContent=
+      qbrowseState.origin==="reviewView" ? "← 復習・苦手"
+      : g ? "← "+qbFolderTitle(f)
+      : f ? "← "+qbFolderTitle(qbParentFolder(f))
+      : "← ホーム";
     if(g) renderQBrowseGroup(); else renderQBrowseIndex();
   }
   function qbGroupBtn(g,icon){
     const st=catStats(g.items), pct=st.total?Math.round(st.seen/st.total*100):0;
-    return `<button type="button" class="brDeck2" data-key="${esc(g.key)}">
+    return `<button type="button" class="brDeck2" data-key="${esc(g.browseKey||g.key)}">
       <span class="brDeckHead">
         <span class="fcDeckIcon">${icon}</span>
         <span class="brDeckTitle">${esc(g.label)}</span>
@@ -4297,16 +4334,29 @@
       <span class="brDeckBar"><i style="width:${pct}%"></i></span>
     </button>`;
   }
-  function renderQBrowseIndex(){
-    $("#qbrowseResultsWrap").classList.add("hidden");
-    $("#qbSelBar").classList.add("hidden");
-    const box=$("#qbrowseIndex"); box.classList.remove("hidden");
-    const g=qbGroups();
+  // フォルダ（年度別・分野別）のボタン。中身の合計問題数と学習の進みを出す
+  function qbFolderBtn(o){
+    const st=catStats(o.items), pct=st.total?Math.round(st.seen/st.total*100):0;
+    return `<button type="button" class="brDeck2 qbFolder" data-folder="${esc(o.folder)}">
+      <span class="brDeckHead">
+        <span class="fcDeckIcon">${o.icon}</span>
+        <span class="brDeckTitle">${esc(o.title)}</span>
+        <span class="brDeckN">${o.items.length}問</span>
+      </span>
+      <span class="brDeckSub">${esc(o.sub)} ・ 学習 ${st.seen}/${st.total}問${st.acc?` ・ 正答 ${st.acc}%`:""}</span>
+      <span class="brDeckBar"><i style="width:${pct}%"></i></span>
+    </button>`;
+  }
+  // 最上位：年度別・分野別のフォルダと、それ以外の区分
+  function qbTopHTML(){
+    const g=qbGroups(), ds=qbFieldDomains();
     let html="";
-    if(g.exam.length){
-      html+=`<div class="qbSectLabel">📅 年度別（本試験）</div><div class="qbGroupList">`+
-        g.exam.map((x,i)=>qbGroupBtn(x,QB_EXAM_ICONS[i%QB_EXAM_ICONS.length])).join("")+`</div>`;
-    }
+    const folders=[];
+    if(g.exam.length) folders.push(qbFolderBtn({folder:"year",icon:"📅",title:"年度別",
+      sub:`${g.exam.length}年度`, items:g.exam.flatMap(x=>x.items)}));
+    if(ds.length) folders.push(qbFolderBtn({folder:"field",icon:"🗂",title:"分野別",
+      sub:`${ds.length}分野 ・ ${ds.reduce((n,d)=>n+d.fields.length,0)}項目`, items:ds.flatMap(d=>d.items)}));
+    if(folders.length) html+=`<div class="qbSectLabel">📂 分類から選ぶ</div><div class="qbGroupList">${folders.join("")}</div>`;
     if(g.written.length){
       html+=`<div class="qbSectLabel">✎ 記述問題</div><div class="qbGroupList">`+
         g.written.map((x,i)=>qbGroupBtn(x,QB_WRITTEN_ICONS[i%QB_WRITTEN_ICONS.length])).join("")+`</div>`;
@@ -4319,8 +4369,44 @@
       html+=`<div class="qbSectLabel">🔥 直前スペシャル問題</div><div class="qbGroupList">`+
         g.spec.map((x,i)=>qbGroupBtn(x,QB_SPEC_ICONS[i%QB_SPEC_ICONS.length])).join("")+`</div>`;
     }
+    return html;
+  }
+  // 年度別フォルダの中身
+  function qbYearFolderHTML(){
+    const ex=qbGroups().exam;
+    if(!ex.length) return `<div class="empty">年度別の問題がありません。</div>`;
+    return `<div class="qbSectLabel">📅 年度別（本試験）</div><div class="qbGroupList">`+
+      ex.map((x,i)=>qbGroupBtn(x,QB_EXAM_ICONS[i%QB_EXAM_ICONS.length])).join("")+`</div>`;
+  }
+  // 分野別フォルダの中身（公共・政治・経済）
+  function qbFieldFolderHTML(){
+    const ds=qbFieldDomains();
+    if(!ds.length) return `<div class="empty">分野別の問題がありません。<br>questions.js に <b>domain</b> と <b>field</b> を設定してください。</div>`;
+    return `<div class="qbSectLabel">🗂 分野別（公共・政治・経済）</div><div class="qbGroupList">`+
+      ds.map((d,i)=>qbFolderBtn({folder:"field"+THEME_SEP+d.key, icon:QB_DOMAIN_ICONS[i%QB_DOMAIN_ICONS.length],
+        title:d.label, sub:`${d.fields.length}項目`, items:d.items})).join("")+`</div>`;
+  }
+  // 分野の中の単元一覧
+  function qbFieldDomainHTML(domain){
+    const gs=qbFieldGroups(domain);
+    if(!gs.length) return `<div class="empty">この分野の問題はまだありません。</div>`;
+    return `<div class="qbSectLabel">🗂 ${esc(domain)}の項目</div><div class="qbGroupList">`+
+      gs.map((g,i)=>qbGroupBtn({...g,label:g.short},QB_FIELD_ICONS[i%QB_FIELD_ICONS.length])).join("")+`</div>`;
+  }
+  function renderQBrowseIndex(){
+    $("#qbrowseResultsWrap").classList.add("hidden");
+    $("#qbSelBar").classList.add("hidden");
+    const box=$("#qbrowseIndex"); box.classList.remove("hidden");
+    const f=qbrowseState.folder||"";
+    const html = f==="year" ? qbYearFolderHTML()
+      : f==="field" ? qbFieldFolderHTML()
+      : f.indexOf("field"+THEME_SEP)===0 ? qbFieldDomainHTML(f.slice(("field"+THEME_SEP).length))
+      : qbTopHTML();
     box.innerHTML=html||`<div class="empty">問題データがありません。</div>`;
-    box.querySelectorAll(".brDeck2").forEach(el=>{ el.onclick=()=>{
+    box.querySelectorAll(".qbFolder").forEach(el=>{ el.onclick=()=>{
+      qbrowseState.folder=el.dataset.folder; qbrowseState.page=0; renderQBrowse(); window.scrollTo(0,0);
+    }; });
+    box.querySelectorAll(".brDeck2[data-key]").forEach(el=>{ el.onclick=()=>{
       const grp=qbFindGroup(el.dataset.key); if(!grp)return;
       qbrowseState.group=grp; qbrowseState.page=0; qbrowseState.selected.clear(); renderQBrowse(); window.scrollTo(0,0);
     }; });
@@ -4454,12 +4540,13 @@
   }
   function qbBackStep(){
     if(qbrowseState.origin==="reviewView"){ openView("reviewView"); return; }
-    if(qbrowseState.group){ qbrowseState.group=null; qbrowseState.page=0; qbrowseState.selected.clear(); renderQBrowse(); window.scrollTo(0,0); }
-    else closeQBrowse();
+    if(qbrowseState.group){ qbrowseState.group=null; qbrowseState.page=0; qbrowseState.selected.clear(); renderQBrowse(); window.scrollTo(0,0); return; }
+    if(qbrowseState.folder){ qbrowseState.folder=qbParentFolder(qbrowseState.folder); renderQBrowse(); window.scrollTo(0,0); return; }
+    closeQBrowse();
   }
   function openQBrowse(){
     closeFcLightbox();
-    qbrowseState={group:null,page:0,selected:new Set(),origin:"home"};
+    qbrowseState={group:null,folder:"",page:0,selected:new Set(),origin:"home"};
     transitionToScreen("qbrowse","tab",renderQBrowse);
   }
   function closeQBrowse(){ $("#qbrowse").classList.add("hidden"); renderHome(); }
