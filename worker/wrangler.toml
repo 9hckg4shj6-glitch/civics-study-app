@@ -7,7 +7,7 @@ compatibility_date = "2025-09-01"
 # （npx wrangler kv namespace create SYNC_ROOMS が id を表示する）。
 [[kv_namespaces]]
 binding = "SYNC_ROOMS"
-id = "ここに wrangler が表示した id を貼る"
+id = "e61430910c3d46d8bebc3c0f7f324178"
 
 [vars]
 # アプリを置いている配信元だけに絞る。"*" にすると誰の配信元からでも呼べる。

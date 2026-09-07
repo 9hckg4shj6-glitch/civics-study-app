@@ -16,5 +16,5 @@
    ============================================================ */
 
 window.SYNC_CONFIG = {
-  endpoint: ""
+  endpoint: "https://civics-sync.still-cloud-a091.workers.dev"
 };

@@ -12,7 +12,11 @@ Cloudflare Workers の無料枠で足りる（1日10万リクエストまで）�
 同期コードそのものはサーバーへ送られないため、サーバーの管理者でも中身は読めない。
 学習記録には答案の本文やメモが入るので、平文では置かない。
 
-## デプロイ
+公開済みの中継サーバー（2026-09-07 時点）:
+**https://civics-sync.still-cloud-a091.workers.dev**
+（KV名前空間 `SYNC_ROOMS` = `e61430910c3d46d8bebc3c0f7f324178`。`public/sync-config.js` に設定済み）
+
+## デプロイ・作り直し
 
 ```bash
 cd worker

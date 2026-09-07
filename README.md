@@ -120,25 +120,24 @@ JSON を書き出し、新しい端末の同じ画面の「📁 ファイルか�
 同期を接続したまま「記録リセット」を押すと、次の同期でほかの端末から記録が戻る。
 完全に消すときは、先に同期を解除する（画面の確認文にもそう出る）。
 
-### 準備：中継サーバーを1つ立てる（必須・無料）
+### 中継サーバー（設置済み）
 
-記録の受け渡し場所として、Cloudflare Worker を1つ置く。**これを立てるまで同期は使えない**
-（画面に「同期サーバーのURLが未設定です」と出て、ボタンは押せないままになる）。
+記録の受け渡し場所として、Cloudflare Worker を1つ置いてある。**設置済みなので、
+使うだけならもう何もしなくてよい。**
 
-```bash
-cd worker
-npx wrangler login                            # ブラウザでCloudflareにログイン
-npx wrangler kv namespace create SYNC_ROOMS   # 表示された id を wrangler.toml に貼る
-npx wrangler deploy                           # 表示された https://〜.workers.dev を控える
-```
-
-控えたURLを `public/sync-config.js` の `endpoint` に書いて `npm run deploy` すると、
-配布した全端末で使えるようになる。試すだけなら、アプリの
-「端末間同期 → 詳細設定」に貼れば、その端末だけで有効になる。
+- URL: **https://civics-sync.still-cloud-a091.workers.dev**（`public/sync-config.js` に設定済み）
+- 中身: [worker/](worker/) の40行ほどのWorker＋KV名前空間 `SYNC_ROOMS`
+- 呼べる配信元は `https://9hckg4shj6-glitch.github.io` だけに絞ってある
+  （`worker/wrangler.toml` の `ALLOWED_ORIGINS`）
+- 無料枠（1日10万リクエスト）で足りる。生徒1〜2人なら1日数十回
 
 サーバーに届くのは、コードのSHA-256から作った部屋IDと、コードから作った鍵で暗号化した
 データだけ。同期コードそのものは送られないので、**サーバーの管理者（＝自分）でも中身は読めない**。
-詳しくは [worker/README.md](worker/README.md)。
+作り直しかたと預かるものの詳細は [worker/README.md](worker/README.md)。
+
+別のサーバーへ移すときは、新しいURLを `public/sync-config.js` の `endpoint` に書いて
+`npm run deploy` する。1台だけで試すなら、アプリの「端末間同期 → 詳細設定」に貼れば
+その端末だけで切り替わる。
 
 ### 注意
 
