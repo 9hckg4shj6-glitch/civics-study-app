@@ -78,6 +78,7 @@ export function storedToCard(card: StoredSchedule): FsrsCard {
   };
 }
 
+const saves = new Map<string, Promise<void>>();
 function toDateOnly(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -91,6 +92,7 @@ export function scheduleReview(
   rating: ReviewRating,
   reviewedAt = new Date(),
   durationMs: number | null = null,
+  eventId = uuid(),
 ): LegacyProgress {
   const result = scheduler.next(legacyToFsrs(progress, reviewedAt), reviewedAt, rating as Grade);
   const stored = cardToStored(cardId, result.card);
@@ -99,7 +101,14 @@ export function scheduleReview(
   progress.due = toDateOnly(result.card.due);
   progress.lastReviewed = toDateOnly(reviewedAt);
   progress.fsrs = stored;
-  void persistReview(cardId, rating, stored, reviewedAt, durationMs);
+  const save = () => {
+    const pending = (saves.get(cardId) ?? Promise.resolve()).catch(() => {}).then(() => persistReview(cardId, rating, stored, reviewedAt, durationMs, eventId));
+    saves.set(cardId, pending);
+    return pending;
+  };
+  void save().catch(() => {
+    window.dispatchEvent(new CustomEvent("study:review-save-failed", { detail: { retry: save, cardId } }));
+  });
   return progress;
 }
 
@@ -109,9 +118,10 @@ async function persistReview(
   schedule: StoredSchedule,
   reviewedAt: Date,
   durationMs: number | null,
+  eventId: string,
 ): Promise<void> {
   const event: ReviewEvent = {
-    id: uuid(),
+    id: eventId,
     ownerId: null,
     cardId,
     deviceId: await getDeviceId(),
@@ -121,7 +131,7 @@ async function persistReview(
     syncedAt: null,
   };
   await db.transaction("rw", db.reviewEvents, db.schedules, db.outbox, async () => {
-    await db.reviewEvents.add(event);
+    await db.reviewEvents.put(event);
     await db.schedules.put(schedule);
     await enqueue("review_events", event.id, "upsert", event as unknown as Record<string, unknown>);
   });

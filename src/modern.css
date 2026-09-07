@@ -530,3 +530,8 @@ section.screen-enter-tab{animation:screenTab var(--motion-ui) ease both}
   .confetti{display:none!important}
   .memoryStudyCard.flipOut,.memoryStudyCard.flipIn{animation:none!important}
 }
+.reviewQuestion{display:flex;flex-direction:column;gap:8px;width:100%;text-align:left;padding:14px;margin:8px 0;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);font:inherit;overflow-wrap:anywhere}
+.reviewSchedule{font-size:14px;color:var(--brand);white-space:normal;margin:8px 0}
+#reviewView select{max-width:100%;padding:8px;margin:8px;border-radius:8px}
+.reviewSaveError{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;max-width:min(560px,calc(100vw - 24px));padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.reviewSaveError button{flex:0 0 auto}

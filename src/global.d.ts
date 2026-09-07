@@ -20,11 +20,12 @@ declare global {
     }>;
     __legacyAppRefresh?: () => void;
     STUDY_CORE?: {
+      ready: boolean;
       ui: {
         learningDestination: (mode: unknown) => "cardsView" | "inputView";
         primaryNavKey: (screenId: string) => "home" | "learn" | "practice" | "questions" | "search" | "review" | null;
       };
-      scheduleReview: (progress: Record<string, unknown>, rating: 1 | 2 | 3 | 4, cardId: string) => Record<string, unknown>;
+      scheduleReview: (progress: Record<string, unknown>, rating: 1 | 2 | 3 | 4, cardId: string, eventId?: string, reviewedAt?: string) => Record<string, unknown>;
       refreshCustomCards: () => Promise<void>;
       saveLegacyProgress: (progress: Record<string, unknown>) => void;
       openCardManager: () => Promise<void>;

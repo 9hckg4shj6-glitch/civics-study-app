@@ -1671,7 +1671,7 @@
       <button type="button" class="dueCard" id="dueCard">
         <span class="dueIcon">🔁</span>
         <span class="dueBody">
-          <span class="dueTitle">今日の復習</span>
+          <span class="dueTitle">本日復習すべき問題</span>
           <span class="dueSub" id="dueSub">問題を解くと、最適な時期に復習が出ます</span>
         </span>
         <span class="dueRight"><b class="dueCount" id="dueCount">0</b><span class="dueUnit">件</span></span>
@@ -1894,7 +1894,7 @@
     <div class="homeLead">
       <div class="leadCopy">
         <div class="leadEyebrow">Review / 復習・苦手</div>
-        <h2>弱点から潰していく</h2>
+        <h2>復習する時期がひと目でわかる</h2>
         <p>今日の復習、見直したい問題、苦手問題、分野別の正答率。目的を選んで見返しましょう。</p>
       </div>
       <div class="leadStats" aria-label="復習の状況">
@@ -1915,7 +1915,16 @@
       </button>
     </div>
 
-    <div class="homeMainLabel"><b>復習メニュー</b><span>目的を選んで見返す</span></div>
+    <h3>本日復習すべき問題</h3>
+    <p>予定時刻を迎えた問題です。上のカードからまとめて復習できます。</p>
+    <div id="reviewDueList"></div>
+    <h3>これからの復習予定</h3>
+    <p>時間は目安です。時刻になると本日の復習に入ります。</p>
+    <label>大分野 <select id="reviewDomain"><option value="">すべて</option><option>公共</option><option>政治</option><option>経済</option></select></label>
+    <label>小分野 <select id="reviewField"><option value="">すべて</option></select></label>
+    <div id="reviewScheduleList"></div>
+    <button type="button" class="btn" id="reviewPractice">問題演習へ</button>
+    <div class="homeMainLabel"><b>苦手・見直し</b><span>復習予定に関係なく、自分で選んで練習できます</span></div>
     <div class="hubGrid" id="reviewHubGrid"></div>
 
     <div class="homeSection" id="playlistSection">
@@ -2681,7 +2690,7 @@
   function orderedPool(){
     if(!pendingSel) return [];
     const it=pendingSel.items;
-    if(pendingSel.mode==="due") return sortByUrgency(it);
+    if(pendingSel.mode==="due") return it.slice().sort(reviewOrder);
     if(pendingSel.mode==="examday") return sortByExamGain(it);
     if(pendingSel.order==="unseen") return sortByUnseen(it);
     return shuffle(it);
@@ -2709,19 +2718,7 @@
       window.STUDY_CORE.scheduleReview(r, rating, cardId);
       return;
     }
-    const correct=rating>=3;
-    if(correct){
-      if(!r.reps || r.reps<=0){ r.interval=1; }
-      else if(r.reps===1){ r.interval=3; }
-      else { r.interval=Math.min(180, Math.max(1, Math.round((r.interval||1)*(r.ease||2.5)))); }
-      r.reps=(r.reps||0)+1;
-      r.ease=Math.min(2.8,(r.ease||2.5)+0.08);
-    } else {
-      r.reps=0; r.interval=1;
-      r.ease=Math.max(1.3,(r.ease||2.5)-0.2);
-    }
-    const d=new Date(); d.setDate(d.getDate()+r.interval);
-    r.due=dstr(d); r.lastReviewed=todayStr();
+    throw new Error("復習機能を準備しています。少し待ってから再度お試しください");
   }
   /* ---------- 忘却曲線（FSRSのstabilityから想起確率Rを引く） ---------- */
   function MEM(){ return (window.STUDY_CORE && window.STUDY_CORE.memory) || null; }
@@ -2744,47 +2741,66 @@
       .map(x=>x.q);
   }
 
-  function dueItems(){
-    const t=todayStr();
-    return DATA.filter(q=>{ const r=progress[q.id]; return r && r.due && r.due<=t; });
+  function reviewAt(r){
+    if(!r) return null;
+    const raw=r.fsrs?.due || r.due;
+    if(!raw) return null;
+    const at=new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw)?raw+"T00:00:00":raw).getTime();
+    return Number.isFinite(at)?at:null;
   }
+  function reviewOrder(a,b){ return (reviewAt(progress[a.id])??Infinity)-(reviewAt(progress[b.id])??Infinity)||a.id.localeCompare(b.id); }
+  function reviewText(r,now=Date.now()){
+    const at=reviewAt(r); if(at==null) return r?.seen?"予定未設定":"未学習";
+    const delta=at-now, abs=Math.abs(delta);
+    const relative=abs<3600000?Math.max(1,Math.ceil(abs/60000))+"分":abs<86400000?Math.ceil(abs/3600000)+"時間":Math.ceil(abs/86400000)+"日";
+    const d=new Date(at), date=d.toLocaleDateString("ja-JP",{month:"numeric",day:"numeric"})+" "+d.toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
+    return (delta>0?"約"+relative+"後":abs<60000?"復習の時間です":"予定から約"+relative+"経過")+"（"+date+"）";
+  }
+  function scheduleBadge(q){ return '<p class="reviewSchedule" data-review-id="'+esc(q.id)+'">次の復習：'+esc(reviewText(progress[q.id]))+'</p>'; }
+  function dueItems(){
+    const now=Date.now();
+    return DATA.filter(q=>{ const at=reviewAt(progress[q.id]); return at!=null&&at<=now; }).sort(reviewOrder);
+  }
+  function renderReviewSchedule(){
+    const root=$("#reviewScheduleList"); if(!root) return;
+    const due=dueItems(), now=Date.now();
+    const domain=$("#reviewDomain").value, field=$("#reviewField").value;
+    const future=DATA.filter(q=>progress[q.id]?.seen && (reviewAt(progress[q.id])==null||reviewAt(progress[q.id])>now))
+      .filter(q=>(!domain||q.domain===domain)&&(!field||q.field===field)).sort(reviewOrder);
+    // 30秒ごとの時計更新で作り直すとスクロール位置が飛ぶため、顔ぶれが変わったときだけ組み直す。
+    // 時刻の文言は renderDue() が data-review-id を見て書き換える
+    const sig=due.map(q=>q.id).join(",")+"|"+domain+"|"+field+"|"+future.map(q=>q.id).join(",");
+    if(root.dataset.sig===sig) return;
+    root.dataset.sig=sig;
+    const rows=items=>items.map(q=>'<button type="button" class="reviewQuestion" data-review-question="'+esc(q.id)+'"><small>'+esc(q.domain+" / "+q.field)+'</small><span>'+esc(q.question.slice(0,110))+'</span>'+scheduleBadge(q)+'</button>').join("");
+    $("#reviewDueList").innerHTML=rows(due)||"<p>今すぐ復習する問題はありません。</p>";
+    root.innerHTML=rows(future)||"<p>該当する復習予定はありません。</p>";
+    $("#reviewView").querySelectorAll("[data-review-question]").forEach(el=>el.onclick=()=>startQuiz([DATA.find(q=>q.id===el.dataset.reviewQuestion)],"復習",{},{keepOrder:true}));
+  }
+
   function dueTermItems(){
-    const t=todayStr();
-    return termSources().filter(c=>{ const r=progress[c.id]; return r && r.due && r.due<=t; });
+    const now=Date.now();
+    return termSources().filter(c=>{ const at=reviewAt(progress[c.id]); return at!=null&&at<=now; }).sort(reviewOrder);
   }
   function dueReviewCards(){
     return dueItems().map(questionToCard).concat(dueTermItems().map((t,i)=>termToCard(t,i)));
   }
   function nextDueInfo(){
-    // 今日以降で最も近い予定日を返す（{date, n}）
-    const t=todayStr(); let best=null, n=0;
-    DATA.concat(termSources()).forEach(q=>{ const r=progress[q.id]; if(!r||!r.due||r.due<=t) return; if(!best||r.due<best){best=r.due;n=1;} else if(r.due===best){n++;} });
-    return best?{date:best,n}:null;
+    const now=Date.now();
+    return DATA.concat(termSources()).filter(q=>{ const at=reviewAt(progress[q.id]); return at!=null&&at>now; })
+      .sort(reviewOrder)[0]||null;
   }
   function renderDue(){
-    const card=$("#dueCard"); if(!card) return;
-    const questions=dueItems(), terms=dueTermItems(), n=questions.length+terms.length;
-    $("#dueCount").textContent=n;
-    $("#reviewDueCount").textContent=n;
-    { const lead=$("#reviewLeadDue"); if(lead) lead.textContent=n; }
-    const sub=$("#dueSub");
-    const reviewSub=$("#reviewDueSub");
-    if(n>0){
-      const parts=[];
-      if(questions.length) parts.push(`${questions.length}問`);
-      if(terms.length) parts.push(`講義カード${terms.length}枚`);
-      sub.textContent=`${parts.join("・")}が復習の時期です`;
-      reviewSub.textContent=`${parts.join("・")}を忘れかけている順に復習します`;
-      card.classList.remove("dueEmpty");
-      $("#reviewDueCard").classList.remove("dueEmpty");
-    }
-    else {
-      const nx=nextDueInfo();
-      sub.textContent = nx ? `今日はOK。次は ${nx.date.slice(5).replace("-","/")}（${nx.n}件）` : "問題やカードを学習すると、最適な時期に復習が出ます";
-      reviewSub.textContent = nx ? `今日は完了。次は ${nx.date.slice(5).replace("-","/")} に ${nx.n}件です` : "問題を解くと、最適な時期に復習が表示されます";
-      card.classList.add("dueEmpty");
-      $("#reviewDueCard").classList.add("dueEmpty");
-    }
+    const questions=dueItems(), terms=dueTermItems(), n=questions.length+terms.length, nx=nextDueInfo();
+    ["dueCount","reviewDueCount","reviewLeadDue"].forEach(id=>{const el=$("#"+id);if(el)el.textContent=n;});
+    const parts=[];
+    if(questions.length) parts.push(questions.length+"問");
+    if(terms.length) parts.push("講義カード"+terms.length+"枚");
+    const message=n?"今すぐ復習 "+parts.join("・"):nx?"次の復習："+reviewText(progress[nx.id]):"問題を解くと復習予定が表示されます";
+    ["dueSub","reviewDueSub"].forEach(id=>{const el=$("#"+id);if(el)el.textContent=message;});
+    ["dueCard","reviewDueCard"].forEach(id=>$("#"+id)?.classList.toggle("dueEmpty",!n));
+    document.querySelectorAll('[data-review-id]').forEach(el=>el.textContent="次の復習："+reviewText(progress[el.dataset.reviewId]));
+    renderReviewSchedule();
   }
 
   /* ---------- 弱点プレイリスト（学習記録から自動生成） ---------- */
@@ -3242,7 +3258,7 @@
       {icon:"▶",name:"問題演習",accent:"#6b4aa0",sub:`${DATA.length}問から範囲を選んで解く`,go:()=>openView("practiceView")},
       {icon:"☷",name:"問題一覧",accent:"#9c4a86",sub:`全${DATA.length}問を年度・形式別に確認`,go:openQBrowse},
       {icon:"↻",name:"復習",accent:"#b8474f",
-        sub:reviewN?`今日 ${reviewN}件 ・ 苦手 ${weakN}問`:`苦手 ${weakN}問 ・ 見直し ${bmN}問`,
+        sub:reviewN?`今すぐ復習 ${reviewN}件`:(()=>{const nx=nextDueInfo();return nx?`次の復習：${reviewText(progress[nx.id])}`:"問題を解くと復習予定が表示されます";})(),
         go:()=>openView("reviewView")},
       {icon:"▧",name:"暗記カード",accent:"#b06a1e",sub:"自分のデッキと、科目の公式デッキ",go:()=>openView("memoryCardsView")},
       {icon:"⌕",name:"問題検索",accent:"#7a6a2e",sub:"キーワードから目的の問題をすばやく探す",wide:true,go:openSearch}
@@ -3676,15 +3692,14 @@
       if(isCorrect){
         r.streak++; correct++; run++; maxRun=Math.max(maxRun,run);
         gained+=Math.round(XP_CORRECT*comboMult(run));
-        scheduleSRS(r,3,cur.q.id);
       } else {
         r.streak=0; r.lastWrong=t; run=0; gained+=XP_WRONG;
         s.wrongList.push({q:cur.q,chosen:chosenLabel});
         r.miss=r.miss||{};
         picks.forEach(i=>{ const c=cur.choices[i]; if(c&&!c.correct) r.miss[c.idx]=(r.miss[c.idx]||0)+1; });
-        scheduleSRS(r,1,cur.q.id);
       }
-      r.lastGrade=isCorrect?3:1;
+      // まとめて採点も1問ずつFSRSへ渡す。保存は下の saveProgress() で1回にまとめる
+      gradeCard(isCorrect?3:1,cur,{defer:true});
       syncWeak(r);
     });
     s.correct=correct; s.streak=run; s.maxStreak=maxRun;
@@ -3905,9 +3920,9 @@
     startFlash(cards,"今日の新しいカード",{keepOrder:true});
   }
   function startPersonalDeck(deck){
-    const cards=personalStudyCards(deck.id), today=todayStr();
-    const due=sortByUrgency(cards.filter(c=>{ const r=progress[c.id]; return r&&r.due&&r.due<=today; }))
-      .slice(0,deck.reviewsPerDay);
+    const cards=personalStudyCards(deck.id), now=Date.now();
+    const due=cards.filter(c=>{ const at=reviewAt(progress[c.id]); return at!=null&&at<=now; })
+      .sort(reviewOrder).slice(0,deck.reviewsPerDay);
     const dueIds=new Set(due.map(c=>c.id));
     const fresh=cards.filter(c=>!dueIds.has(c.id)&&cardIsNew(c.id)).slice(0,deck.newCardsPerDay);
     const queue=due.concat(fresh);
@@ -4018,6 +4033,7 @@
     transitionToScreen("flash","forward");
   }
   function startFlash(cards,label,opts){
+    if(!window.STUDY_CORE?.ready){ toast("復習機能を準備しています。少し待って再度お試しください"); return; }
     if(!cards || !cards.length){ toast("カードがありません"); return; }
     opts=opts||{};
     closeFlashChooser();
@@ -4379,7 +4395,7 @@
       const r=progress[q.id], status=(r&&r.seen)?(r.correct>=r.wrong?'<span class="srOk">学習済</span>':'<span class="srNg">要復習</span>'):"";
       const bm=isBookmarked(q.id);
       const sel=qbrowseState.selected.has(q.id);
-      return `<div class="brItem qbItem" data-i="${i}">
+      return `<div class="brItem qbItem" data-i="${i}">${progress[q.id]?.seen?scheduleBadge(q):""}
         <div class="qbRow">
           <button type="button" class="qbSel${sel?" on":""}" aria-pressed="${sel?"true":"false"}"
             aria-label="この問題を選ぶ"><span class="qbSelBox"></span></button>
@@ -4585,6 +4601,7 @@
   }
 
   function startQuiz(items,label,catRef,opts){
+    if(!window.STUDY_CORE?.ready){ toast("復習機能を準備しています。少し待って再度お試しください"); return; }
     opts=opts||{};
     if(catRef){ meta.lastCategory={mode:catRef.mode,key:catRef.key,label}; saveMeta(); }
     const base = expandGroupItems(items);
@@ -5135,12 +5152,17 @@
     return `<div class="lead">解説</div><p class="explainSummary">${esc(q.explanation)||"(解説なし)"}</p>${explainFigureHTML(q)}
       <div class="lead" style="margin-top:10px">選択肢別の解説</div><ul class="choiceExplainList">${rows}</ul>${moreExplHTML(q)}`;
   }
-  function gradeCard(grade,entry){
-    const s=session; if(!s) return 0;
-    const cur=entry||s.queue[s.i]; if(!cur) return 0;
+  function gradeCard(grade,entry,opts){
+    const s=session; if(!s) return "";
+    const cur=entry||s.queue[s.i]; if(!cur) return "";
     const r=rec(cur.q.id);
-    if(!cur.graded){ cur.graded=true; r.lastGrade=grade; scheduleSRS(r, grade, cur.q.id); saveProgress(); }
-    return Math.max(1, r.interval||1);
+    if(!cur.reviewBase){ cur.reviewBase=JSON.parse(JSON.stringify(r)); cur.reviewEventId=crypto.randomUUID(); cur.reviewTime=new Date().toISOString(); }
+    const scheduled=JSON.parse(JSON.stringify(cur.reviewBase));
+    window.STUDY_CORE.scheduleReview(scheduled,grade,cur.q.id,cur.reviewEventId,cur.reviewTime);
+    ["fsrs","due","lastReviewed","reps","interval"].forEach(k=>r[k]=scheduled[k]);
+    cur.graded=true; r.lastGrade=grade;
+    if(!opts||!opts.defer) saveProgress();
+    return reviewText(r);
   }
   // 「次へ」「中断」で、手ごたえ未選択のまま先へ進む選択問題を「できた」で締める
   function gradeUnratedOnPage(){
@@ -5656,25 +5678,31 @@
     row.querySelectorAll(".confBtn").forEach(b=>{ b.onclick=()=>finalizeConstructedGrade(parseInt(b.dataset.g,10),cw); });
   }
   function finalizeConstructedGrade(rating,cwArg){
-    const s=session, cw=cwArg||(s&&s.cw); if(!s||!cw||cw.finalized) return;
+    const s=session, cw=cwArg||(s&&s.cw); if(!s||!cw) return;
     const q=cw.q, max=writtenPoints(q), ids=[...cw.selected], earned=rubricPoints(q,ids);
-    cw.finalized=true;
     const full = earned>=max;
-    const r=rec(q.id); recordAnswerCounters(r,q.id,full);
-    let gainXP, mult=1;
-    if(full){
-      r.streak++; s.correct++; s.streak++; s.maxStreak=Math.max(s.maxStreak,s.streak);
-      mult=comboMult(s.streak); gainXP=Math.round(XP_CORRECT*mult);
-    } else {
-      // 部分点でもコンボは終了し、誤答ノートへ入れる（§8.1・§8.3）
-      r.streak=0; r.lastWrong=todayStr(); s.streak=0;
-      s.wrongList.push({q, chosen:`${earned} / ${max}点`});
-      const ratio=max>0?earned/max:0;
-      gainXP=Math.round(XP_WRONG + ratio*(XP_CORRECT-XP_WRONG));
+    const r=rec(q.id);
+    // 手ごたえは選び直せる。得点・XP・誤答ノート・答案の保存は最初の確定のときだけ動かす
+    const first=!cw.finalized;
+    let gainXP=cw.gainXP||0, mult=cw.mult||1, lvup=0;
+    if(first){
+      cw.finalized=true;
+      recordAnswerCounters(r,q.id,full);
+      if(full){
+        r.streak++; s.correct++; s.streak++; s.maxStreak=Math.max(s.maxStreak,s.streak);
+        mult=comboMult(s.streak); gainXP=Math.round(XP_CORRECT*mult);
+      } else {
+        // 部分点でもコンボは終了し、誤答ノートへ入れる（§8.1・§8.3）
+        r.streak=0; r.lastWrong=todayStr(); s.streak=0;
+        s.wrongList.push({q, chosen:`${earned} / ${max}点`});
+        const ratio=max>0?earned/max:0;
+        gainXP=Math.round(XP_WRONG + ratio*(XP_CORRECT-XP_WRONG));
+      }
+      cw.gainXP=gainXP; cw.mult=mult;
+      syncWeak(r);
+      lvup=addXP(gainXP);
     }
-    syncWeak(r);
-    const lvup=addXP(gainXP);
-    scheduleSRS(r, rating, q.id); r.lastGrade=rating; if(cw.entry) cw.entry.graded=true;
+    const iv=gradeCard(rating, cw.entry);
     meta.bestRunStreak=Math.max(meta.bestRunStreak,s.maxStreak);
     markStudied(); saveProgress(); saveMeta();
     if(lvup){ s.leveledUp=lvup; toast(`🎉 レベルアップ！ Lv.${lvup} に到達`); }
@@ -5682,7 +5710,7 @@
     s.written[cw.qi!=null?cw.qi:s.i]={earned,max,rubricIds:ids,rating};
 
     const wa=WA();
-    if(wa){
+    if(wa && first){
       try{
         wa.saveAttempt({subjectId:currentSubjectId||"", questionId:q.id, examSessionId:null, mode:"practice", status:"graded",
           answers:cw.answers||{}, selectedRubricIds:ids, earnedPoints:earned, maxPoints:max, rating,
@@ -5695,10 +5723,14 @@
     if(head) head.textContent = `${full?"⭕ 満点":(earned>0?"🟡 部分点":"❌ 0点")}（${earned} / ${max}点） ・ +${gainXP}XP${mult>1?` 🔥コンボ×${mult}`:""}`;
     const row=eb.querySelector('[data-el="cwRateRow"]');
     if(row){
-      const iv=Math.max(1, r.interval||1);
-      row.innerHTML=`<div class="confRow done"><span class="confLabel">採点を確定しました</span>
-        <div class="confResult">📅 次の復習の目安：約${iv}日後</div></div>`;
+      const labels={1:"もう一度",2:"むずかしい",3:"できた",4:"かんたん"};
+      const allow=allowedWrittenRatings(earned,max);
+      row.innerHTML=`<div class="confRow done"><span class="confLabel">採点を確定しました<small>手ごたえは選び直せます</small></span>
+        <div class="confBtns">${allow.map(g=>`<button type="button" class="confBtn${g===rating?" sel":""}" data-g="${g}">${labels[g]}</button>`).join("")}</div>
+        <div class="confResult">次の復習：${esc(iv)}</div></div>`;
+      row.querySelectorAll(".confBtn").forEach(b=>{ b.onclick=()=>finalizeConstructedGrade(parseInt(b.dataset.g,10),cw); });
     }
+    renderDue();
     eb.querySelectorAll("[data-crit]").forEach(cb=>{ cb.disabled=true; });
     showWrittenHistory(q.id,eb);
     const sp=$("#streakPill"); sp.textContent=mult>1?`🔥 ${s.streak} ×${mult}`:`🔥 ${s.streak}`; sp.classList.toggle("combo",mult>1);
@@ -5911,6 +5943,7 @@
     $("#quizNav").scrollIntoView({behavior:"smooth",block:"nearest"});
   }
   function answer(cur,sel){
+    if(!window.STUDY_CORE?.scheduleReview){ toast("復習機能を準備しています。少し待って再度お試しください"); return; }
     const s=session,q=cur.q;
     const picks=Array.isArray(sel)?sel.slice():[sel];
     if(s.batch){
@@ -5960,7 +5993,7 @@
       picks.forEach(i=>{ const c=cur.choices[i]; if(!c.correct) r.miss[c.idx]=(r.miss[c.idx]||0)+1; });
       gainXP=XP_WRONG; lvup=addXP(gainXP); }
     // 不正解は自動で「もう一度(Again)」。正解は下の手ごたえボタンで4段階評価をFSRSへ渡す。
-    if(!isCorrect){ scheduleSRS(r, 1, q.id); cur.graded=true; }
+    gradeCard(isCorrect?3:1,cur);
     meta.bestRunStreak=Math.max(meta.bestRunStreak,s.maxStreak);
     markStudied(); saveProgress(); saveMeta();
     if(lvup){ s.leveledUp=lvup; toast(`🎉 レベルアップ！ Lv.${lvup} に到達`); }
@@ -5993,6 +6026,7 @@
         ${note}
         ${!isCorrect?`<div class="body" style="margin-bottom:8px"><b>正解：</b>${esc(correctText)}</div>`:''}
         <div class="body">${renderExplainBody(q,cur,picks)}</div>
+        ${scheduleBadge(q)}<small>時間になると「本日復習すべき問題」に表示されます。</small>
         ${confHTML}
         ${noteHTML}
         </div>`;
@@ -6004,15 +6038,14 @@
       const row=eb.querySelector('[data-el="confRow"]');
       row&&row.querySelectorAll(".confBtn").forEach(btn=>{
         btn.onclick=()=>{
-          if(row.classList.contains("done")) return;
+          row.querySelectorAll(".confBtn").forEach(b=>b.classList.remove("sel"));
           row.classList.add("done"); btn.classList.add("sel");
           const iv=gradeCard(parseInt(btn.dataset.g,10),cur);
           const rc=row.querySelector('[data-el="confResult"]');
           if(rc){
             rc.classList.remove("hidden");
-            const c=recallCurve(q.id,[30]);   // 復習しなかった場合の30日後
-            rc.textContent = c[0]==null ? `📅 次の復習の目安：約${iv}日後`
-              : `📅 次の復習の目安：約${iv}日後 ・ 放置すると30日後には ${Math.round(c[0]*100)}%`;
+            rc.textContent = "次の復習："+iv;
+            renderDue();
           }
         };
       });
@@ -6277,15 +6310,63 @@
   /* 今日の復習カード */
   function openDueReview(){
     const questions=dueItems(), terms=dueTermItems();
-    if(!questions.length&&!terms.length){ toast("🎉 今日の復習はありません"); return; }
-    // 講義カードが含まれる日は、問題とカードをまとめてフラッシュカードで復習する
+    if(!questions.length&&!terms.length){ toast("今すぐ復習する問題はありません"); return; }
+    // 講義カードが混じる回は、問題とカードをまとめてフラッシュカードで復習する
     if(terms.length){
-      // 問題とカードを混ぜたうえで、最も忘れかけているものから出す
-      const deck=sortByUrgency(questions.map(questionToCard).concat(terms.map((t,i)=>termToCard(t,i))));
-      startFlash(deck,"今日の復習カード",{keepOrder:true}); return;
+      const deck=questions.map(questionToCard).concat(terms.map((t,i)=>termToCard(t,i)));
+      startFlash(deck,"本日復習すべき問題",{keepOrder:true}); return;
     }
-    openCountModal({items:questions,label:"今日の復習",key:"__due__"},"due");
+    openCountModal({items:questions,label:"本日復習すべき問題",key:"__due__"},"due");
   }
+  // 大分野で絞ったとき、その大分野に無い小分野が残っていると必ず0件になるので作り直す
+  function syncReviewFields(){
+    const select=$("#reviewField"); if(!select) return;
+    const domain=$("#reviewDomain").value, keep=select.value;
+    const fields=[...new Set(DATA.filter(q=>progress[q.id]&&progress[q.id].seen&&(!domain||q.domain===domain))
+      .map(q=>q.field).filter(Boolean))].sort();
+    const sig=domain+"|"+fields.join(",");
+    if(select.dataset.sig===sig) return;
+    select.dataset.sig=sig;
+    select.innerHTML='<option value="">すべて</option>'+fields.map(f=>'<option>'+esc(f)+'</option>').join("");
+    select.value=fields.includes(keep)?keep:"";
+  }
+  $("#reviewDomain").onchange=()=>{ syncReviewFields(); renderReviewSchedule(); };
+  $("#reviewField").onchange=renderReviewSchedule;
+  $("#reviewPractice").onclick=()=>openView("practiceView");
+  function refreshReviewClock(){
+    if(!DATA.length) return;
+    syncReviewFields();
+    renderDue();
+    if(!$("#home").classList.contains("hidden")) renderHub();
+  }
+  setInterval(()=>{if(!document.hidden)refreshReviewClock();},30000);
+  window.addEventListener("focus",refreshReviewClock);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshReviewClock();});
+  window.addEventListener("study:review-saved",refreshReviewClock);
+  // 保存に失敗した分をためておき、1つの案内からまとめて再試行する（失敗のたびに増やさない）
+  let reviewSaveRetries=[];
+  window.addEventListener("study:review-save-failed",e=>{
+    reviewSaveRetries.push(e.detail.retry);
+    let box=$("#reviewSaveError");
+    if(!box){
+      box=document.createElement("div"); box.id="reviewSaveError"; box.className="reviewSaveError";
+      box.setAttribute("role","alert");
+      const msg=document.createElement("span"); msg.dataset.el="msg"; box.append(msg);
+      const button=document.createElement("button");
+      button.type="button"; button.className="btn ghost"; button.textContent="再保存";
+      button.onclick=async()=>{
+        const pending=reviewSaveRetries.slice(); reviewSaveRetries=[];
+        button.disabled=true;
+        try{ await Promise.all(pending.map(fn=>fn())); box.remove(); renderDue(); }
+        catch(err){
+          reviewSaveRetries=pending.concat(reviewSaveRetries); button.disabled=false;
+          msg.textContent="保存できませんでした。通信を確かめて、もう一度お試しください。";
+        }
+      };
+      box.append(button); document.body.append(box);
+    }
+    box.querySelector('[data-el="msg"]').textContent="復習予定の保存に失敗しました（"+reviewSaveRetries.length+"件）。";
+  });
   $("#dueCard").onclick=openDueReview;
   $("#reviewDueCard").onclick=openDueReview;
 
@@ -6322,6 +6403,7 @@
         <div class="q">${qUnderlineHTML(cur.q)}</div>
         <div class="a ${r.isCorrect?"ans":"you"}">あなたの回答：${esc(r.chosenLabel)}</div>
         ${r.isCorrect?"":`<div class="a ans">正解：${esc(r.correctText)}</div>`}
+        ${scheduleBadge(cur.q)}
         <details class="batchExpl"><summary>解説を見る</summary>
           <div class="batchExplBody">${renderBatchExplainBody(cur.q,cur,r.picks)}</div></details>
       </article>`;
@@ -6349,7 +6431,17 @@
     $("#rRetry").onclick=()=>startQuiz(s.queue.map(x=>x.q),s.label,null,{batch:true});
     const rw=$("#rWrong"); if(rw) rw.onclick=()=>startQuiz(s.wrongList.map(w=>w.q),s.label+"（復習）");
   }
+  // 結果画面に出す「今すぐ復習できる問題」の案内。呼ばれるたびに足さず、同じ要素を書き換える
+  function renderResultDueHint(){
+    const host=$("#result"); if(!host) return;
+    const n=dueItems().length;
+    let p=host.querySelector("#resultDueHint");
+    if(!n){ if(p) p.remove(); return; }
+    if(!p){ p=document.createElement("p"); p.id="resultDueHint"; host.append(p); }
+    p.textContent="今すぐ復習できる問題が "+n+" 問あります。ホームの復習から確認できます。";
+  }
   function renderResult(){
+    setTimeout(renderResultDueHint,0);
     const s=session,items=s.resultQueue||s.queue,total=items.length,unanswered=s.queue.length-total;
     const pct=total?Math.round(s.correct/total*100):0,gained=meta.xp-s.xpStart;
     $("#quiz").classList.add("hidden");

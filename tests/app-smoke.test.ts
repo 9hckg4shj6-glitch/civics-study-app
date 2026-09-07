@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { fsrs, createEmptyCard } from "ts-fsrs";
 import http from "node:http";
 import path from "node:path";
 import { JSDOM, VirtualConsole } from "jsdom";
@@ -81,6 +82,13 @@ beforeAll(async () => {
     pretendToBeVisual: true,
     virtualConsole,
     beforeParse(window) {
+      // jsdom does not execute the module bundle; use the real FSRS calculator for UI tests.
+      (window as any).STUDY_CORE = { ready: true, scheduleReview: (r: any, rating: any) => {
+        const card = fsrs().next(createEmptyCard(), new Date(), rating).card;
+        r.fsrs = { due: card.due.toISOString() }; r.reps = card.reps;
+        return r;
+      } };
+      window.document.documentElement?.setAttribute("data-study-ready", "1");
       // jsdom に無い API のうち、起動経路で必ず呼ばれるものだけを最小限に補う
       (window as any).matchMedia = (query: string) => ({
         matches: false, media: query, onchange: null,

@@ -84,7 +84,7 @@ export async function mirrorSchedulesToLegacy(): Promise<boolean> {
     const due = toDateOnly(schedule.due);
     const interval = Math.max(0, Math.round(schedule.scheduledDays));
     const lastReviewed = schedule.lastReview ? toDateOnly(schedule.lastReview) : record.lastReviewed;
-    if (record.due !== due || record.reps !== schedule.reps || record.interval !== interval) changed = true;
+    if (record.due !== due || record.reps !== schedule.reps || record.interval !== interval || JSON.stringify(record.fsrs) !== JSON.stringify(schedule)) changed = true;
     record.due = due;
     record.reps = schedule.reps;
     record.interval = interval;

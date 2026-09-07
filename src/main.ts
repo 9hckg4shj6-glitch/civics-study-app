@@ -33,15 +33,19 @@ async function bootstrap(): Promise<void> {
   await mirrorCustomCardsToLegacy();
   await mirrorSchedulesToLegacy(); // ホームの復習予定を Dexie/FSRS と一致させる
   await installCardManager();
+  document.documentElement.dataset.studyReady = "1";
+  window.STUDY_CORE!.ready = true;
+  window.dispatchEvent(new Event("study:review-saved"));
 }
 
 window.STUDY_CORE = {
+  ready: false,
   ui: {
     learningDestination,
     primaryNavKey,
   },
-  scheduleReview: (progress, rating, cardId) =>
-    scheduleReview(cardId, progress as LegacyProgress, rating as ReviewRating) as Record<string, unknown>,
+  scheduleReview: (progress, rating, cardId, eventId, reviewedAt) =>
+    scheduleReview(cardId, progress as LegacyProgress, rating as ReviewRating, reviewedAt ? new Date(reviewedAt) : new Date(), null, eventId) as Record<string, unknown>,
   refreshCustomCards: mirrorCustomCardsToLegacy,
   saveLegacyProgress: (progress) => queueLegacyStateSave(progress as Record<string, LegacyProgress>),
   openCardManager,
