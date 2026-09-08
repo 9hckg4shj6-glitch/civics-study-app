@@ -4,6 +4,7 @@ import http from "node:http";
 import path from "node:path";
 import { JSDOM, VirtualConsole } from "jsdom";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { findShownQuestion } from "./shown-question";
 
 /* 同じ問題を解いた回数の記録（基礎医学演習アプリから移植）を、
    ビルド済みアプリ（dist）を実際に読み込んで確かめる。
@@ -107,9 +108,8 @@ async function answerFirstQuestion(win: any): Promise<any> {
   }
   await tick(450);
 
-  const shown = win.document.querySelector("#qBlocks .qtext")!.textContent!.trim();
-  const q = win.QUIZ_DATA.find((x: any) => shown.startsWith(x.question.trim().slice(0, 30)));
-  expect(q, `出題中の問題を特定できません: ${shown.slice(0, 40)}`).toBeTruthy();
+  const q = findShownQuestion(win);
+  expect(q, "出題中の問題を特定できません").toBeTruthy();
   (win.document.querySelectorAll("#qBlocks .choice")[q.answer] as any).click();
   await tick(250);
   return q;

@@ -2491,6 +2491,9 @@
      type:"constructed" が付いたものだけ記述問題として扱う。
      （仕様：IMMUNOLOGY_WRITTEN_QUESTION_IMPLEMENTATION_PLAN.md §5.1） */
   function questionType(q){ return (q && q.type==="constructed") ? "constructed" : "choice"; }
+  /* 選択肢の見出し記号。原本の①〜⑨に合わせて9択まであるので、
+     A〜F の固定配列だと7択以降が undefined になってしまう。文字コードから作る。 */
+  function choiceKey(i){ return String.fromCharCode(65+i); }
 
   /* 記述問題の回答パーツ。壊れた定義でアプリ全体が落ちないよう、ここで正規化しておく */
   function normalizeResponseParts(list){
@@ -5525,13 +5528,12 @@
     if(!parsed){
       return `<div class="lead">解説</div><p class="explainSummary">${esc(q.explanation)||'(解説なし)'}</p>${explainFigureHTML(q)}${moreExplHTML(q)}`;
     }
-    const keys=["A","B","C","D","E","F"];
     const rows=cur.choices.map((c,i)=>{
       const item=parsed[c.idx], exp=item?item.text:"";
       const mine=picked.indexOf(i)>=0;
       const cls=c.correct?"ce-correct":(mine?"ce-wrongchosen":"");
       const tag=c.correct?'<span class="etag">正解</span>':(mine?'<span class="etag">あなたの回答</span>':"");
-      return `<li class="${cls}"><span class="ekey">${keys[i]}</span><span class="etext"><span class="echoice">${esc(c.text)}${tag}</span>${exp?`<span class="edesc">${esc(exp)}</span>`:""}</span></li>`;
+      return `<li class="${cls}"><span class="ekey">${choiceKey(i)}</span><span class="etext"><span class="echoice">${esc(c.text)}${tag}</span>${exp?`<span class="edesc">${esc(exp)}</span>`:""}</span></li>`;
     }).join("");
     return `<div class="lead">選択肢別の解説</div><ul class="choiceExplainList">${rows}</ul>`;
   }
@@ -6255,12 +6257,12 @@
   }
   function renderChoiceBlock(cur){
     const s=session, els=cur.els;
-    const keys=["A","B","C","D","E","F"], box=els.choices; box.innerHTML="";
+    const box=els.choices; box.innerHTML="";
     const need=cur.need||1, multi=need>1;
     cur.picks=[];
     cur.choices.forEach((ch,idx)=>{
       const b=document.createElement("button"); b.className="choice";
-      b.innerHTML=`<span class="key">${keys[idx]}</span><span class="choiceBody"><span class="choiceText">${esc(ch.text)}</span></span>`;
+      b.innerHTML=`<span class="key">${choiceKey(idx)}</span><span class="choiceBody"><span class="choiceText">${esc(ch.text)}</span></span>`;
       b.onclick=()=>multi?togglePick(cur,idx):answer(cur,[idx]); box.appendChild(b);
       const note=document.createElement("div"); note.className="choiceNote hidden"; box.appendChild(note);
     });

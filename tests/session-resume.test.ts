@@ -4,6 +4,7 @@ import http from "node:http";
 import path from "node:path";
 import { JSDOM, VirtualConsole } from "jsdom";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { findShownQuestion } from "./shown-question";
 
 /* 演習中に画面がホームへ戻らないこと、中断しても回答が消えないことを、
    ビルド済みアプリ（dist）を実際に読み込んで確かめる。
@@ -220,8 +221,7 @@ describe("中断しても回答が消えない", () => {
     }
     await tick(450);
 
-    const shown = win.document.querySelector("#qBlocks .qtext")!.textContent!.trim();
-    const q = win.QUIZ_DATA.find((x: any) => shown.startsWith(x.question.trim().slice(0, 30)));
+    const q = findShownQuestion(win);
     (win.document.querySelectorAll("#qBlocks .choice")[q.answer] as any).click();
     await tick(200);
 

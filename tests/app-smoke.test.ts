@@ -4,6 +4,7 @@ import http from "node:http";
 import path from "node:path";
 import { JSDOM, VirtualConsole } from "jsdom";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { findShownQuestion } from "./shown-question";
 
 /* ビルド済みアプリ（dist）を実際に読み込んで、起動と演習が動くかを確かめる煙感知テスト。
    index.html の大改修（アカウント・同期・ランキング・掲示板の削除）で
@@ -157,6 +158,7 @@ describe("ビルド済みアプリの起動", () => {
       "令和8年度",
       "令和8年度 追試",
       "令和7年度",
+      "令和7年度 追試",
       "令和6年度",
       "令和5年度",
       "令和4年度",
@@ -233,10 +235,9 @@ describe("演習と採点", () => {
     await tick(450);
     expect(visibleScreen()).toBe("quiz");
 
-    // いま出ている問題を、問題文から教材データ側で特定する
-    const shown = win.document.querySelector("#qBlocks .qtext")!.textContent!.trim();
-    const q = win.QUIZ_DATA.find((x: any) => shown.startsWith(x.question.trim().slice(0, 30)));
-    expect(q, `出題中の問題を特定できません: ${shown.slice(0, 40)}`).toBeTruthy();
+    // いま出ている問題を、問題文と選択肢から教材データ側で特定する
+    const q = findShownQuestion(win);
+    expect(q, "出題中の問題を特定できません").toBeTruthy();
 
     const choices = win.document.querySelectorAll("#qBlocks .choice");
     expect(choices.length).toBe(q.choices.length);
