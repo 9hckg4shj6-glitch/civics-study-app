@@ -445,6 +445,13 @@
   .dueCount{font-size:30px;font-weight:900;color:var(--brand);line-height:1}
   .dueCard.dueEmpty .dueCount{color:var(--muted)}
   .dueUnit{font-size:13px;font-weight:800;color:var(--muted)}
+  /* ===== 中断した演習（続きから再開）===== */
+  .resumeCard{border:1.5px solid color-mix(in srgb,var(--warn) 55%,var(--line));
+    background:color-mix(in srgb,var(--warn) 9%,var(--card));display:flex;flex-direction:column;gap:8px}
+  .resumeTitle{font-size:15px;font-weight:900;color:var(--text)}
+  .resumeSub{font-size:12.5px;color:var(--muted);margin:0;line-height:1.6}
+  .resumeBtns{display:flex;flex-wrap:wrap;gap:8px}
+  .resumeBtns .btn{flex:1 1 160px}
   /* 「2つ選べ」問題で選択済みの選択肢 */
   .choice.selected{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 14%,var(--card2));box-shadow:0 0 0 1px var(--brand) inset}
   /* 「2つ選べ」問題の決定ボタン */
@@ -1744,6 +1751,17 @@
       </button>
     </div>
 
+    <div class="homeSection resumeSection hidden" id="resumeSection">
+      <div class="panel resumeCard">
+        <b class="resumeTitle">⏸ 中断した演習があります</b>
+        <p class="resumeSub" id="resumeSub"></p>
+        <div class="resumeBtns">
+          <button type="button" class="btn" id="resumeContinue">▶ 続きから再開</button>
+          <button type="button" class="btn ghost" id="resumeFinish">解いた分を採点して終了</button>
+        </div>
+      </div>
+    </div>
+
     <div class="homeMainLabel"><b>学習メニュー</b><span>目的を選んで始める</span></div>
     <div class="hubGrid" id="hubGrid"></div>
     <div class="homeUtility" id="homeUtility" aria-label="その他の機能"></div>
@@ -2238,6 +2256,7 @@
   const LIMIT_KEY   = "civicsSessionLimit_v1";   // 1回の出題数（0=すべて）
   const SUBJECT_KEY = "civicsSubject_v1";        // 最後に選んでいた科目のid
   const PROGRESS_DEVICE_KEY = "civicsProgressDevice_v1"; // 問題別カウンターの端末成分ID
+  const SESSION_KEY = "civicsSession_v1";        // 中断した演習の控え（再開・記録もれ防止）
   const MASTER_HITS = 2;      // 苦手を「克服」して外すのに必要な連続正解数
   const WEAK_WRONGS = 2;      // 「苦手問題」に分類する累計誤答数
   const SHUFFLE_CHOICES = true;
@@ -2458,7 +2477,7 @@
     subjectLoading=true; if(el) el.classList.add("busy");
     try{
       session=null; flashSession=null; stopExamTimer();
-      if(id!==prev){ meta.lastCategory=null; saveMeta(); }
+      if(id!==prev){ meta.lastCategory=null; saveMeta(); clearSessionSnapshot(); }
       await activateSubject(id);
       renderSubjectUI(); renderHome("forward");
     }catch(e){
@@ -3221,6 +3240,7 @@
         setTimeout(()=>target.classList.remove(cls),280);
       }
       currentScreenId=id;
+      if(id!=="quiz"&&id!=="flash") markSessionSnapshotIdle();
       document.body.classList.toggle("focus-mode",id==="quiz"||id==="flash");
       updatePrimaryNav(id);
       syncScreenHistory(id);
@@ -3266,7 +3286,7 @@
      アニメーションが止まって見える（暗記カード→ホームがもたつく原因）。
      いま見えている画面に必要な描画だけを行う。 */
   const SCREEN_RENDER={
-    home:()=>{ renderLead(); renderDue(); },
+    home:()=>{ renderLead(); renderDue(); renderResumeCard(); },
     practiceView:()=>{ renderScopeLists(); renderQuick(); renderExamDay(); },
     themeFieldView:()=>{ renderThemeFieldView(); },
     statsView:()=>{ renderHero(); renderKpis(); renderHeatmap(); renderAch(); },
@@ -3729,6 +3749,74 @@
 
   /* ---------- クイズ ---------- */
   let session=null;
+
+  /* ---------- 中断した演習の控え ----------
+     選んだ・採点した・ページを移った、そのたびに localStorage へすぐ書き出す。
+     Service Worker の更新、端末のメモリ解放、アプリの再起動などでページが
+     読み込み直されても、解いた内容が消えないようにするための控え。
+     ホームの「中断した演習」から続きへ戻せる。 */
+  const SESSION_MAX_AGE_MS = 14*24*60*60*1000;   // 2週間を過ぎた控えは出さない
+  /* 演習の最中かどうか（採点結果を読んでいる間も含む）。自動処理——端末間同期からの
+     再描画依頼と、Service Worker の自動更新による再読み込み——はこの間、画面に触れない。
+     「解説スライドを全画面で見ている」ときは #quiz が隠れるだけなので画面idでも判断する。 */
+  const BUSY_SCREENS=["quiz","flash","result"];
+  function quizInProgress(){
+    if(BUSY_SCREENS.includes(currentScreenId)) return true;
+    return BUSY_SCREENS.some(id=>{ const el=$("#"+id); return el && !el.classList.contains("hidden"); });
+  }
+  function snapshotSession(){
+    const s=session;
+    if(!s || s.batchSubmitted || s.resultQueue) return null;
+    return {
+      v:1, subject:currentSubjectId, savedAt:Date.now(), startedAt:s.startedAt,
+      active:true,                      // 演習画面を開いたまま中断した（離れるときに false へ）
+      label:s.label, batch:!!s.batch, p:s.p,
+      entries:s.queue.map(cur=>({
+        id:cur.q.id,
+        // 選択肢は毎回並べ替えるので、そのときの並び（原本での位置）ごと控える
+        order:cur.type==="choice"?cur.choices.map(c=>c.idx):null,
+        picks:(cur.type==="choice"&&s.batch)?batchAnswerPicks(cur):null,
+        done:blockDone(cur)
+      }))
+    };
+  }
+  function saveSessionSnapshot(){
+    try{
+      const snap=snapshotSession();
+      if(!snap){ return; }
+      localStorage.setItem(SESSION_KEY, JSON.stringify(snap));
+    }catch(e){}
+  }
+  function clearSessionSnapshot(){ try{ localStorage.removeItem(SESSION_KEY); }catch(e){} }
+  /* 演習画面から自分で離れたときは「開いたまま中断」ではないので、
+     次の起動で勝手に演習へ戻さないよう印だけ下ろす（控え自体は残す）。 */
+  function markSessionSnapshotIdle(){
+    try{
+      const raw=localStorage.getItem(SESSION_KEY); if(!raw) return;
+      const snap=JSON.parse(raw); if(!snap||snap.active===false) return;
+      snap.active=false; localStorage.setItem(SESSION_KEY, JSON.stringify(snap));
+    }catch(e){}
+  }
+  function readSessionSnapshot(){
+    let snap=null;
+    try{ snap=JSON.parse(localStorage.getItem(SESSION_KEY)); }catch(e){ return null; }
+    if(!snap || snap.v!==1 || !Array.isArray(snap.entries) || !snap.entries.length) return null;
+    if(!snap.savedAt || Date.now()-snap.savedAt > SESSION_MAX_AGE_MS){ clearSessionSnapshot(); return null; }
+    return snap;
+  }
+  // いま開いている科目で復元できる控え（解いた・答えた問題が1つ以上あるものだけ）
+  function pendingSessionInfo(){
+    const snap=readSessionSnapshot();
+    if(!snap || snap.subject!==currentSubjectId || !DATA.length) return null;
+    const byId=new Map(DATA.map(q=>[q.id,q]));
+    const rows=snap.entries.filter(e=>e && byId.has(e.id));
+    if(!rows.length) return null;
+    const answered=rows.filter(e=>snap.batch?((e.picks||[]).length>0):!!e.done).length;
+    const remain=rows.filter(e=>!(snap.batch?((e.picks||[]).length>0):!!e.done)).length;
+    // 一問ずつ採点は解いた時点で記録済みなので、残りが無ければ控えは用済み
+    if(!snap.batch && !remain) return null;
+    return {snap, rows, byId, answered, remain};
+  }
   /* ---------- まとめて採点（選択問題） ---------- */
   function batchAnswerPicks(cur){
     const s=session, raw=s&&s.answers[cur.qi];
@@ -3747,6 +3835,7 @@
     if(!targets.length) return;
     if(opts.allowPartial) s.resultQueue=targets.slice();
     s.batchSubmitted=true;
+    clearSessionSnapshot();                 // ここで採点＝記録が済むので控えは残さない
     const t=todayStr();
     let correct=0, run=0, maxRun=0, gained=0;
     targets.forEach(cur=>{
@@ -4814,6 +4903,7 @@
     gradeUnratedOnPage();
     cacheCurrentPageDom();
     s.p=index;
+    saveSessionSnapshot();
     renderQuestion();
   }
   function deferCurrentPage(){
@@ -4834,6 +4924,7 @@
       if(next>=0) s.p=next;
     }
     toast(`⏳ 後で解く問題に追加しました（${deferredQuestionCount()}問）`);
+    saveSessionSnapshot();
     renderQuestion();
   }
   function openDeferredQuestion(){
@@ -4854,10 +4945,11 @@
     if(!window.STUDY_CORE?.ready){ toast("復習機能を準備しています。少し待って再度お試しください"); return; }
     opts=opts||{};
     if(catRef){ meta.lastCategory={mode:catRef.mode,key:catRef.key,label}; saveMeta(); }
-    const base = expandGroupItems(items);
+    // 中断した演習を戻すときは、控えた並びをそのまま使う（大問の補完も並べ替えもしない）
+    const base = opts.restore ? items.slice() : expandGroupItems(items);
     const batch=!!opts.batch && base.every(q=>questionType(q)!=="constructed");
-    if(opts.batch&&!batch) toast("記述問題を含むため、一問ずつ採点で開始します");
-    const ordered = opts.keepOrder ? base : shuffle(base);  // 復習・試験日は並びに意味があるので崩さない
+    if(opts.batch&&!batch&&!opts.restore) toast("記述問題を含むため、一問ずつ採点で開始します");
+    const ordered = (opts.keepOrder||opts.restore) ? base : shuffle(base);  // 復習・試験日は並びに意味があるので崩さない
     // queue の要素は「選択問題」「記述問題」の判別共用体（仕様書 §13.2）
     const queue=ordered.map((q,qi)=>{
       if(questionType(q)==="constructed") return {q,qi,type:"constructed",parts:q.responseParts||[],els:null,cw:null};
@@ -4866,10 +4958,37 @@
       // 表示上の見出し記号と選択肢の記号が食い違って読めなくなるので原本の順のまま出す。
       let ch=q.choices.map((c,i)=>({text:c,correct:ok.has(i),idx:i})); if(SHUFFLE_CHOICES && !q.noShuffle) ch=shuffle(ch);
       return {q,qi,type:"choice",choices:ch,need:ok.size,picks:[],els:null,graded:false}; });
+    // 控えから戻すときは、そのときの選択肢の並びを先に復元する（選んだ番号がずれないように）
+    if(opts.restore){
+      const saved=new Map(opts.restore.map(e=>[e.id,e]));
+      queue.forEach(cur=>{
+        const e=saved.get(cur.q.id);
+        if(!e || cur.type!=="choice" || !Array.isArray(e.order) || e.order.length!==cur.choices.length) return;
+        const ok=new Set(ansIdxs(cur.q));
+        cur.choices=e.order.map(i=>({text:cur.q.choices[i],correct:ok.has(i),idx:i}));
+      });
+    }
     const pages=buildPages(queue);
     session={label,queue,pages,p:0,i:pages[0]?pages[0].idxs[0]:0,correct:0,streak:0,maxStreak:0,wrongList:[],
       xpStart:meta.xp,leveledUp:0,
-      batch,batchSubmitted:false,answers:[],startedAt:Date.now(),written:{}};
+      batch,batchSubmitted:false,answers:[],startedAt:opts.startedAt||Date.now(),written:{}};
+    if(opts.restore){
+      const saved=new Map(opts.restore.map(e=>[e.id,e]));
+      queue.forEach(cur=>{
+        const e=saved.get(cur.q.id);
+        if(!e || cur.type!=="choice" || !batch) return;
+        const picks=Array.isArray(e.picks)?e.picks.filter(i=>i>=0&&i<cur.choices.length):[];
+        if(!picks.length) return;
+        cur.picks=picks.slice();
+        session.answers[cur.qi]=(cur.need>1)?picks.slice():picks[0];
+      });
+      // 未回答の問題があればそこから再開する
+      const at=session.pages.findIndex(p=>!pageDone(p));
+      if(at>0) session.p=at;
+    }
+    saveSessionSnapshot();
+    // silent：画面は動かさずに演習だけ組み立てる（中断した分をその場で採点するときに使う）
+    if(opts.silent) return;
     transitionToScreen("quiz","forward",()=>{
       const sp=$("#streakPill"); if(sp) sp.classList.toggle("hidden",!!session.batch);
       $("#quitBtn").textContent="ここまでで終了";
@@ -5411,7 +5530,7 @@
     window.STUDY_CORE.scheduleReview(scheduled,grade,cur.q.id,cur.reviewEventId,cur.reviewTime);
     ["fsrs","due","lastReviewed","reps","interval"].forEach(k=>r[k]=scheduled[k]);
     cur.graded=true; r.lastGrade=grade;
-    if(!opts||!opts.defer) saveProgress();
+    if(!opts||!opts.defer){ saveProgress(); saveSessionSnapshot(); }
     return reviewText(r);
   }
   // 「次へ」「中断」で、手ごたえ未選択のまま先へ進む選択問題を「できた」で締める
@@ -5954,7 +6073,7 @@
     }
     const iv=gradeCard(rating, cw.entry);
     meta.bestRunStreak=Math.max(meta.bestRunStreak,s.maxStreak);
-    markStudied(); saveProgress(); saveMeta();
+    markStudied(); saveProgress(); saveMeta(); saveSessionSnapshot();
     if(lvup){ s.leveledUp=lvup; toast(`🎉 レベルアップ！ Lv.${lvup} に到達`); }
     const ach=checkAch(); if(ach) setTimeout(()=>toast(`🏅 実績解除：${ach.n}`),lvup?1400:0);
     s.written[cw.qi!=null?cw.qi:s.i]={earned,max,rubricIds:ids,rating};
@@ -6148,10 +6267,11 @@
     [...cur.els.choices.querySelectorAll(".choice")].forEach((b,i)=>b.classList.toggle("selected", cur.picks.indexOf(i)>=0));
     if(s.batch){
       s.answers[cur.qi]=cur.picks.slice();
+      saveSessionSnapshot();
       updateMultiConfirm(cur);
       return;
     }
-    if(cur.deferred){ updateGroupSubmit(); return; }
+    if(cur.deferred){ saveSessionSnapshot(); updateGroupSubmit(); return; }
     updateMultiConfirm(cur);
   }
   /* ---------- 大問のまとめて採点 ---------- */
@@ -6179,6 +6299,7 @@
       if(cur.type==="constructed"){ if(cur.cw && !cur.cw.submitted) submitConstructedAnswer(cur.cw,false); }
       else if(!cur.revealed){ cur.deferred=false; answer(cur,(cur.picks||[]).slice()); }
     });
+    saveSessionSnapshot();
     updatePageDone();
   }
   // ページの小問がすべて片付いたら「次の問題」を出す
@@ -6200,6 +6321,7 @@
       cur.picks=picks.slice();
       s.answers[cur.qi]=(cur.need>1)?picks:picks[0];
       [...cur.els.choices.querySelectorAll(".choice")].forEach((b,i)=>b.classList.toggle("selected",picks.indexOf(i)>=0));
+      saveSessionSnapshot();          // 描画より先に控える（描画で失敗しても回答は残す）
       if(s.batch) updatePageDone();
       return;
     }
@@ -6207,6 +6329,7 @@
     if(cur.deferred){
       cur.picks=picks.slice();
       [...cur.els.choices.querySelectorAll(".choice")].forEach((b,i)=>b.classList.toggle("selected",picks.indexOf(i)>=0));
+      saveSessionSnapshot();          // 描画より先に控える
       updateGroupSubmit();
       return;
     }
@@ -6245,7 +6368,7 @@
     // 不正解は自動で「もう一度(Again)」。正解は下の手ごたえボタンで4段階評価をFSRSへ渡す。
     gradeCard(isCorrect?3:1,cur);
     meta.bestRunStreak=Math.max(meta.bestRunStreak,s.maxStreak);
-    markStudied(); saveProgress(); saveMeta();
+    markStudied(); saveProgress(); saveMeta(); saveSessionSnapshot();
     if(lvup){ s.leveledUp=lvup; toast(`🎉 レベルアップ！ Lv.${lvup} に到達`); }
     const ach=checkAch(); if(ach) setTimeout(()=>toast(`🏅 実績解除：${ach.n}`),lvup?1400:0);
 
@@ -6345,7 +6468,7 @@
     }
     const completed=completedPracticeEntries(s), unanswered=s.queue.length-completed.length;
     if(!completed.length){
-      if(confirm("まだ採点できる回答がありません。演習を終了してホームに戻りますか？")) renderHome();
+      if(confirm("まだ採点できる回答がありません。演習を終了してホームに戻りますか？")){ clearSessionSnapshot(); renderHome(); }
       return;
     }
     const msg=unanswered>0
@@ -6637,6 +6760,71 @@
   $("#dueCard").onclick=openDueReview;
   $("#reviewDueCard").onclick=openDueReview;
 
+  /* ---------- 中断した演習（ホームの「続きから再開」） ----------
+     途中でページが閉じた・読み込み直された場合でも、控え（SESSION_KEY）から
+     続きへ戻れるようにする。まとめて採点の途中なら、解いた分だけ採点して
+     記録に残すこともできる（回答を捨てない）。 */
+  function renderResumeCard(){
+    const box=$("#resumeSection"); if(!box) return;
+    const info=pendingSessionInfo();   // この案内はホームの中にしかないので、画面の判定は要らない
+    box.classList.toggle("hidden", !info);
+    if(!info) return;
+    const when=new Date(info.snap.savedAt);
+    const time=`${when.getMonth()+1}/${when.getDate()} ${String(when.getHours()).padStart(2,"0")}:${String(when.getMinutes()).padStart(2,"0")}`;
+    $("#resumeSub").textContent=`${info.snap.label}（${info.snap.batch?"まとめて採点":"一問ずつ採点"}）を ${time} に中断しました。`
+      +`回答済み ${info.answered}問・残り ${info.remain}問。`
+      +(info.snap.batch
+        ? "採点はまだです。続きから再開するか、解いた分だけ採点して記録できます。"
+        : "解いた分は記録済みです。残りの問題から再開できます。");
+    $("#resumeFinish").textContent=info.snap.batch?"解いた分を採点して終了":"この演習を閉じる";
+  }
+  // 直前まで演習画面を開いていた控えは、ホームで止めずにそのまま再開する。
+  // 起動時にホームを描くと active の印が下りるので、判断材料は起動直後に控えておく。
+  const AUTO_RESUME_MS = 60*60*1000;
+  let bootSnapshotActive=false;
+  function readBootSnapshotState(){
+    try{ const snap=readSessionSnapshot(); bootSnapshotActive=!!(snap&&snap.active); }catch(e){ bootSnapshotActive=false; }
+  }
+  function shouldAutoResume(){
+    if(!bootSnapshotActive) return false;
+    const info=pendingSessionInfo();
+    return !!(info && Date.now()-info.snap.savedAt < AUTO_RESUME_MS);
+  }
+  // 控えから演習を組み立て直す。戻せなければ false。
+  function restoreSavedSession(silent){
+    const info=pendingSessionInfo(); if(!info) return false;
+    const rows=info.snap.batch?info.rows:info.rows.filter(e=>!e.done);
+    if(!rows.length){ clearSessionSnapshot(); return false; }
+    const items=rows.map(e=>info.byId.get(e.id));
+    startQuiz(items, info.snap.label, null,
+      {batch:info.snap.batch, keepOrder:true, restore:rows, startedAt:info.snap.startedAt, silent:!!silent});
+    return !!session;
+  }
+  function resumeSavedSession(){
+    if(restoreSavedSession()) return;
+    clearSessionSnapshot(); renderResumeCard();
+    toast("中断した演習を復元できませんでした");
+  }
+  function finishSavedSession(){
+    const info=pendingSessionInfo();
+    if(!info){ clearSessionSnapshot(); renderResumeCard(); return; }
+    if(!info.snap.batch){
+      // 一問ずつ採点は解いた時点で記録済み。控えを閉じるだけでよい
+      clearSessionSnapshot(); renderResumeCard();
+      toast("中断した演習を閉じました（解いた分は記録済みです）");
+      return;
+    }
+    if(!restoreSavedSession(true)){ clearSessionSnapshot(); renderResumeCard(); return; }
+    const s=session, completed=completedPracticeEntries(s);
+    if(!completed.length){ session=null; clearSessionSnapshot(); renderResumeCard(); return; }
+    s.endedEarly=s.queue.length>completed.length;
+    s.resultQueue=completed.slice();
+    s.unansweredCount=s.queue.length-completed.length;
+    submitBatchQuiz({allowPartial:true});
+  }
+  $("#resumeContinue").onclick=resumeSavedSession;
+  $("#resumeFinish").onclick=finishSavedSession;
+
   /* 出題数モーダルのイベント（1回だけ登録） */
   $("#countClose").onclick=closeCountModal;
   $("#countModal").onclick=(e)=>{ if(e.target.id==="countModal") closeCountModal(); };
@@ -6708,6 +6896,7 @@
     p.textContent="今すぐ復習できる問題が "+n+" 問あります。ホームの復習から確認できます。";
   }
   function renderResult(){
+    clearSessionSnapshot();                 // 結果まで進んだ演習の控えは残さない
     setTimeout(renderResultDueHint,0);
     const s=session,items=s.resultQueue||s.queue,total=items.length,unanswered=s.queue.length-total;
     const pct=total?Math.round(s.correct/total*100):0,gained=meta.xp-s.xpStart;
@@ -6896,20 +7085,28 @@
       ? "※ 端末間同期が接続されています。このまま消しても、次の同期でほかの端末から記録が戻ります。\n完全に消すときは、先に「端末間同期」で解除してください。"
       : "※ この端末にしか記録はありません。消すと元に戻せません。";
     if(!confirm(`学習記録（正誤・苦手・見直したい問題・レベル・実績・記述問題の答案履歴・採点待ちの試験）をすべて削除しますか？\n\n${note}`)) return;
-    progress={}; meta={}; loadMeta(); saveProgress(); saveMeta();
+    progress={}; meta={}; loadMeta(); saveProgress(); saveMeta(); clearSessionSnapshot();
     const wa=WA(); if(wa){ try{ wa.deleteAll(); }catch(e){} }
     renderHome(); toast("🗑 記録をリセットしました"); };
 
   /* ---------- 起動 ---------- */
-  // 科目データは非同期で読むため、DATAが入るまで renderHome() を待つ。
+  /* 端末間同期・自作カードの取り込みなど、裏で走る処理からの再描画依頼。
+     演習中に画面を動かすと問題を解いている途中でホームへ飛ばされてしまうので、
+     ここでは絶対に画面を移動させない。いま開いている画面の数字だけを描き直す。 */
   window.__legacyAppRefresh=()=>{
     if(!currentSubjectId) return;
     loadProgress(); loadData();
-    if(currentScreenId==="cardsView"){ refreshData(); renderCardHome(); }
-    else renderHome();
+    if(quizInProgress()) return;                  // 演習・フラッシュカード中は触らない
+    if(currentScreenId==="cardsView"){ refreshData("cardsView"); renderCardHome(); return; }
+    refreshData(currentScreenId||"home");
+    if(!currentScreenId||currentScreenId==="home") renderHub();
   };
+  // Service Worker の自動更新（再読み込み）を演習中に走らせないための窓口（src/main.ts が見る）
+  window.__studyBusy=()=>{ try{ return quizInProgress(); }catch(e){ return false; } };
+  // 科目データは非同期で読むため、DATAが入るまで renderHome() を待つ。
   (async function boot(){
     const firstLaunch = isFirstEverLaunch();
+    readBootSnapshotState();          // 演習の途中で読み込み直されたかどうかを先に見る
     loadProgress(); loadMeta(); loadUpdates();
     if(firstLaunch) markUpdatesSeen();
     renderUpdatesPanel(); renderUpdatesHome(); refreshUpdateDot();
@@ -6925,6 +7122,9 @@
       }
       renderSubjectUI();
       renderHome();
+      // 演習の最中に読み込み直された（アプリの自動更新・端末のメモリ解放など）ときは、
+      // ホームで止めずにその演習へ戻す。解いた内容も選んだ内容もそのまま復元する。
+      try{ if(shouldAutoResume()) resumeSavedSession(); }catch(e){}
       if(!DATA.length) $("#subtitle").textContent="問題データがありません";
     }
     if(!firstLaunch && unreadUpdatesCount()>0) openUpdatesModal();
@@ -6956,7 +7156,8 @@
     try{
       const a=new URLSearchParams(location.search).get("action");
       if(a){
-        setTimeout(()=>{ if(a==="review"){ const c=$("#dueCard"); if(c) c.click(); } else if(a==="search"){ openSearch(); } }, 150);
+        setTimeout(()=>{ if(quizInProgress()) return;   // 中断した演習へ戻った直後は割り込まない
+          if(a==="review"){ const c=$("#dueCard"); if(c) c.click(); } else if(a==="search"){ openSearch(); } }, 150);
         if(history.replaceState) history.replaceState(null,"", location.pathname);
       }
     }catch(e){}

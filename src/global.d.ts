@@ -20,6 +20,8 @@ declare global {
       cards: Array<{ id: string; front: string; back: string; explanation?: string; tags?: string[] }>;
     }>;
     __legacyAppRefresh?: () => void;
+    /** 演習・フラッシュカードの最中かどうか。真の間は自動更新の再読み込みを待たせる */
+    __studyBusy?: () => boolean;
     /** 端末間同期の接続先。public/sync-config.js が入れる */
     SYNC_CONFIG?: { endpoint?: string };
     /** 同期する学習記録の出し入れ口。index.html が用意し、src/sync.ts が使う */

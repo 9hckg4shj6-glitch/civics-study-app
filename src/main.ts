@@ -133,8 +133,33 @@ async function warmManifestCache(): Promise<void> {
   }
 }
 
+/* 新版が有効になったときの再読み込み。
+   既定では workbox がその場で location.reload() するが、演習の最中に起きると
+   問題を解いている途中で画面がホームへ戻り、採点前の回答が消えてしまう。
+   演習中は再読み込みを待たせ、手が空いた（ホームなどへ戻った）ところで切り替える。 */
+function studyBusy(): boolean {
+  try {
+    return window.__studyBusy?.() === true;
+  } catch {
+    return false;
+  }
+}
+
+function reloadWhenIdle(): void {
+  if (!studyBusy()) {
+    window.location.reload();
+    return;
+  }
+  const timer = window.setInterval(() => {
+    if (studyBusy()) return;
+    window.clearInterval(timer);
+    window.location.reload();
+  }, 5000);
+}
+
 registerSW({
   immediate: true,
+  onNeedReload: reloadWhenIdle,
   onRegisteredSW(_swUrl, registration) {
     if (!registration) return;
     void warmManifestCache();
