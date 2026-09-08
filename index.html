@@ -3145,7 +3145,7 @@
       if(!key)return; if(!map.has(key))map.set(key,[]); map.get(key).push(q);
     });
     let keys=[...map.keys()];
-    if(mode==="year") keys.sort((a,b)=>yearOrder(b)-yearOrder(a) || (a<b?1:a>b?-1:0));
+    if(mode==="year") keys.sort((a,b)=>yearOrder(b)-yearOrder(a) || (a<b?-1:a>b?1:0));
     // 公共→政治→経済、出典は新しい課程から。学習の順序が毎回変わらないようにする
     if(mode==="domain") keys.sort((a,b)=>DOMAIN_ORDER.indexOf(a)-DOMAIN_ORDER.indexOf(b));
     if(mode==="source") keys.sort((a,b)=>SOURCE_ORDER.indexOf(a)-SOURCE_ORDER.indexOf(b));
@@ -4551,7 +4551,9 @@
       else if(q.category==="直前スペシャル"){ const k=q.specialTitle||q.year||"直前スペシャル問題"; if(!spec.has(k))spec.set(k,[]); spec.get(k).push(q); }
       else { const k=q.year; if(!k)return; if(!exam.has(k))exam.set(k,[]); exam.get(k).push(q); }
     });
-    const ek=[...exam.keys()].sort().reverse();
+    /* 年度は和暦なので文字列順ではなく西暦に直して新しい順に並べる。
+       同じ年度に本試験と追試験があるときは、ラベルの短い本試験を先に出す。 */
+    const ek=[...exam.keys()].sort((a,b)=>yearOrder(b)-yearOrder(a) || (a<b?-1:a>b?1:0));
     const pk=[...pred.keys()].sort((a,b)=>qbKanjiOrder(a)-qbKanjiOrder(b)||a.localeCompare(b,"ja",{numeric:true}));
     const sk=[...spec.keys()].sort().reverse();
     const wk=[...wr.keys()].sort().reverse();
