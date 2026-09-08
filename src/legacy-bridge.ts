@@ -1,5 +1,5 @@
 import { db, nowIso, saveSetting } from "./db";
-import type { LegacyProgress } from "./types";
+import type { AttemptLog, LegacyProgress } from "./types";
 
 /**
  * 旧 index.html（localStorage の `quizProgress_v1`）と、新 Dexie/FSRS/同期 の橋渡し。
@@ -20,10 +20,22 @@ const LEGACY_STATE_KEY = "legacyProgress"; // settings テーブルのキー
 // index.html の WEAK_WRONGS / MASTER_HITS と一致させる（weak は導出値）
 const WEAK_WRONGS = 2;
 const MASTER_HITS = 2;
+// index.html の HISTORY_MAX と一致させる（直近5回だけ残す）
+const HISTORY_MAX = 5;
 
 type ProgressMap = Record<string, LegacyProgress>;
 /** 同期する非SRSフィールドだけを抜き出したコンパクト表現 */
-type LegacyState = Pick<LegacyProgress, "seen" | "correct" | "wrong" | "streak" | "bookmarked" | "lastWrong">;
+type LegacyState = Pick<LegacyProgress, "seen" | "correct" | "wrong" | "streak" | "bookmarked" | "lastWrong" | "history">;
+
+/** 解答履歴は端末ごとに増えるので、時刻＋正誤で重複を除いた和集合にする。 */
+function mergeHistory(local: AttemptLog[] = [], incoming: AttemptLog[] = []): AttemptLog[] {
+  const merged = new Map<string, AttemptLog>();
+  for (const entry of [...local, ...incoming]) {
+    if (!entry || typeof entry.t !== "number") continue;
+    merged.set(`${entry.t}:${entry.c}`, entry);
+  }
+  return [...merged.values()].sort((a, b) => a.t - b.t).slice(-HISTORY_MAX);
+}
 
 function hasLocalStorage(): boolean {
   try {
@@ -111,6 +123,7 @@ function toLegacyState(progress: ProgressMap): Record<string, LegacyState> {
         streak: record.streak ?? 0,
         bookmarked: Boolean(record.bookmarked),
         ...(record.lastWrong ? { lastWrong: record.lastWrong } : {}),
+        ...(record.history?.length ? { history: record.history } : {}),
       };
     }
   }
@@ -170,7 +183,9 @@ export async function restoreLegacyState(): Promise<boolean> {
       .sort()
       .pop();
     const weak = wrong >= WEAK_WRONGS && streak < MASTER_HITS;
+    const history = mergeHistory(local.history, incoming.history);
     if (
+      JSON.stringify(local.history ?? []) !== JSON.stringify(history) ||
       local.seen !== seen ||
       local.correct !== correct ||
       local.wrong !== wrong ||
@@ -188,6 +203,7 @@ export async function restoreLegacyState(): Promise<boolean> {
     local.bookmarked = bookmarked;
     local.weak = weak;
     if (lastWrong) local.lastWrong = lastWrong;
+    if (history.length) local.history = history;
     progress[id] = local;
   }
   if (changed) writeLegacyProgress(progress);

@@ -122,6 +122,39 @@ describe("legacy-bridge", () => {
     expect(record.weak).toBe(false); // wrong(1) < 2
   });
 
+  it("restoreLegacyState は解答履歴を時系列の和集合にする（別端末の周回も残る）", async () => {
+    await db.settings.put({
+      key: LEGACY_STATE_KEY,
+      ownerId: null,
+      value: { c1: { seen: 2, correct: 1, wrong: 1, streak: 0, bookmarked: false, history: [{ t: 100, c: 1 }, { t: 300, c: 0 }] } },
+      updatedAt: nowIso(),
+    });
+    writeLegacyProgress({
+      c1: { seen: 2, correct: 2, wrong: 0, streak: 2, weak: false, bookmarked: false, history: [{ t: 100, c: 1 }, { t: 200, c: 1 }] },
+    });
+
+    await restoreLegacyState();
+
+    // 同時刻・同正誤は1件に畳み、残りは古い順に並ぶ
+    expect(readLegacyProgress().c1.history).toEqual([{ t: 100, c: 1 }, { t: 200, c: 1 }, { t: 300, c: 0 }]);
+  });
+
+  it("restoreLegacyState は解答履歴を直近5件に切り詰める", async () => {
+    await db.settings.put({
+      key: LEGACY_STATE_KEY,
+      ownerId: null,
+      value: { c1: { seen: 4, correct: 4, wrong: 0, streak: 4, bookmarked: false, history: [2, 4, 6, 8].map((t) => ({ t, c: 1 as const })) } },
+      updatedAt: nowIso(),
+    });
+    writeLegacyProgress({
+      c1: { seen: 3, correct: 3, wrong: 0, streak: 3, weak: false, bookmarked: false, history: [1, 3, 5].map((t) => ({ t, c: 1 as const })) },
+    });
+
+    await restoreLegacyState();
+
+    expect(readLegacyProgress().c1.history?.map((h) => h.t)).toEqual([3, 4, 5, 6, 8]);
+  });
+
   it("saveLegacyState は未送信の同キー outbox を1件に保つ（ゲストでも肥大しない）", async () => {
     writeLegacyProgress({ c1: { seen: 1, correct: 1, wrong: 0, streak: 1, weak: false, bookmarked: true } });
     await saveLegacyState(readLegacyProgress());

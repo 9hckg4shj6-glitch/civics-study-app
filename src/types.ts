@@ -358,7 +358,14 @@ export interface LegacyProgress {
   due?: string;
   lastReviewed?: string;
   lastWrong?: string;
+  /** 直近5回ぶんの解答。t=エポック秒、c=1:正解 0:不正解 null:カード復習 */
+  history?: AttemptLog[];
   fsrs?: StoredSchedule;
+}
+
+export interface AttemptLog {
+  t: number;
+  c: 1 | 0 | null;
 }
 
 export interface SyncStatus {

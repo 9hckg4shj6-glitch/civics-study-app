@@ -293,6 +293,8 @@ npm test
 - `tests/app-smoke.test.ts` — ビルド済み `dist/` を jsdom で実際に起動し、
   ログイン画面が出ないこと・演習と採点・バックアップ画面を確認する
   （`dist/` が必要なので、先に `npm run build` を実行しておく）
+- `tests/attempt-history.test.ts` — 同じ問題を解いた回数の記録。`dist/` を起動して実際に解き、
+  「何回目をいつ解いたか」が出ること・履歴が直近5回に収まることを確認する
 - `tests/no-legacy-content.test.ts` — このアプリは基礎医学演習アプリの画面をもとに
   作ったので、生化学の用語や医師のキャリアを使った文言が `dist/` に残っていないかを見張る
 - そのほかは FSRS・IndexedDB・記述問題採点など、既存の学習基盤の単体テスト

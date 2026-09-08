@@ -2259,6 +2259,7 @@
   const SESSION_KEY = "civicsSession_v1";        // 中断した演習の控え（再開・記録もれ防止）
   const MASTER_HITS = 2;      // 苦手を「克服」して外すのに必要な連続正解数
   const WEAK_WRONGS = 2;      // 「苦手問題」に分類する累計誤答数
+  const HISTORY_MAX = 5;      // 解答履歴は直近5回だけ残す（6回目を解くと1回目を捨てる）
   const SHUFFLE_CHOICES = true;
   const XP_CORRECT  = 10;
   const XP_WRONG    = 3;       // 挑戦したこと自体に少しXP
@@ -2693,6 +2694,7 @@
     const id=progressDeviceId(), own=Object.assign({seen:0,correct:0,wrong:0},map[id]||{});
     own.seen++; if(isCorrect===true) own.correct++; else if(isCorrect===false) own.wrong++;
     map[id]=own; r._deviceCounts=map;
+    pushHistory(r,isCorrect);
     r.seen=r._legacySeen+counterSum(map,"seen");
     r.correct=r._legacyCorrect+counterSum(map,"correct");
     r.wrong=r._legacyWrong+counterSum(map,"wrong");
@@ -2845,6 +2847,25 @@
     return (delta>0?"約"+relative+"後":abs<60000?"復習の時間です":"予定から約"+relative+"経過")+"（"+date+"）";
   }
   function scheduleBadge(q){ return '<p class="reviewSchedule" data-review-id="'+esc(q.id)+'">次の復習：'+esc(reviewText(progress[q.id]))+'</p>'; }
+  /* ---------- 解答履歴（何回目をいつ解いたか） ----------
+     端末をまたいで突き合わせるので、秒精度の時刻で持つ（同期時は時刻で重複排除する）。 */
+  function pushHistory(r,isCorrect){
+    const list=Array.isArray(r.history)?r.history:[];
+    list.push({t:Math.floor(Date.now()/1000), c:isCorrect===true?1:isCorrect===false?0:null});
+    r.history=list.slice(-HISTORY_MAX);
+  }
+  function attemptMark(c){ return c===1?"⭕":c===0?"❌":"📘"; }
+  function attemptDate(t){ const d=new Date(t*1000); return (d.getMonth()+1)+"/"+d.getDate(); }
+  // 直近5回ぶんを「3回目 9/1 ⭕ ・ 4回目 9/5 ❌ …」と通算の回数つきで出す。一覧では最新1件だけ。
+  // 履歴を持たない過去の解答も回数に含めたいので、通算 seen と履歴件数の大きい方から番号を振る。
+  function attemptLog(q,compact){
+    const r=progress[q.id]||{}, list=Array.isArray(r.history)?r.history:[];
+    if(!list.length) return "";
+    const total=Math.max(list.length, r.seen||0);
+    const shown=compact?list.slice(-1):list.slice(-HISTORY_MAX), from=total-shown.length;
+    const body=shown.map((h,i)=>(from+i+1)+"回目 "+attemptDate(h.t)+" "+attemptMark(h.c)).join(" ・ ");
+    return '<p class="attemptLog">'+(compact?"直近：":"解答履歴：")+body+'</p>';
+  }
   function dueItems(){
     const now=Date.now();
     return DATA.filter(q=>{ const at=reviewAt(progress[q.id]); return at!=null&&at<=now; }).sort(reviewOrder);
@@ -2860,7 +2881,7 @@
     const sig=due.map(q=>q.id).join(",")+"|"+domain+"|"+field+"|"+future.map(q=>q.id).join(",");
     if(root.dataset.sig===sig) return;
     root.dataset.sig=sig;
-    const rows=items=>items.map(q=>'<button type="button" class="reviewQuestion" data-review-question="'+esc(q.id)+'"><small>'+esc(q.domain+" / "+q.field)+'</small><span>'+esc(q.question.slice(0,110))+'</span>'+scheduleBadge(q)+'</button>').join("");
+    const rows=items=>items.map(q=>'<button type="button" class="reviewQuestion" data-review-question="'+esc(q.id)+'"><small>'+esc(q.domain+" / "+q.field)+'</small><span>'+esc(q.question.slice(0,110))+'</span>'+attemptLog(q,true)+scheduleBadge(q)+'</button>').join("");
     $("#reviewDueList").innerHTML=rows(due)||"<p>今すぐ復習する問題はありません。</p>";
     root.innerHTML=rows(future)||"<p>該当する復習予定はありません。</p>";
     $("#reviewView").querySelectorAll("[data-review-question]").forEach(el=>el.onclick=()=>startQuiz([DATA.find(q=>q.id===el.dataset.reviewQuestion)],"復習",{},{keepOrder:true}));
@@ -3995,6 +4016,9 @@
       const an=a.noteAt||"", bn=b.noteAt||"";
       const noteWin=((a.note||"")&&(b.note||"")) ? (bn>an?b:a) : ((a.note||"")?a:b);
       const miss={}; [a.miss,b.miss].forEach(mm=>{ if(mm) Object.keys(mm).forEach(k=>{ miss[k]=Math.max(miss[k]||0, mm[k]||0); }); });
+      // 解答履歴は端末ごとに増えるので、時刻＋正誤で重複を除いた和集合にして直近5件だけ残す
+      const hist={}; [a.history,b.history].forEach(list=>{ if(Array.isArray(list)) list.forEach(h=>{ if(h&&typeof h.t==="number") hist[h.t+":"+h.c]=h; }); });
+      const history=Object.keys(hist).map(k=>hist[k]).sort((x,y)=>x.t-y.t).slice(-HISTORY_MAX);
       const deviceCounts={};
       const mergeDeviceCounts=src=>{ Object.keys(src||{}).forEach(device=>{ const old=deviceCounts[device]||{}, row=src[device]||{}; deviceCounts[device]={seen:Math.max(old.seen||0,row.seen||0),correct:Math.max(old.correct||0,row.correct||0),wrong:Math.max(old.wrong||0,row.wrong||0)}; }); };
       mergeDeviceCounts(a._deviceCounts); mergeDeviceCounts(b._deviceCounts);
@@ -4008,10 +4032,12 @@
         streak:Math.max(a.streak||0,b.streak||0), weak:!!(a.weak||b.weak), bookmarked:!!(a.bookmarked||b.bookmarked),
         reps:Math.max(a.reps||0,b.reps||0), interval:Math.max(a.interval||0,b.interval||0), ease:Math.max(a.ease||2.5,b.ease||2.5),
         due:later(a.due,b.due), lastReviewed:later(a.lastReviewed,b.lastReviewed), lastWrong:later(a.lastWrong,b.lastWrong),
-        note:noteWin.note||"", noteAt:noteWin.noteAt||"", miss:Object.keys(miss).length?miss:undefined };
+        note:noteWin.note||"", noteAt:noteWin.noteAt||"", miss:Object.keys(miss).length?miss:undefined,
+        history:history.length?history:undefined };
       if(hasDeviceCounts){ out[id]._legacySeen=legacySeen; out[id]._legacyCorrect=legacyCorrect; out[id]._legacyWrong=legacyWrong; out[id]._deviceCounts=deviceCounts; }
       if(!out[id].note){ delete out[id].note; delete out[id].noteAt; }
       if(!out[id].miss) delete out[id].miss;
+      if(!out[id].history) delete out[id].history;
     });
     return out;
   }
@@ -4733,7 +4759,7 @@
       const r=progress[q.id], status=(r&&r.seen)?(r.correct>=r.wrong?'<span class="srOk">学習済</span>':'<span class="srNg">要復習</span>'):"";
       const bm=isBookmarked(q.id);
       const sel=qbrowseState.selected.has(q.id);
-      return `<div class="brItem qbItem" data-i="${i}">${progress[q.id]?.seen?scheduleBadge(q):""}
+      return `<div class="brItem qbItem" data-i="${i}">${progress[q.id]?.seen?attemptLog(q,true)+scheduleBadge(q):""}
         <div class="qbRow">
           <button type="button" class="qbSel${sel?" on":""}" aria-pressed="${sel?"true":"false"}"
             aria-label="この問題を選ぶ"><span class="qbSelBox"></span></button>
@@ -6399,6 +6425,7 @@
         ${note}
         ${!isCorrect?`<div class="body" style="margin-bottom:8px"><b>正解：</b>${esc(correctText)}</div>`:''}
         <div class="body">${renderExplainBody(q,cur,picks)}</div>
+        ${attemptLog(q)}
         ${scheduleBadge(q)}<small>時間になると「本日復習すべき問題」に表示されます。</small>
         ${confHTML}
         ${noteHTML}
@@ -6858,6 +6885,7 @@
         <div class="q">${qUnderlineHTML(cur.q)}</div>
         <div class="a ${r.isCorrect?"ans":"you"}">あなたの回答：${esc(r.chosenLabel)}</div>
         ${r.isCorrect?"":`<div class="a ans">正解：${esc(r.correctText)}</div>`}
+        ${attemptLog(cur.q)}
         ${scheduleBadge(cur.q)}
         <details class="batchExpl"><summary>解説を見る</summary>
           <div class="batchExplBody">${renderBatchExplainBody(cur.q,cur,r.picks)}</div></details>
