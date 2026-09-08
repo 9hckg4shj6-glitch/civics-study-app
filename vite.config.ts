@@ -31,6 +31,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{html,js,css,json,svg,png,webp,woff2}"],
+        // 問題データ（subjects/civics/questions.js）は収録が増えるたびに大きくなる。
+        // 既定の2MiBを超えるとプリキャッシュから外れ、オフラインで問題が開けなくなるので上限を上げる。
+        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         // subjects.js（科目マニフェスト）・updates.js（更新履歴）・sync-config.js（同期の接続先）は
         // プリキャッシュしない。この3つは「何が存在するか」「どこへつなぐか」を決めるファイルで、
         // 古いものが使われると Service Worker が入れ替わるまで内容が古いまま出る。どれも小さいので、

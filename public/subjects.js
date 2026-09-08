@@ -24,7 +24,7 @@ window.SUBJECTS = [
     idPrefix: "civics-",
     contentProfile: "civics", // 出典・確認日・選択肢別解説などの追加検査を有効にする
     hideLearning: true,       // 授業要点も用語カードも無いので「学習」の枠は出さない
-    expectQuestions: 625,      // 件数の取りこぼし検知（増減させたらこの数も更新する）
-    expectDomainCounts: { 公共: 28, 政治: 263, 経済: 334 },
+    expectQuestions: 653,      // 件数の取りこぼし検知（増減させたらこの数も更新する）
+    expectDomainCounts: { 公共: 28, 政治: 274, 経済: 351 },
   },
 ];
