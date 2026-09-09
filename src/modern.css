@@ -35,58 +35,62 @@ body.study-modal-open{overflow:hidden}
   --shell-width:1180px;
   --rail-width:176px;
   --nav-height:72px;
+  /* 暗記カード画面の地の色。科目ごとに index.html の :root[data-subject=…] で塗り替える。
+     「覚えた・あいまい」の緑と山吹は状態を表す色なので、ここには含めない。 */
+  --mem-accent:#f59e0b;
+  --mem-ink:#b45309;
 }
 
 /* 全科目共通「暗記カード」。既存の代謝教材カードとは独立した画面。 */
 .memoryCardsShell{display:grid;gap:18px}
-.memoryCardsHero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:24px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(135deg,color-mix(in srgb,#f59e0b 12%,var(--card)),var(--card));box-shadow:var(--shadow)}
+.memoryCardsHero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:24px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(135deg,color-mix(in srgb,var(--mem-accent) 12%,var(--card)),var(--card));box-shadow:var(--shadow)}
 .memoryCardsHero h2{margin:4px 0 6px;font-size:clamp(26px,5vw,40px);letter-spacing:-.04em}
 .memoryCardsHero p{margin:0;color:var(--muted);line-height:1.7}
-.memoryCardsEyebrow,.memoryDeckTitle span,.memoryEditorHead small{color:#b45309;font-size:11px;font-weight:900;letter-spacing:.11em;text-transform:uppercase}
+.memoryCardsEyebrow,.memoryDeckTitle span,.memoryEditorHead small{color:var(--mem-ink);font-size:11px;font-weight:900;letter-spacing:.11em;text-transform:uppercase}
 .memoryCardsTabs{display:flex;gap:8px;padding:5px;border:1px solid var(--line);border-radius:15px;background:var(--card)}
 .memoryCardsTabs button{flex:1;border:0;border-radius:11px;padding:11px 14px;background:transparent;color:var(--muted);font:800 14px/1.2 inherit;cursor:pointer}
-.memoryCardsTabs button.active{background:color-mix(in srgb,#f59e0b 15%,var(--card));color:var(--text);box-shadow:inset 0 0 0 1px color-mix(in srgb,#f59e0b 30%,var(--line))}
+.memoryCardsTabs button.active{background:color-mix(in srgb,var(--mem-accent) 15%,var(--card));color:var(--text);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--mem-accent) 30%,var(--line))}
 .memoryCardsMessage{padding:12px 15px;border-radius:12px;background:color-mix(in srgb,var(--brand) 9%,var(--card));border:1px solid color-mix(in srgb,var(--brand) 28%,var(--line));font-size:13px;font-weight:750}
 .memoryCardsMessage.error{background:color-mix(in srgb,var(--bad) 9%,var(--card));border-color:color-mix(in srgb,var(--bad) 32%,var(--line));color:var(--bad)}
 .memoryCardsMessage.success{background:color-mix(in srgb,#16a34a 9%,var(--card));border-color:color-mix(in srgb,#16a34a 32%,var(--line));color:#15803d}
 .memoryDeckGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .memoryDeckCard{overflow:hidden;border:1px solid var(--line);border-radius:17px;background:var(--card);box-shadow:0 10px 30px rgba(29,45,68,.07)}
 .memoryDeckOpen{width:100%;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:13px;padding:18px;border:0;background:transparent;color:var(--text);text-align:left;font:inherit;cursor:pointer}
-.memoryDeckOpen:hover{background:color-mix(in srgb,#f59e0b 7%,var(--card))}
+.memoryDeckOpen:hover{background:color-mix(in srgb,var(--mem-accent) 7%,var(--card))}
 .memoryDeckOpen>span:nth-child(2){display:grid;gap:4px;min-width:0}
 .memoryDeckOpen strong,.memoryDeckOpen small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .memoryDeckOpen small{color:var(--muted);font-size:12px}
-.memoryDeckOpen>b{color:#b45309;font-size:12px}
-.memoryDeckIcon{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:color-mix(in srgb,#f59e0b 15%,var(--card));font-size:21px}
+.memoryDeckOpen>b{color:var(--mem-ink);font-size:12px}
+.memoryDeckIcon{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:color-mix(in srgb,var(--mem-accent) 15%,var(--card));font-size:21px}
 .memoryOrigin{display:block;padding:0 18px 13px;color:var(--muted);font-size:11px;font-weight:700}
-.memoryCardsEmpty{display:grid;justify-items:center;gap:8px;padding:48px 22px;border:1px dashed color-mix(in srgb,#f59e0b 38%,var(--line));border-radius:20px;background:color-mix(in srgb,#f59e0b 5%,var(--card));text-align:center}
+.memoryCardsEmpty{display:grid;justify-items:center;gap:8px;padding:48px 22px;border:1px dashed color-mix(in srgb,var(--mem-accent) 38%,var(--line));border-radius:20px;background:color-mix(in srgb,var(--mem-accent) 5%,var(--card));text-align:center}
 .memoryCardsEmpty>span{font-size:38px}.memoryCardsEmpty h3,.memoryCardsEmpty p{margin:0}.memoryCardsEmpty p{color:var(--muted);line-height:1.7}.memoryCardsEmpty.compact{padding:22px}
 .memoryEditor,.memoryDeckDetail,.memoryStudy{display:grid;gap:18px;padding:22px;border:1px solid var(--line);border-radius:20px;background:var(--card);box-shadow:var(--shadow)}
 .memoryEditor label{display:grid;gap:7px;font-size:13px;font-weight:850}
 .memoryEditor input,.memoryEditor textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;padding:12px 13px;background:var(--bg);color:var(--text);font:inherit;resize:vertical}
-.memoryEditor input:focus,.memoryEditor textarea:focus{outline:3px solid color-mix(in srgb,#f59e0b 25%,transparent);border-color:#f59e0b}
+.memoryEditor input:focus,.memoryEditor textarea:focus{outline:3px solid color-mix(in srgb,var(--mem-accent) 25%,transparent);border-color:var(--mem-accent)}
 .memoryEditorHead,.memoryDeckDetailHead,.memoryDeckTitle,.memoryDeckActionRow,.memoryStudyControls{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .memoryEditorHead h3,.memoryEditorHead p,.memoryDeckTitle h3,.memoryDeckTitle p{margin:3px 0 0}.memoryEditorHead p,.memoryDeckTitle p{color:var(--muted);font-size:13px}
-.memoryEditorNote{padding:11px 13px;border-radius:11px;background:color-mix(in srgb,#f59e0b 8%,var(--card));color:var(--muted);font-size:12px}
-.memoryDeckActions{display:flex;gap:8px;flex-wrap:wrap}.memoryDeckTitle{padding:18px;border-radius:16px;background:color-mix(in srgb,#f59e0b 8%,var(--card))}.memoryDeckTitle>strong{font-size:20px;color:#b45309}
+.memoryEditorNote{padding:11px 13px;border-radius:11px;background:color-mix(in srgb,var(--mem-accent) 8%,var(--card));color:var(--muted);font-size:12px}
+.memoryDeckActions{display:flex;gap:8px;flex-wrap:wrap}.memoryDeckTitle{padding:18px;border-radius:16px;background:color-mix(in srgb,var(--mem-accent) 8%,var(--card))}.memoryDeckTitle>strong{font-size:20px;color:var(--mem-ink)}
 .memoryCardList{display:grid;gap:9px}.memoryCardRow{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:11px;border:1px solid var(--line);border-radius:13px;background:var(--bg)}
-.memoryCardNumber{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:color-mix(in srgb,#f59e0b 13%,var(--card));color:#b45309;font-size:11px;font-weight:900}
+.memoryCardNumber{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:color-mix(in srgb,var(--mem-accent) 13%,var(--card));color:var(--mem-ink);font-size:11px;font-weight:900}
 .memoryCardBody{display:grid;gap:4px;min-width:0;border:0;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer}.memoryCardBody strong,.memoryCardBody small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.memoryCardBody small{color:var(--muted)}
 .memoryCardDelete{border:0;background:transparent;color:var(--muted);cursor:pointer}.memoryCardDelete:hover{color:var(--bad)}.memoryCardRow.preview .memoryCardBody{cursor:default}
-.memoryStudyCard{min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:17px;padding:30px;border:1px solid color-mix(in srgb,#f59e0b 35%,var(--line));border-radius:22px;background:linear-gradient(150deg,var(--card),color-mix(in srgb,#f59e0b 8%,var(--card)));color:var(--text);text-align:center;font:inherit;cursor:pointer;box-shadow:0 22px 60px rgba(29,45,68,.10)}
+.memoryStudyCard{min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:17px;padding:30px;border:1px solid color-mix(in srgb,var(--mem-accent) 35%,var(--line));border-radius:22px;background:linear-gradient(150deg,var(--card),color-mix(in srgb,var(--mem-accent) 8%,var(--card)));color:var(--text);text-align:center;font:inherit;cursor:pointer;box-shadow:0 22px 60px rgba(29,45,68,.10)}
 .memoryStudy{perspective:1200px}
 .memoryStudyCard{transform-origin:50% 50%;backface-visibility:hidden;will-change:transform}
 .memoryStudyCard.flipOut{animation:memoryCardFlipOut 150ms ease-in forwards}
 .memoryStudyCard.flipIn{animation:memoryCardFlipIn 190ms ease-out}
 @keyframes memoryCardFlipOut{from{transform:rotateY(0deg);opacity:1}to{transform:rotateY(-90deg);opacity:.6}}
 @keyframes memoryCardFlipIn{from{transform:rotateY(90deg);opacity:.6}to{transform:rotateY(0deg);opacity:1}}
-.memoryStudyCard small{color:#b45309;font-weight:900;letter-spacing:.12em}.memoryStudyCard strong{font-size:clamp(22px,5vw,34px);line-height:1.45}.memoryStudyCard p{max-width:650px;margin:0;color:var(--muted);line-height:1.7}.memoryStudyCard span{color:var(--muted);font-size:12px}
+.memoryStudyCard small{color:var(--mem-ink);font-weight:900;letter-spacing:.12em}.memoryStudyCard strong{font-size:clamp(22px,5vw,34px);line-height:1.45}.memoryStudyCard p{max-width:650px;margin:0;color:var(--muted);line-height:1.7}.memoryStudyCard span{color:var(--muted);font-size:12px}
 .memoryProgress{display:grid;gap:10px}
 .memoryProgressBar{display:flex;overflow:hidden;height:8px;border-radius:999px;background:color-mix(in srgb,#94a3b8 22%,var(--card))}
 .memoryProgressBar span{height:100%}.memoryProgressBar .known{background:#10b981}.memoryProgressBar .unsure{background:#f59e0b}
 .memoryFilterRow{display:flex;flex-wrap:wrap;gap:8px}
 .memoryFilterChip{padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--muted);font:inherit;font-size:12px;font-weight:800;cursor:pointer}
-.memoryFilterChip.active{border-color:#f59e0b;background:color-mix(in srgb,#f59e0b 14%,var(--card));color:#b45309}
+.memoryFilterChip.active{border-color:var(--mem-accent);background:color-mix(in srgb,var(--mem-accent) 14%,var(--card));color:var(--mem-ink)}
 .memoryFilterChip.reset{margin-left:auto}.memoryFilterChip:disabled{opacity:.45;cursor:default}
 .memoryMarkBadge{padding:3px 8px;border-radius:999px;background:color-mix(in srgb,#94a3b8 18%,var(--card));color:var(--muted);font-size:11px;font-weight:900;white-space:nowrap}
 .memoryMarkBadge.known{background:color-mix(in srgb,#10b981 16%,var(--card));color:#047857}
