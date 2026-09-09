@@ -71,6 +71,17 @@ describe("公共・政治経済の収録教材", () => {
     expect(errors).toEqual([]);
   });
 
+  it("一覧用の短い問題名（listTitle）が全問にそろっている", () => {
+    // 問題一覧・復習・誤答ノート・検索結果は設問文ではなく listTitle を並べる。
+    // 欠けると長い設問文がそのまま出てしまうので、形と長さまで見る。
+    for (const q of questions) {
+      const listTitle = String(q.listTitle ?? "").trim();
+      expect(listTitle.length).toBeGreaterThan(0);
+      expect(listTitle.endsWith("問題")).toBe(true);
+      expect(listTitle.length).toBeLessThanOrEqual(40);
+    }
+  });
+
   it("domain と sourceType は決められた値だけを使う", () => {
     for (const q of questions) {
       expect(DOMAINS.has(q.domain)).toBe(true);

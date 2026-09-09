@@ -553,6 +553,9 @@
   .srItem:hover{border-color:var(--brand)} .srItem:active{transform:scale(.995)}
   .srQ{font-size:14.5px;font-weight:700;color:var(--text);line-height:1.5;margin-bottom:6px}
   .srQ mark{background:color-mix(in srgb,var(--gold) 45%,transparent);color:inherit;border-radius:3px;padding:0 1px}
+  .srSnippet{font-size:12.5px;font-weight:400;color:var(--muted);line-height:1.5;margin-bottom:6px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .srSnippet mark{background:color-mix(in srgb,var(--gold) 45%,transparent);color:inherit;border-radius:3px;padding:0 1px}
   .srMeta{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted)}
   .srOk{color:var(--good);font-weight:800} .srNg{color:var(--bad);font-weight:800}
   .srMore{text-align:center;color:var(--muted);font-size:12px;padding:8px}
@@ -2578,6 +2581,7 @@
       // --- 公共・政治経済の教材で使う欄。分野・出典での絞り込みと出典表示に使う ---
       domain: q.domain || "",                    // 公共 / 政治 / 経済
       topic: q.topic || "",
+      listTitle: q.listTitle || "",              // 一覧に並べる短い問題名（「〜に関する正誤問題」）
       sourceType: q.sourceType || "",            // common-new / common-legacy / center / original
       sourceLabel: q.sourceLabel || "",
       sourceQuestion: q.sourceQuestion || "",
@@ -2884,7 +2888,7 @@
     const sig=due.map(q=>q.id).join(",")+"|"+domain+"|"+field+"|"+future.map(q=>q.id).join(",");
     if(root.dataset.sig===sig) return;
     root.dataset.sig=sig;
-    const rows=items=>items.map(q=>'<button type="button" class="reviewQuestion" data-review-question="'+esc(q.id)+'"><small>'+esc(q.domain+" / "+q.field)+'</small><span>'+esc(q.question.slice(0,110))+'</span>'+attemptLog(q,true)+scheduleBadge(q)+'</button>').join("");
+    const rows=items=>items.map(q=>'<button type="button" class="reviewQuestion" data-review-question="'+esc(q.id)+'"><small>'+esc(q.domain+" / "+q.field)+'</small><span>'+esc(qListTitle(q))+'</span>'+attemptLog(q,true)+scheduleBadge(q)+'</button>').join("");
     $("#reviewDueList").innerHTML=rows(due)||"<p>今すぐ復習する問題はありません。</p>";
     root.innerHTML=rows(future)||"<p>該当する復習予定はありません。</p>";
     $("#reviewView").querySelectorAll("[data-review-question]").forEach(el=>el.onclick=()=>startQuiz([DATA.find(q=>q.id===el.dataset.reviewQuestion)],"復習",{},{keepOrder:true}));
@@ -3530,10 +3534,9 @@
     const rows=capped.map(q=>{
       const r=progress[q.id], cw=questionType(q)==="constructed", correct=cw?answerSummary(q):ansText(q), miss=topMiss(q);
       return `<div class="maItem">
-        <div class="maQ">${qUnderlineHTML(q)}</div>
+        <div class="maQ">${esc(qListTitle(q))}</div>
         <div class="maFacts">
           <span class="maField">${esc(q.field||"")}</span>
-          ${q.topic?`<span class="maField">${esc(q.topic)}</span>`:""}
           <span class="maWrong">✗ ${r.wrong||0}回</span>
           ${(r.correct||0)===0?`<span class="maUnsolved">未正解</span>`:""}
           ${cw?`<span class="maField">記述 ${writtenPoints(q)}点</span>`:""}
@@ -3921,6 +3924,9 @@
     return out;
   }
   function qUnderlineHTML(q){ return underlineHTML(q&&q.question, q&&q.underlines); }
+  // 一覧では設問文をそのまま並べると長すぎて見比べられない。教材が持つ短い問題名
+  //（listTitle。「〜に関する正誤問題」の形）を出し、設問文は問題を開いてから読ませる。
+  function qListTitle(q){ const t=q&&q.listTitle; return (t&&String(t).trim())||((q&&q.question)||""); }
   function highlight(text, query, spans){
     let h=underlineHTML(text, spans);
     [...new Set(searchTerms(query))].forEach(t=>{ if(!t)return; const re=new RegExp("("+t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","ig"); h=h.replace(re,"<mark>$1</mark>"); });
@@ -3948,7 +3954,7 @@
     box.innerHTML=cap.map(q=>{
       const r=progress[q.id], tag=[q.year||q.mockTitle,q.field,q.topic].filter(Boolean).join(" ・ ");
       const status=(r&&r.seen)?(r.correct>=r.wrong?'<span class="srOk">学習済</span>':'<span class="srNg">要復習</span>'):"";
-      return `<button type="button" class="srItem" data-id="${esc(q.id)}"><div class="srQ">${highlight(q.question,qs,q.underlines)}</div><div class="srMeta"><span>${esc(tag)}</span>${status}</div></button>`;
+      return `<button type="button" class="srItem" data-id="${esc(q.id)}"><div class="srQ">${esc(qListTitle(q))}</div><div class="srSnippet">${highlight(q.question,qs,q.underlines)}</div><div class="srMeta"><span>${esc(tag)}</span>${status}</div></button>`;
     }).join("") + (matches.length>cap.length?`<div class="srMore">ほか ${matches.length-cap.length} 問（キーワードを絞ると探しやすくなります）</div>`:"");
     box.querySelectorAll(".srItem").forEach(el=>{ el.onclick=()=>{ const q=DATA.find(x=>x.id===el.dataset.id); if(q) startQuiz([q], `検索：${qs}`); }; });
   }
@@ -4760,7 +4766,8 @@
     $("#qbPracticeGroup").onclick=()=>openCountModal({items:items.slice(), label:g.label, key:g.key, kicker:"まとめて演習"}, g.mode||"playlist");
     $("#qbrowseList").innerHTML=slice.map((q,i)=>{
       const fig=q.image?`<span class="brFig">🖼 図</span>`:"";
-      const field=[q.field,q.topic].filter(Boolean).map(t=>`<span class="brField">${esc(t)}</span>`).join("");
+      // topic は listTitle の中に入っているので、チップは分野だけにする
+      const field=[q.field].filter(Boolean).map(t=>`<span class="brField">${esc(t)}</span>`).join("");
       const r=progress[q.id], status=(r&&r.seen)?(r.correct>=r.wrong?'<span class="srOk">学習済</span>':'<span class="srNg">要復習</span>'):"";
       const bm=isBookmarked(q.id);
       const sel=qbrowseState.selected.has(q.id);
@@ -4770,7 +4777,7 @@
             aria-label="この問題を選ぶ"><span class="qbSelBox"></span></button>
           <button type="button" class="brHead">
             <span class="qbNum">${esc(qbNumLabel(q))}</span>
-            <span class="brFront">${qUnderlineHTML(q)}</span>
+            <span class="brFront">${esc(qListTitle(q))}</span>
             <span class="brMeta">${field}${fig}${status}</span>
             <span class="brChev">›</span>
           </button>

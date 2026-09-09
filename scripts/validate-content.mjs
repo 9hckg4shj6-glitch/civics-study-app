@@ -51,6 +51,12 @@ export function validateCivics(label, id, question, errors) {
   if (!SOURCE_TYPES.has(question.sourceType)) e(`sourceType は ${[...SOURCE_TYPES].join(" / ")} のいずれかにしてください (${question.sourceType})`);
   if (!question.sourceLabel) e("sourceLabel（出典名）がありません");
   if (!question.field) e("field（分野）がありません");
+  if (!question.topic) e("topic（主題）がありません");
+  // 一覧は設問文ではなく listTitle を並べるので、無いと長い設問文がそのまま出てしまう
+  const listTitle = String(question.listTitle ?? "").trim();
+  if (!listTitle) e("listTitle（一覧用の短い問題名）がありません");
+  else if (!/問題$/.test(listTitle)) e(`listTitle は「〜に関する◯◯問題」の形にしてください (${listTitle})`);
+  else if (listTitle.length > 40) e(`listTitle が長すぎます（40字以内） (${listTitle.length}字)`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(question.verifiedAt ?? ""))) {
     e(`verifiedAt は YYYY-MM-DD 形式の確認日にしてください (${question.verifiedAt})`);
   }
