@@ -1478,53 +1478,62 @@
   /* ===== 科目ごとの地の色（化学）=====
      科目に入ると <html> に data-subject="<科目id>" が付く（activateSubject）。
      公共政経は data-subject が付いても何も足さないので、上の「polished home shell」の
-     生成り＋藍のまま。化学だけ、ここで水色と白の配色に塗り替える。
+     生成り＋藍のまま。化学だけ、ここで塗り替える。
      科目えらび画面では data-subject を外すので、ホームの見た目は今までどおり。
 
+     色の考え方：問題を読んで解くのが一番大事なので、目が疲れない地を先に決めた。
+     ・地は真っ白ではなく、青緑と若草と生成りを薄く混ぜた紙の色。白は光って
+       まぶしいので使わない（カードも #ffffff ではなく少し温かい白）。
+     ・文字も真っ黒ではなく濃い藍鼠。強すぎる明暗差は長く読むとつらい。
+     ・青一色ではなく、青・青緑・緑・真鍮・藤をゆるくつないだ幅にしてある。
+       ただし彩度は落としてあるので、問題文より飾りが目立つことはない。
+     ・正誤（緑・紅）だけは意味が読み取れなくなるため、この幅に混ぜない。
+
      並びは上の :root と同じ順にしてある。片方を直したらもう片方も見比べること。
-     --sky-1〜3 は下の body で使う、背景にふわっと置く水色の丸。 */
+     --sky-1〜3 は下の body で使う、背景にふわっと置く丸（青・緑・生成り）。 */
   :root[data-subject="chemistry"]{
-    --bg:#eaf4fd; --bg2:#ffffff; --card:#ffffff; --card2:#f2f8ff;
-        --line:#d9e9f7; --text:#17324b; --muted:#5f7d96; --brand:#2f8fcd;
-        --brand2:#77c7e8; --good:#2f9d78; --good-bg:#e4f6f0; --bad:#e2657c;
-        --bad-bg:#fdeaef; --warn:#c98a1f; --gold:#c99a2e;
-        --shadow:0 18px 46px rgba(58,110,160,.14);
-        --glow:0 1px 0 rgba(255,255,255,.9), 0 1px 2px rgba(58,110,160,.07);
-        --surface-blur:rgba(255,255,255,.86);
-        --h0:#e9f2fb; --h1:#c3e1f6; --h2:#8fc8ee; --h3:#57a5dd; --h4:#2b79b4;
-        --sky-1:rgba(139,201,240,.34); --sky-2:rgba(186,226,248,.42); --sky-3:rgba(214,236,252,.55);
-        /* 暗記カード画面の山吹と、記述の「公式解答」の緑も青にそろえる */
-        --mem-accent:#2f8fcd; --mem-ink:#1c6fa8; --ok:#2f8fcd;
+    --bg:#e9f1ee; --bg2:#f4f7f0; --card:#fbfcf8; --card2:#eef4ee;
+        --line:#dce7e0; --text:#1e3540; --muted:#56727a; --brand:#2f8290;
+        --brand2:#6fae9c; --good:#2f8f68; --good-bg:#e5f3ea; --bad:#cf5b6e;
+        --bad-bg:#fbe9ec; --warn:#b0791d; --gold:#b08f2e;
+        --shadow:0 18px 46px rgba(52,84,80,.13);
+        --glow:0 1px 0 rgba(255,255,255,.85), 0 1px 2px rgba(52,84,80,.06);
+        --surface-blur:rgba(251,252,248,.86);
+        --h0:#eef3ee; --h1:#cfe5db; --h2:#9fcfc2; --h3:#63aaa4; --h4:#2f7f8a;
+        --sky-1:rgba(148,199,214,.30); --sky-2:rgba(170,208,178,.30); --sky-3:rgba(230,222,196,.40);
+        /* 暗記カード画面の山吹と、記述の「公式解答」の緑も、この科目の青緑にそろえる */
+        --mem-accent:#3f8f96; --mem-ink:#2b6f78; --ok:#2f8290;
   }
   /* 端末が暗い設定のとき。ただし本人が「明るい」を選んでいるならそのまま（:not で除く） */
   @media (prefers-color-scheme: dark){
     :root[data-subject="chemistry"]:not([data-theme="light"]){
-      --bg:#0f1d2e; --bg2:#0b1622; --card:#17273a; --card2:#1f3247;
-          --line:#2e475f; --text:#e9f3fb; --muted:#9db6cc; --brand:#7cc6ef;
-          --brand2:#a9dcf5; --good:#5fd3a5; --good-bg:#0f3229; --bad:#ff7f96;
-          --bad-bg:#3a1a24; --warn:#f0c274; --gold:#dcb668;
+      --bg:#121e22; --bg2:#0e181c; --card:#1a2a2f; --card2:#22363c;
+          --line:#31494f; --text:#e8f0ec; --muted:#9db4b6; --brand:#6fc0c8;
+          --brand2:#8fcfb4; --good:#5fd0a0; --good-bg:#0f3028; --bad:#ff8296;
+          --bad-bg:#39191f; --warn:#e8bd74; --gold:#d4b26a;
           --shadow:0 18px 46px rgba(0,0,0,.45);
           --glow:0 0 0 1px rgba(255,255,255,.05);
-          --surface-blur:rgba(23,39,58,.84);
-          --h0:#1f3247; --h1:#26506f; --h2:#31739e; --h3:#4b9acb; --h4:#7cc6ef;
-          --sky-1:rgba(90,160,215,.20); --sky-2:rgba(70,130,190,.17); --sky-3:rgba(60,110,170,.15);
-          --mem-accent:#7cc6ef; --mem-ink:#a9dcf5; --ok:#7cc6ef;
+          --surface-blur:rgba(26,42,47,.86);
+          --h0:#22363c; --h1:#23515a; --h2:#2e7580; --h3:#4b9ea2; --h4:#7cc6c2;
+          --sky-1:rgba(70,140,160,.18); --sky-2:rgba(80,140,110,.15); --sky-3:rgba(150,135,95,.12);
+          --mem-accent:#6fc0c8; --mem-ink:#9fd8d4; --ok:#6fc0c8;
     }
   }
   /* 本人が「暗い」を選んだとき（上の civics 用 [data-theme="dark"] より詳しいので、こちらが勝つ） */
   :root[data-subject="chemistry"][data-theme="dark"]{
-    --bg:#0f1d2e; --bg2:#0b1622; --card:#17273a; --card2:#1f3247;
-        --line:#2e475f; --text:#e9f3fb; --muted:#9db6cc; --brand:#7cc6ef;
-        --brand2:#a9dcf5; --good:#5fd3a5; --good-bg:#0f3229; --bad:#ff7f96;
-        --bad-bg:#3a1a24; --warn:#f0c274; --gold:#dcb668;
+    --bg:#121e22; --bg2:#0e181c; --card:#1a2a2f; --card2:#22363c;
+        --line:#31494f; --text:#e8f0ec; --muted:#9db4b6; --brand:#6fc0c8;
+        --brand2:#8fcfb4; --good:#5fd0a0; --good-bg:#0f3028; --bad:#ff8296;
+        --bad-bg:#39191f; --warn:#e8bd74; --gold:#d4b26a;
         --shadow:0 18px 46px rgba(0,0,0,.45);
         --glow:0 0 0 1px rgba(255,255,255,.05);
-        --surface-blur:rgba(23,39,58,.84);
-        --h0:#1f3247; --h1:#26506f; --h2:#31739e; --h3:#4b9acb; --h4:#7cc6ef;
-        --sky-1:rgba(90,160,215,.20); --sky-2:rgba(70,130,190,.17); --sky-3:rgba(60,110,170,.15);
-        --mem-accent:#7cc6ef; --mem-ink:#a9dcf5; --ok:#7cc6ef;
+        --surface-blur:rgba(26,42,47,.86);
+        --h0:#22363c; --h1:#23515a; --h2:#2e7580; --h3:#4b9ea2; --h4:#7cc6c2;
+        --sky-1:rgba(70,140,160,.18); --sky-2:rgba(80,140,110,.15); --sky-3:rgba(150,135,95,.12);
+        --mem-accent:#6fc0c8; --mem-ink:#9fd8d4; --ok:#6fc0c8;
   }
-  /* 地。水色と白が上下でまざり、四隅にやわらかい水色の丸を置く。
+  /* 地。青緑と生成りが上下でまざり、四隅に青・緑・生成りの丸をうっすら置く。
+     どれも薄いので、問題文を読むときに背景が視線を引くことはない。
      modern.css の body より詳しい指定なので、読み込み順に関係なくこちらが効く。 */
   :root[data-subject="chemistry"] body{
     background:
@@ -1534,38 +1543,38 @@
       linear-gradient(180deg,var(--bg) 0%,var(--bg2) 46%,var(--bg) 100%);
     background-attachment:fixed;
   }
-  /* 色を直に書いてある藍→菫のところだけ、青に置きかえる。
-     ボタンは白文字を載せるので、可愛さより読みやすさを優先して濃いめの青にしてある。 */
-  :root[data-subject="chemistry"] .btn{background:linear-gradient(135deg,#12588f,#2478b3)}
-  :root[data-subject="chemistry"] .lvbadge .dot{background:linear-gradient(135deg,#5bb8e0,#9bd7f0)}
+  /* 色を直に書いてある藍→菫のところだけ、この科目の色に置きかえる。
+     ボタンは白文字を載せるので、読みやすさを優先して濃いめにしてある。 */
+  :root[data-subject="chemistry"] .btn{background:linear-gradient(135deg,#27697a,#3f8a86)}
+  :root[data-subject="chemistry"] .lvbadge .dot{background:linear-gradient(135deg,#5aa8b4,#9ccfb4)}
   :root[data-subject="chemistry"] .score,
-  :root[data-subject="chemistry"] .lvring .lc .num{background:linear-gradient(135deg,#1c6fa8,#3f9ad2)}
+  :root[data-subject="chemistry"] .lvring .lc .num{background:linear-gradient(135deg,#2b6f7d,#4f9b8c)}
   /* 「演習範囲」の見出しは HTML に style="--accent:…" が直に入っているので !important で上書きする。
-     枠を見分けられるよう、青のなかで濃さと緑みを少しずつ変えてある。 */
-  :root[data-subject="chemistry"] .sectToggle[data-toggle="fieldList"]{--accent:#2f8fcd!important}
-  :root[data-subject="chemistry"] .sectToggle[data-toggle="askList"]{--accent:#3fa3b8!important}
-  :root[data-subject="chemistry"] .sectToggle[data-toggle="domainList"]{--accent:#4f9fd8!important}
-  :root[data-subject="chemistry"] .sectToggle[data-toggle="sourceList"]{--accent:#5aa8c8!important}
-  :root[data-subject="chemistry"] .sectToggle[data-toggle="yearList"]{--accent:#5f8fd0!important}
-  :root[data-subject="chemistry"] .sectToggle[data-toggle="predictionList"]{--accent:#6f9fd8!important}
-  :root[data-subject="chemistry"] .sectToggle[data-toggle="specialList"]{--accent:#1f6fa8!important}
-  :root[data-subject="chemistry"] .sectToggle[data-toggle="updatesHomePanel"]{--accent:#3f8fb8!important}
-  /* 「問題一覧（年度別・分野別）」の緑の帯も青に寄せる */
+     枠を見分けられるよう、青緑から緑・青・真鍮・藤へと少しずつ色みをずらしてある。 */
+  :root[data-subject="chemistry"] .sectToggle[data-toggle="fieldList"]{--accent:#2f8290!important}
+  :root[data-subject="chemistry"] .sectToggle[data-toggle="askList"]{--accent:#4f9b7c!important}
+  :root[data-subject="chemistry"] .sectToggle[data-toggle="domainList"]{--accent:#3f7fa8!important}
+  :root[data-subject="chemistry"] .sectToggle[data-toggle="sourceList"]{--accent:#5aa39a!important}
+  :root[data-subject="chemistry"] .sectToggle[data-toggle="yearList"]{--accent:#6f86b8!important}
+  :root[data-subject="chemistry"] .sectToggle[data-toggle="predictionList"]{--accent:#a08248!important}
+  :root[data-subject="chemistry"] .sectToggle[data-toggle="specialList"]{--accent:#8a7fae!important}
+  :root[data-subject="chemistry"] .sectToggle[data-toggle="updatesHomePanel"]{--accent:#4b93a8!important}
+  /* 「問題一覧（年度別・分野別）」の帯は若草に寄せる */
   :root[data-subject="chemistry"] .browseEntry{
-    border-color:color-mix(in srgb,#2f8fcd 52%,var(--line));
-    background:color-mix(in srgb,#2f8fcd 10%,var(--card));
+    border-color:color-mix(in srgb,#4f9b7c 52%,var(--line));
+    background:color-mix(in srgb,#4f9b7c 10%,var(--card));
   }
-  :root[data-subject="chemistry"] .browseEntry:hover{border-color:#2f8fcd}
-  /* 「カードで学ぶ」「フラッシュカード」の菫色の枠 */
-  :root[data-subject="chemistry"] .cmStartAlt{border-color:color-mix(in srgb,#4f9fd8 50%,var(--line))}
-  :root[data-subject="chemistry"] .cmStartAlt:hover{border-color:#4f9fd8}
+  :root[data-subject="chemistry"] .browseEntry:hover{border-color:#4f9b7c}
+  /* 「カードで学ぶ」「フラッシュカード」の菫色の枠は、少し青みの藤に */
+  :root[data-subject="chemistry"] .cmStartAlt{border-color:color-mix(in srgb,#6f86b8 50%,var(--line))}
+  :root[data-subject="chemistry"] .cmStartAlt:hover{border-color:#6f86b8}
   :root[data-subject="chemistry"] .flashEntry{
-    border-color:color-mix(in srgb,#4f9fd8 50%,var(--line));
-    background:color-mix(in srgb,#4f9fd8 10%,var(--card));
+    border-color:color-mix(in srgb,#6f86b8 50%,var(--line));
+    background:color-mix(in srgb,#6f86b8 10%,var(--card));
   }
-  :root[data-subject="chemistry"] .flashEntry:hover{border-color:#4f9fd8}
-  /* 今日の目標のバー（既定は緑）。正誤の緑ではなく進み具合の飾りなので青にする */
-  :root[data-subject="chemistry"] .goalbar i{background:linear-gradient(90deg,#2f8fcd,#8fd3f0)}
+  :root[data-subject="chemistry"] .flashEntry:hover{border-color:#6f86b8}
+  /* 今日の目標のバー（既定は緑）。正誤の緑ではなく進み具合の飾りなので青緑→若草にする */
+  :root[data-subject="chemistry"] .goalbar i{background:linear-gradient(90deg,#3f8f8a,#9ccf9c)}
 </style>
 </head>
 <body>
@@ -2373,15 +2382,17 @@
      地の色は <style> の :root[data-subject=…] が持つので、そちらと色みを合わせること。 */
   const ACCENTS_DEFAULT = ["#3a4192","#7a4aa8","#9c4a86","#a8791b","#b8474f","#5a5a9c","#6b4aa0","#7a6a2e"];
   const ACCENTS_BY_SUBJECT = {
-    chemistry: ["#2f8fcd","#4f9fd8","#3fa3b8","#5f8fd0","#5aa8c8","#6f9fd8","#3f8fb8","#78b6de"],
+    /* 青緑→若草→青→真鍮→藤。彩度を落としてあるので、並べても目がちらつかない。 */
+    chemistry: ["#2f8290","#4f9b7c","#3f7fa8","#5aa39a","#6f86b8","#a08248","#8a7fae","#4b93a8"],
   };
   function accents(){ return ACCENTS_BY_SUBJECT[currentSubjectId] || ACCENTS_DEFAULT; }
   /* ホームの大きなタイルの色。こちらは並び順ではなく役目ごとに決める。 */
   const HUB_ACCENTS_DEFAULT = {learn:"#3a4192",practice:"#6b4aa0",browse:"#9c4a86",review:"#b8474f",memory:"#b06a1e",search:"#7a6a2e",
     bookmark:"#b8860b",weak:"#c5525a",mistakes:"#6d5bd0",weakField:"#1f8a62"};
   const HUB_ACCENTS_BY_SUBJECT = {
-    chemistry: {learn:"#2f8fcd",practice:"#4f9fd8",browse:"#5aa8c8",review:"#5f8fd0",memory:"#3fa3b8",search:"#6f9fd8",
-      bookmark:"#4f9fd8",weak:"#2f8fcd",mistakes:"#5f8fd0",weakField:"#3fa3b8"},
+    /* 苦手（weak）だけは紅を弱めた色にしてある。青緑にすると「気をつける枠」だと分からなくなるため。 */
+    chemistry: {learn:"#3f7fa8",practice:"#2f8290",browse:"#4f9b7c",review:"#a08248",memory:"#8a7fae",search:"#5aa39a",
+      bookmark:"#a68a3f",weak:"#bd6b74",mistakes:"#6f86b8",weakField:"#4f9b7c"},
   };
   function hubAccents(){ return HUB_ACCENTS_BY_SUBJECT[currentSubjectId] || HUB_ACCENTS_DEFAULT; }
 
@@ -7125,7 +7136,7 @@
   /* ---------- 演出 ---------- */
   function confetti(){
     const cols=(currentSubjectId==="chemistry")
-      ? ["#2f8fcd","#77c7e8","#a9dcf5","#3fa3b8","#ffffff","#c9e8fa"]
+      ? ["#2f8290","#6fae9c","#a7cfb0","#e6d9a8","#9fc9dc","#c9b6d8"]
       : ["#3a4192","#7a4aa8","#9c4a86","#a8791b","#2f7d4f","#c79ae8"];
     for(let i=0;i<60;i++){ const p=document.createElement("div"); p.className="confetti";
       p.style.left=Math.random()*100+"vw"; p.style.background=cols[i%cols.length];
@@ -7257,7 +7268,7 @@
   function applyTheme(mode){ if(mode) document.documentElement.setAttribute("data-theme",mode); else document.documentElement.removeAttribute("data-theme"); updateThemeColor(); }
   /* ブラウザの上下の帯の色。科目ごとの地の色（<style> の :root[data-subject=…]）の --bg と
      同じ値を書いておく。配色を直したらこの表も直すこと。 */
-  const THEME_COLORS = { chemistry:{light:"#eaf4fd",dark:"#0f1d2e"} };
+  const THEME_COLORS = { chemistry:{light:"#e9f1ee",dark:"#121e22"} };
   const THEME_COLOR_DEFAULT = {light:"#efe8d9",dark:"#131020"};
   function updateThemeColor(){ try{ const root=document.documentElement; const cur=root.getAttribute("data-theme"); const isDark=cur?cur==="dark":matchMedia("(prefers-color-scheme: dark)").matches; const pair=THEME_COLORS[root.getAttribute("data-subject")]||THEME_COLOR_DEFAULT; const m=document.getElementById("themeColorMeta"); if(m) m.setAttribute("content", isDark?pair.dark:pair.light); }catch(e){} }
   (function(){ try{ const t=localStorage.getItem(THEME_KEY); if(t) applyTheme(t); }catch(e){} })();

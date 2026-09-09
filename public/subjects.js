@@ -57,7 +57,7 @@ window.SUBJECTS = [
     id: "chemistry",
     name: "化学",
     emoji: "🧪",
-    accent: "#2f8fcd",       // 水色（画面の地の色も薄い青と白。index.html の :root[data-subject="chemistry"]）
+    accent: "#3f8f96",       // 青緑（画面の地の色も青緑と生成り。index.html の :root[data-subject="chemistry"]）
     learningMode: "cards",
     contentDir: "content/chemistry/questions",
     questions: "subjects/chemistry/questions.js",
