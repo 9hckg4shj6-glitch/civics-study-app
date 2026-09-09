@@ -41,14 +41,16 @@ export function validateChoice(label, id, question, errors) {
 export const DOMAINS = new Set(["公共", "政治", "経済"]);
 export const SOURCE_TYPES = new Set(["common-new", "common-legacy", "center", "original"]);
 
-/* 共通テスト「公共，政治・経済」の教材に固有の検査。
-   仕様: 公共政治経済演習アプリ_実装計画 §7・§11
-   出典・確認日・選択肢別解説がそろっていない問題を収録させない。 */
-export function validateCivics(label, id, question, errors) {
+/* 化学（docs/化学科目_実装計画.md §2・§3） */
+export const CHEM_DOMAINS = new Set(["理論化学", "無機化学", "有機化学", "高分子化合物"]);
+export const CHEM_SOURCE_TYPES = new Set(["common-test", "center", "national", "private", "original"]);
+export const ASK_TYPES = new Set(["correct", "incorrect", "true-false"]);
+
+/* 教材として最低限そろえる項目（科目共通）。
+   出典・分類・確認日・選択肢別解説がそろっていない問題を収録させない。 */
+export function validateContentCore(label, id, question, errors) {
   const e = (msg) => errors.push(`[${label}] 問題 ${id}: ${msg}`);
 
-  if (!DOMAINS.has(question.domain)) e(`domain は ${[...DOMAINS].join(" / ")} のいずれかにしてください (${question.domain})`);
-  if (!SOURCE_TYPES.has(question.sourceType)) e(`sourceType は ${[...SOURCE_TYPES].join(" / ")} のいずれかにしてください (${question.sourceType})`);
   if (!question.sourceLabel) e("sourceLabel（出典名）がありません");
   if (!question.field) e("field（分野）がありません");
   if (!question.topic) e("topic（主題）がありません");
@@ -77,6 +79,40 @@ export function validateCivics(label, id, question, errors) {
   if (question.explainImage && !String(question.explainImageAlt ?? "").trim()) e("explainImage に explainImageAlt がありません");
   for (const [i, fig] of (question.groupFigures || []).entries()) {
     if (fig?.image && !String(fig.imageAlt ?? "").trim()) e(`groupFigures[${i}] に imageAlt がありません`);
+  }
+}
+
+/* 共通テスト「公共，政治・経済」の教材に固有の検査。
+   仕様: 公共政治経済演習アプリ_実装計画 §7・§11 */
+export function validateCivics(label, id, question, errors) {
+  const e = (msg) => errors.push(`[${label}] 問題 ${id}: ${msg}`);
+  if (!DOMAINS.has(question.domain)) e(`domain は ${[...DOMAINS].join(" / ")} のいずれかにしてください (${question.domain})`);
+  if (!SOURCE_TYPES.has(question.sourceType)) e(`sourceType は ${[...SOURCE_TYPES].join(" / ")} のいずれかにしてください (${question.sourceType})`);
+  validateContentCore(label, id, question, errors);
+}
+
+/* 化学の教材に固有の検査。仕様: docs/化学科目_実装計画.md §2・§3・§5
+   化学は「正誤問題」「正しいものを選べ」「誤っているものを選べ」だけを集める科目なので、
+   問い方（askType）を必須にして、演習画面の「問い方別」から必ず引けるようにする。 */
+export function validateChemistry(label, id, question, errors) {
+  const e = (msg) => errors.push(`[${label}] 問題 ${id}: ${msg}`);
+
+  if (!CHEM_DOMAINS.has(question.domain)) e(`domain は ${[...CHEM_DOMAINS].join(" / ")} のいずれかにしてください (${question.domain})`);
+  if (!CHEM_SOURCE_TYPES.has(question.sourceType)) e(`sourceType は ${[...CHEM_SOURCE_TYPES].join(" / ")} のいずれかにしてください (${question.sourceType})`);
+  if (!ASK_TYPES.has(question.askType)) e(`askType は ${[...ASK_TYPES].join(" / ")} のいずれかにしてください (${question.askType})`);
+  // 過去問には必ず年度を入れる（年度別演習に出せなくなるため）。自作問題は年度を持たない。
+  if (question.sourceType !== "original" && !/^\d{4}年度$/.test(String(question.year ?? ""))) {
+    e(`year は「2024年度」のように西暦の年度で書いてください (${question.year})`);
+  }
+  validateContentCore(label, id, question, errors);
+
+  /* 選択肢の並べ替え事故を防ぐ。「a 正・b 誤」型の組合せや、
+     「①と②」「すべて正しい」のように順序へ依存する選択肢は shuffle すると壊れる。 */
+  const choices = Array.isArray(question.choices) ? question.choices.map((c) => String(c ?? "")) : [];
+  const orderDependent = question.askType === "true-false"
+    || choices.some((c) => /[①-⑨]|すべて|いずれも|上記|正しいものはない/.test(c));
+  if (orderDependent && question.noShuffle !== true) {
+    e("選択肢の順序に依存する問題です。noShuffle: true を付けてください");
   }
 }
 
@@ -207,6 +243,7 @@ for (const subject of subjects) {
     if (questionType(question) === "constructed") validateConstructed(label, id, question, errors);
     else validateChoice(label, id, question, errors);
     if (subject.contentProfile === "civics") validateCivics(label, id, question, errors);
+    if (subject.contentProfile === "chemistry") validateChemistry(label, id, question, errors);
   }
 
   // グループ問題（共通資料＋複数小問）の件数と並びが宣言どおりかを見る

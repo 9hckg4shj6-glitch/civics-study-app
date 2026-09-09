@@ -8,15 +8,15 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- 端末間同期の中継サーバーだけを許可する。独自ドメインで動かすときは、そのドメインを connect-src に足すこと（足さないと通信が黙って失敗する）。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://*.workers.dev; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
-<title>公共・政治経済 演習</title>
+<title>学習ライブラリ（公共政経・化学）</title>
 <!-- PWA -->
 <meta name="theme-color" content="#efe8d9" id="themeColorMeta">
 <meta name="color-scheme" content="light dark">
-<meta name="application-name" content="公共・政治経済 演習">
+<meta name="application-name" content="学習ライブラリ">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="公共・政治経済 演習">
+<meta name="apple-mobile-web-app-title" content="学習ライブラリ">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -1654,11 +1654,11 @@
         <button type="button" id="themeBtn" data-menu-action="theme"><span class="mi">◐</span>テーマ切替</button>
       </div>
     </div>
-    <div class="logo" id="appLogo" aria-label="公共・政治経済 演習アプリのロゴ">
+    <div class="logo" id="appLogo" aria-label="学習ライブラリのロゴ">
       <img src="icons/icon-192.png" alt="">
     </div>
     <div class="titleWrap">
-      <h1 id="appTitle">公共・政治経済 演習</h1>
+      <h1 id="appTitle">学習ライブラリ</h1>
       <p id="subtitle">読み込み中…</p>
       <div class="subjectWrap hidden" id="subjectWrap">
         <button type="button" class="subjectChip" id="subjectBtn" title="科目をえらぶ">
@@ -1732,7 +1732,7 @@
   <section id="home">
     <div class="homeLead">
       <div class="leadCopy">
-        <div class="leadEyebrow">共通テスト 公共，政治・経済 / Practice</div>
+        <div class="leadEyebrow">Practice</div>
         <h2>今日は何を学ぶ？</h2>
         <p>読む、解く、振り返る。いまの目的から学習を始めましょう。</p>
       </div>
@@ -1852,6 +1852,15 @@
         <span class="stCount"></span><span class="stChev">›</span>
       </button>
       <div id="fieldList" class="grid hidden"></div>
+    </div>
+
+    <div class="homeSection rangeSection" id="askSection">
+      <button type="button" class="sectToggle" data-toggle="askList" data-hint="static" aria-expanded="false" style="--accent:#0f766e">
+        <span class="stIcon" aria-hidden="true">⊘</span>
+        <span class="stMain"><span class="stLabel">問い方別</span><span class="stHint">正しいものを選ぶ・誤っているものを選ぶ・正誤の組合せ</span></span>
+        <span class="stCount"></span><span class="stChev">›</span>
+      </button>
+      <div id="askList" class="grid hidden"></div>
     </div>
 
     <div class="homeSection rangeSection" id="domainSection">
@@ -2271,7 +2280,9 @@
   // 分野別カードの配色(dataviz カテゴリ順)
   const ACCENTS = ["#3a4192","#7a4aa8","#9c4a86","#a8791b","#b8474f","#5a5a9c","#6b4aa0","#7a6a2e"];
 
-  /* 出典区分の表示名。questions.js の sourceType をそのまま画面に出さない。 */
+  /* 出典区分の表示名。questions.js の sourceType をそのまま画面に出さない。
+     科目ごとの表は public/subjects.js（sourceTypeLabels / domainOrder / fieldOrder）に持たせ、
+     持っていない科目だけ、ここにある公共・政治経済の既定を使う。 */
   const SOURCE_TYPE_LABELS = {
     "common-new": "共通テスト「公共，政治・経済」（新課程）",
     "common-legacy": "共通テスト「政治・経済」（旧課程）",
@@ -2279,7 +2290,18 @@
     "original": "自作の補強問題",
   };
   const DOMAIN_ORDER = ["公共", "政治", "経済"];
-  const SOURCE_ORDER = Object.keys(SOURCE_TYPE_LABELS).map(k=>SOURCE_TYPE_LABELS[k]);
+  function sourceTypeLabels(){ const s=currentSubject(), t=s&&s.sourceTypeLabels; return (t&&typeof t==="object")?t:SOURCE_TYPE_LABELS; }
+  function sourceOrder(){ const t=sourceTypeLabels(); return Object.keys(t).map(k=>t[k]); }
+  function domainOrder(){ const s=currentSubject(); return (s&&Array.isArray(s.domainOrder)&&s.domainOrder.length)?s.domainOrder:DOMAIN_ORDER; }
+  function fieldOrder(){ const s=currentSubject(); return (s&&Array.isArray(s.fieldOrder)&&s.fieldOrder.length)?s.fieldOrder:FIELD_ORDER; }
+  /* 問い方（化学のように「正誤問題」だけを集めた科目で使う）。
+     askType を持つ問題が1問も無い科目では「問い方別」の枠ごと出さない。 */
+  const ASK_TYPE_LABELS = {
+    "correct": "正しいものを選ぶ問題",
+    "incorrect": "誤っているものを選ぶ問題",
+    "true-false": "正誤の組合せ問題",
+  };
+  const ASK_ORDER = Object.keys(ASK_TYPE_LABELS).map(k=>ASK_TYPE_LABELS[k]);
   /* 小分け項目（単元）の並び順。NEXT_WORK.md「4. 分野分類の基本表」＝政治経済塾の単元順に合わせる。
      ここに無い field は末尾へ回す（表を改訂したらこの配列も一緒に直すこと）。 */
   const FIELD_ORDER = [
@@ -2480,7 +2502,8 @@
     const prev=savedSubjectId();
     subjectLoading=true; if(el) el.classList.add("busy");
     try{
-      session=null; flashSession=null; stopExamTimer();
+      // 総合演習（試験タイマー）は削除済み。ここでは解きかけの演習とフラッシュカードだけを閉じる
+      session=null; flashSession=null;
       if(id!==prev){ meta.lastCategory=null; saveMeta(); clearSessionSnapshot(); }
       await activateSubject(id);
       renderSubjectUI(); renderHome("forward");
@@ -2582,6 +2605,8 @@
       domain: q.domain || "",                    // 公共 / 政治 / 経済
       topic: q.topic || "",
       listTitle: q.listTitle || "",              // 一覧に並べる短い問題名（「〜に関する正誤問題」）
+      // 問い方（化学）。correct=正しいものを選ぶ / incorrect=誤っているものを選ぶ / true-false=正誤の組合せ
+      askType: q.askType || "",
       sourceType: q.sourceType || "",            // common-new / common-legacy / center / original
       sourceLabel: q.sourceLabel || "",
       sourceQuestion: q.sourceQuestion || "",
@@ -2725,7 +2750,7 @@
     const unseenLeft = g.items.some(q=>{ const r=progress[q.id]; return !(r&&r.seen>0); });
     pendingSel={items:g.items, baseItems:g.items, label:g.label, mode, key:g.key, total:g.items.length, defaultN:g.defaultN, startAll:!!g.startAll,
       order:(mode==="playlist"&&unseenLeft)?"unseen":"random", gradingMode:"immediate"};
-    $("#countKicker").textContent=g.kicker||(mode==="year"?"年度別演習":mode==="prediction"?"予想問題":mode==="special"?"直前スペシャル":mode==="domain"?"分野別演習":mode==="source"?"出典別演習":mode==="field"?"テーマ別演習":mode==="due"?"今日の復習":mode==="examday"?"試験日モード":mode==="playlist"?"プレイリスト":"演習");
+    $("#countKicker").textContent=g.kicker||(mode==="year"?"年度別演習":mode==="prediction"?"予想問題":mode==="special"?"直前スペシャル":mode==="domain"?"分野別演習":mode==="source"?"出典別演習":mode==="ask"?"問い方別演習":mode==="field"?"テーマ別演習":mode==="due"?"今日の復習":mode==="examday"?"試験日モード":mode==="playlist"?"プレイリスト":"演習");
     $("#countTitle").textContent=g.label;
     // 復習・試験日モードは出題順に意味があるので、順番を選べるのはそれ以外の範囲だけ
     const orderable=(mode!=="due"&&mode!=="examday");
@@ -3047,7 +3072,8 @@
   }
 
   /* ---------- ゲーム要素のヘルパー ---------- */
-  // 称号ランク（レベル帯で決まる）。共通テスト「公共，政治・経済」の学習段階に合わせる。
+  /* 称号ランク（レベル帯で決まる）。既定は共通テスト「公共，政治・経済」の学習段階。
+     科目ごとに言い換えたいときは public/subjects.js の ranks に同じ形の配列を書く。 */
   const RANKS=[
     {min:1, icon:"📗", name:"公民入門"},
     {min:3, icon:"📘", name:"基礎固め"},
@@ -3059,7 +3085,8 @@
     {min:26,icon:"🎓", name:"共通テスト実戦"},
     {min:31,icon:"👑", name:"公民マスター"}
   ];
-  function rankInfo(level){ let r=RANKS[0]; for(const x of RANKS){ if(level>=x.min) r=x; } return r; }
+  function ranks(){ const s=currentSubject(); return (s&&Array.isArray(s.ranks)&&s.ranks.length)?s.ranks:RANKS; }
+  function rankInfo(level){ const list=ranks(); let r=list[0]; for(const x of list){ if(level>=x.min) r=x; } return r; }
   // コンボ倍率：セッション中の連続正解でXPが増える
   function comboMult(streak){ return streak>=8?3 : streak>=5?2 : streak>=3?1.5 : 1; }
   // 日付文字列(YYYY-MM-DD)の差（b - a、日数）
@@ -3123,7 +3150,11 @@
      元号の文字コード順になってしまう。西暦に直してから新しい順に並べる。 */
   const ERA_BASE={ 令和:2018, 平成:1988, 昭和:1925 };
   function yearOrder(label){
-    const m=/^(令和|平成|昭和)(元|\d+)年度/.exec(String(label||""));
+    const text=String(label||"");
+    // 化学のように西暦で書く科目もある（例: 2024年度）。和暦は元号ごとの基準年に足して比べる。
+    const seireki=/^(\d{4})年度/.exec(text);
+    if(seireki) return Number(seireki[1]);
+    const m=/^(令和|平成|昭和)(元|\d+)年度/.exec(text);
     if(!m) return -1;
     return ERA_BASE[m[1]] + (m[2]==="元" ? 1 : Number(m[2]));
   }
@@ -3145,7 +3176,9 @@
       } else if(mode==="domain"){
         key=q.domain;
       } else if(mode==="source"){
-        key=SOURCE_TYPE_LABELS[q.sourceType] || q.sourceType;
+        key=sourceTypeLabels()[q.sourceType] || q.sourceType;
+      } else if(mode==="ask"){
+        key=ASK_TYPE_LABELS[q.askType] || "";
       } else {
         key=q.field;
       }
@@ -3154,8 +3187,9 @@
     let keys=[...map.keys()];
     if(mode==="year") keys.sort((a,b)=>yearOrder(b)-yearOrder(a) || (a<b?-1:a>b?1:0));
     // 公共→政治→経済、出典は新しい課程から。学習の順序が毎回変わらないようにする
-    if(mode==="domain") keys.sort((a,b)=>DOMAIN_ORDER.indexOf(a)-DOMAIN_ORDER.indexOf(b));
-    if(mode==="source") keys.sort((a,b)=>SOURCE_ORDER.indexOf(a)-SOURCE_ORDER.indexOf(b));
+    if(mode==="domain"){ const order=domainOrder(); keys.sort((a,b)=>order.indexOf(a)-order.indexOf(b)); }
+    if(mode==="source"){ const order=sourceOrder(); keys.sort((a,b)=>order.indexOf(a)-order.indexOf(b)); }
+    if(mode==="ask") keys.sort((a,b)=>ASK_ORDER.indexOf(a)-ASK_ORDER.indexOf(b));
     return keys.map((k,i)=>({key:k,label:k,idx:i,items:map.get(k)}));
   }
   /* --- 年度別の小分け（選択問題／記述問題） ---
@@ -3177,7 +3211,7 @@
      field だけで束ねると「基本的人権（公共・政治）」のように大分野をまたいで混ざるので、
      テーマ別のキーは「大分野::単元」にして、選んだ分野の中だけで演習できるようにする。 */
   const THEME_SEP="::";
-  function fieldOrderIndex(f){ const i=FIELD_ORDER.indexOf(f); return i<0?FIELD_ORDER.length:i; }
+  function fieldOrderIndex(f){ const order=fieldOrder(), i=order.indexOf(f); return i<0?order.length:i; }
   function themeFieldGroups(domain){
     if(!domain) return [];
     const map=new Map();
@@ -3187,7 +3221,7 @@
       .map((f,i)=>({key:domain+THEME_SEP+f, label:domain+" ・ "+f, short:f, domain, idx:i, items:map.get(f)}));
   }
   function themeDomains(){
-    return DOMAIN_ORDER
+    return domainOrder()
       .map(d=>({key:d, label:d, items:DATA.filter(q=>q.domain===d), fields:themeFieldGroups(d)}))
       .filter(d=>d.items.length)
       .map((d,i)=>({...d, idx:i}));
@@ -3611,21 +3645,31 @@
     // 問題が1問も無い科目では、開発者向けの空メッセージではなく案内パネルを出す
     const empty = DATA.length===0;
     const notice=$("#emptySubjectNotice"); if(notice) notice.classList.toggle("hidden", !empty);
-    ["domainSection","sourceSection","yearSection","predictionSection","specialSection","fieldSection","qbrowseSection","quickSection","examDaySection"]
+    ["domainSection","sourceSection","yearSection","predictionSection","specialSection","fieldSection","askSection","qbrowseSection","quickSection","examDaySection"]
       .forEach(id=>{ const el=$("#"+id); if(el && empty) el.classList.add("hidden"); });
-    if(empty){ ["#domainList","#sourceList","#yearList","#predictionList","#fieldList","#specialList"]
+    if(empty){ ["#domainList","#sourceList","#yearList","#predictionList","#fieldList","#specialList","#askList"]
       .forEach(sel=>{ const el=$(sel); if(el) el.innerHTML=""; }); return; }
     ["qbrowseSection","quickSection","examDaySection"]
       .forEach(id=>{ const el=$("#"+id); if(el) el.classList.remove("hidden"); });
     ["domainSection","sourceSection","yearSection","fieldSection"].forEach(id=>{ const el=$("#"+id); if(el) el.classList.remove("hidden"); });
     // 科目によっては試験日モードを出さない（例：ゲノム）
     { const ed=$("#examDaySection"); if(ed && subjectFlag("hideExamDay")) ed.classList.add("hidden"); }
+    renderScopeHints();
+    renderGroupList("ask", "#askList");
     renderGroupList("domain", "#domainList");
     renderGroupList("source", "#sourceList");
     renderGroupList("year", "#yearList");
     renderGroupList("prediction", "#predictionList");
     renderGroupList("special", "#specialList");
     renderThemeDomainList();
+  }
+  /* 枠の説明文は科目によって変わる（公共・政治経済／理論化学・無機化学…）。
+     大分野の名前は subjects.js の domainOrder から作るので、科目を足しても直さなくてよい。 */
+  function renderScopeHints(){
+    const names=domainOrder().join("・");
+    const set=(toggle,text)=>{ const el=document.querySelector(`.sectToggle[data-toggle="${toggle}"] .stHint`); if(el) el.textContent=text; };
+    set("fieldList", `${names}を選ぶと、その分野の項目が開く`);
+    set("domainList", `${names}から選ぶ`);
   }
   function renderGroupList(mode, selector){
     const gs=groups(mode), list=$(selector);
@@ -3643,7 +3687,7 @@
       const s=catStats(g.items), isWeak=g.key==="__weak__", isBookmark=g.key==="__bookmark__";
       const accent=isWeak?"var(--bad)":isBookmark?"var(--gold)":ACCENTS[(g.idx||0)%ACCENTS.length];
       const pct=Math.round(s.seen/s.total*100);
-      const kicker=isWeak?"苦手復習":isBookmark?"見直したい問題":(mode==="year"?"年度別演習":mode==="prediction"?"予想問題":mode==="special"?"直前スペシャル":mode==="domain"?"分野別演習":mode==="source"?"出典別演習":"テーマ別演習");
+      const kicker=isWeak?"苦手復習":isBookmark?"見直したい問題":(mode==="year"?"年度別演習":mode==="prediction"?"予想問題":mode==="special"?"直前スペシャル":mode==="domain"?"分野別演習":mode==="source"?"出典別演習":mode==="ask"?"問い方別演習":"テーマ別演習");
       const accText=s.seen?`正答率 ${s.acc}%`:"未学習";
       const mastered=s.mastered?`<span class="mastered">${s.mastered}問定着</span>`:`<span class="mastered" style="color:var(--muted)">開始前</span>`;
       const right=(isWeak||isBookmark)?`<span class="badge">${g.items.length}問</span>`:`<span class="badge">${s.total}問</span>${mastered}`;
@@ -3651,7 +3695,7 @@
       const meta2 = subs.length
         ? `<div class="meta"><span>${s.seen}/${s.total}問 学習</span><span>選択 ${subs[0].items.length}問</span><span>記述 ${subs[1].items.length}問</span></div>`
         : `<div class="meta"><span>${s.seen}/${s.total}問 学習</span><span>${accText}</span>${s.weak?`<span>苦手 ${s.weak}問</span>`:''}</div>`;
-      const card = `<button type="button" class="cat ${isWeak?'weakcat':''} ${isBookmark?'bookmarkcat':''} ${mode==="year"||mode==="prediction"||mode==="special"||mode==="source"?'cat-year':'cat-field'}" data-key="${esc(g.key)}" style="--accent:${accent};--pct:${pct}%">
+      const card = `<button type="button" class="cat ${isWeak?'weakcat':''} ${isBookmark?'bookmarkcat':''} ${mode==="year"||mode==="prediction"||mode==="special"||mode==="source"||mode==="ask"?'cat-year':'cat-field'}" data-key="${esc(g.key)}" style="--accent:${accent};--pct:${pct}%">
         <div class="info">
           <div class="cat-kicker">${kicker}</div>
           <h3>${esc(g.label)}</h3>
@@ -3681,7 +3725,7 @@
         return;
       }
       const g=groups(mode).find(x=>String(x.key)===el.dataset.key); if(!g) return;
-      if((mode==="year"||mode==="prediction"||mode==="special"||mode==="field"||mode==="domain"||mode==="source") && g.items.length>1){ openCountModal(g,mode); } else { startQuiz(g.items,g.label,{mode,key:g.key}); } }; });
+      if((mode==="year"||mode==="prediction"||mode==="special"||mode==="field"||mode==="domain"||mode==="source"||mode==="ask") && g.items.length>1){ openCountModal(g,mode); } else { startQuiz(g.items,g.label,{mode,key:g.key}); } }; });
     list.querySelectorAll(".catSub").forEach(el=>{ el.onclick=()=>{
       const sg=resolveGroup(mode, el.dataset.subkey); if(!sg) return;
       if(sg.items.length>1){ openCountModal(sg,mode); } else { startQuiz(sg.items,sg.label,{mode,key:sg.key}); } }; });
@@ -4671,7 +4715,7 @@
   function qbFieldFolderHTML(){
     const ds=qbFieldDomains();
     if(!ds.length) return `<div class="empty">分野別の問題がありません。<br>questions.js に <b>domain</b> と <b>field</b> を設定してください。</div>`;
-    return `<div class="qbSectLabel">🗂 分野別（公共・政治・経済）</div><div class="qbGroupList">`+
+    return `<div class="qbSectLabel">🗂 分野別（${esc(domainOrder().join("・"))}）</div><div class="qbGroupList">`+
       ds.map((d,i)=>qbFolderBtn({folder:"field"+THEME_SEP+d.key, icon:QB_DOMAIN_ICONS[i%QB_DOMAIN_ICONS.length],
         title:d.label, sub:`${d.fields.length}項目`, items:d.items})).join("")+`</div>`;
   }
@@ -7086,7 +7130,7 @@
   });
   // 科目によっては「予想問題」「直前スペシャル」が存在しないので、
   // 0件のときはセクションごと隠す（空の案内文を出さない）。
-  const OPTIONAL_SECTIONS={ predictionList:"predictionSection", specialList:"specialSection" };
+  const OPTIONAL_SECTIONS={ predictionList:"predictionSection", specialList:"specialSection", askList:"askSection" };
   function updateSectionCount(key, count){
     const badge=document.querySelector(`.sectToggle[data-toggle="${key}"] .stCount`);
     if(badge) badge.textContent = count>0 ? count+"件" : "";
@@ -7151,11 +7195,19 @@
     renderUpdatesPanel(); renderUpdatesHome(); refreshUpdateDot();
     // ショートカット（?action=）から来たときは科目えらびを挟まず前回の科目で開く
     let action=null; try{ action=new URLSearchParams(location.search).get("action"); }catch(e){}
-    if(SUBJECTS.length>1 && !action){
+    /* 演習画面を開いたまま読み込み直された（アプリの自動更新・端末のメモリ解放など）ときも、
+       科目えらびを挟まない。控えに書いてある科目をそのまま開いて演習へ戻す。
+       ここを挟むと、解きかけの演習からホームへ放り出されてしまう。 */
+    let resumeSubjectId=null;
+    try{
+      const snap=bootSnapshotActive ? readSessionSnapshot() : null;
+      if(snap && snap.subject && subjectById(snap.subject) && Date.now()-snap.savedAt < AUTO_RESUME_MS) resumeSubjectId=snap.subject;
+    }catch(e){}
+    if(SUBJECTS.length>1 && !action && !resumeSubjectId){
       openSubjectPicker();
     }else{
       try{
-        await activateSubject(savedSubjectId() || defaultSubjectId());
+        await activateSubject(resumeSubjectId || savedSubjectId() || defaultSubjectId());
       }catch(e){
         $("#subtitle").textContent="問題データを読み込めませんでした";
       }

@@ -5,6 +5,7 @@ import path from "node:path";
 import { JSDOM, VirtualConsole } from "jsdom";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { findShownQuestion } from "./shown-question";
+import { enterSubject } from "./enter-subject";
 
 /* 同じ問題を解いた回数の記録（基礎医学演習アプリから移植）を、
    ビルド済みアプリ（dist）を実際に読み込んで確かめる。
@@ -73,7 +74,7 @@ async function boot(storage?: Record<string, string>): Promise<any> {
   });
   open.push(dom);
   const win: any = dom.window;
-  for (let i = 0; i < 200 && !(win.document.getElementById("hubGrid")?.children.length); i += 1) await tick(25);
+  await enterSubject(win);
   return win;
 }
 

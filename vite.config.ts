@@ -13,11 +13,11 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["icons/*.png"],
       manifest: {
-        name: "公共・政治経済 演習",
-        short_name: "公共政経",
+        name: "学習ライブラリ（公共政経・化学）",
+        short_name: "学習ライブラリ",
         lang: "ja",
         dir: "ltr",
-        description: "大学入学共通テスト「公共，政治・経済」の過去問演習アプリ。端末内保存・オフライン対応。",
+        description: "大学入試の過去問演習アプリ。「公共，政治・経済」と「化学」を科目えらび画面から切り替える。端末内保存・オフライン対応。",
         theme_color: "#efe8d9",
         background_color: "#efe8d9",
         display: "standalone",
@@ -31,7 +31,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{html,js,css,json,svg,png,webp,woff2}"],
-        // 問題データ（subjects/civics/questions.js）は収録が増えるたびに大きくなる。
+        // 問題データ（subjects/<科目>/questions.js）は収録が増えるたびに大きくなる。
         // 既定の2MiBを超えるとプリキャッシュから外れ、オフラインで問題が開けなくなるので上限を上げる。
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         // subjects.js（科目マニフェスト）・updates.js（更新履歴）・sync-config.js（同期の接続先）は

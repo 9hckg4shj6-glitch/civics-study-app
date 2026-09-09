@@ -5,6 +5,7 @@ import path from "node:path";
 import { JSDOM, VirtualConsole } from "jsdom";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { findShownQuestion } from "./shown-question";
+import { enterSubject } from "./enter-subject";
 
 /* ビルド済みアプリ（dist）を実際に読み込んで、起動と演習が動くかを確かめる煙感知テスト。
    index.html の大改修（アカウント・同期・ランキング・掲示板の削除）で
@@ -27,6 +28,8 @@ let server: http.Server;
 let origin = "";
 let dom: JSDOM;
 let win: any;
+let bootScreen = "";
+let bootSubjectTiles: { id?: string; name?: string | null }[] = [];
 const errors: string[] = [];
 
 function start(): Promise<void> {
@@ -102,10 +105,15 @@ beforeAll(async () => {
     },
   });
   win = dom.window;
-  // subjects.js → questions.js の順に読み込まれるので、DATA が入るまで待つ
-  for (let i = 0; i < 200 && !(win.document.getElementById("hubGrid")?.children.length); i += 1) {
+  // 科目が2つあるので、起動直後は科目えらび画面が出る。その様子を控えてから公共政経へ入る。
+  for (let i = 0; i < 200 && !win.document.querySelector("#spGrid .spCard"); i += 1) {
     await new Promise((r) => setTimeout(r, 25));
   }
+  bootScreen = visibleScreen();
+  bootSubjectTiles = [...win.document.querySelectorAll("#spGrid .spCard")].map((el: any) => ({
+    id: el.dataset.subject, name: el.querySelector(".spName")?.textContent,
+  }));
+  await enterSubject(win, "civics");
 }, 30_000);
 
 afterAll(() => { dom?.window?.close(); server?.close(); });
@@ -116,17 +124,23 @@ describe("ビルド済みアプリの起動", () => {
     expect(fatal).toEqual([]);
   });
 
-  it("ログイン画面も科目えらび画面も出さず、いきなりホームを表示する", () => {
+  it("ログイン画面は出さず、科目えらび画面から公共政経のホームへ入れる", () => {
     expect(win.document.getElementById("accountChoiceBackdrop")).toBeNull();
     expect(win.document.getElementById("rankView")).toBeNull();
     expect(win.document.getElementById("communityView")).toBeNull();
+    // 起動直後は科目えらび。公共政経と化学のタイルが並ぶ
+    expect(bootScreen).toBe("subjectPicker");
+    expect(bootSubjectTiles.map((t) => t.id)).toEqual(["civics", "chemistry"]);
+    expect(bootSubjectTiles.map((t) => t.name)).toEqual(["公共・政治経済", "化学"]);
+    // 科目を選んだあとはホーム。科目えらびは閉じている
     expect(visibleScreen()).toBe("home");
     expect(win.document.getElementById("subjectPicker")!.classList.contains("hidden")).toBe(true);
   });
 
   it("subjects.js が宣言した問題数をそのまま読み込んでいる", () => {
-    expect(win.QUIZ_DATA).toHaveLength(win.SUBJECTS[0].expectQuestions);
-    expect(win.SUBJECTS).toHaveLength(1);
+    const civics = win.SUBJECTS.find((s: any) => s.id === "civics");
+    expect(win.QUIZ_DATA).toHaveLength(civics.expectQuestions);
+    expect(win.SUBJECTS.map((s: any) => s.id)).toEqual(["civics", "chemistry"]);
     expect(win.document.getElementById("appTitle")!.textContent).toContain("公共・政治経済");
   });
 
@@ -182,8 +196,11 @@ describe("ビルド済みアプリの起動", () => {
     // テーマ別：まず公共・政治・経済の三択が出る（項目はこのあとの画面）
     expect(labels("fieldList")).toEqual(["公共", "政治", "経済"]);
 
+    // 化学だけの枠（問い方別）は、公共政経では出さない
+    expect(win.document.getElementById("askSection")!.classList.contains("hidden")).toBe(true);
+
     // 分野ごとの問題数が subjects.js の宣言どおり画面にも出ている
-    const counts = win.SUBJECTS[0].expectDomainCounts;
+    const counts = win.SUBJECTS.find((s: any) => s.id === "civics").expectDomainCounts;
     const badges = [...win.document.querySelectorAll("#domainList .cat .badge")].map((e: any) => e.textContent);
     expect(badges).toEqual(["公共", "政治", "経済"].map((d) => `${counts[d]}問`));
   });

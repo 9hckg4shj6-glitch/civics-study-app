@@ -1,8 +1,15 @@
-# 公共・政治経済 演習
+# 学習ライブラリ（公共・政治経済／化学）
 
-大学入学共通テスト「公共，政治・経済」の過去問演習アプリ。
+大学入試の過去問演習アプリ。
 家庭教師の生徒がスマートフォンとPCの両方で使うことを想定した、
 **ログイン不要・オフライン対応**の静的PWA。
+
+科目は2つある。起動すると科目えらび画面が出て、選んだ科目の問題だけを読み込む。
+
+| 科目 | 中身 | 正本 |
+| --- | --- | --- |
+| 公共・政治経済 | 共通テスト・センター試験「公共，政治・経済」の過去問 | [NEXT_WORK.md](NEXT_WORK.md) |
+| 化学 | 大学入試のマーク式のうち「正誤問題」「正しいものを選べ」「誤っているものを選べ」 | [docs/化学科目_実装計画.md](docs/化学科目_実装計画.md) |
 
 学習記録は使っている端末の中に保存される。既定では外部へ何も送信しない。
 複数の端末で同じ記録を使いたいときだけ、同期コードで端末を結ぶ
@@ -20,7 +27,8 @@ npm run serve      # ビルド済み dist/ を同じLANへ配信（http://localh
 
 `npm run build` は次の順で走る。どこかで落ちたら公開物は作られない。
 
-1. `build:questions` — `content/questions/*.json` から `public/subjects/civics/questions.js` を生成
+1. `build:questions` — 各科目の教材JSON（`public/subjects.js` の `contentDir`）から
+   `public/subjects/<科目>/questions.js` を生成
 2. `validate:content` — 問題数・ID・正解番号・選択肢別解説・出典・確認日などを検査
 3. `tsc --noEmit` — 型検査
 4. `vite build` — `dist/` を生成
@@ -178,6 +186,13 @@ IDは `…-2-2a` `…-2-2b` のように末尾で区別し、年度ごとの配�
 
 ## 収録教材
 
+### 化学
+
+4問（動作確認用の自作問題）。過去問はこれから収録する。教材の作り方と分類は
+[docs/化学科目_実装計画.md](docs/化学科目_実装計画.md) を見る。
+
+### 公共・政治経済
+
 716問。公共28問・政治300問・経済388問。
 
 | 出典区分 | 内訳 | 問数 |
@@ -229,11 +244,13 @@ IDは `…-2-2a` `…-2-2b` のように末尾で区別し、年度ごとの配�
 
 アプリ本体（`index.html` / `src/`）は触らない。次の3つだけで足りる。
 
-1. `content/questions/*.json` に問題を足す（ファイル名順 → 配列順に連結される）
-2. 図を使うなら `public/images/civics/` に置き、`imageAlt` を必ず付ける
-3. `public/subjects.js` の `expectQuestions` と `expectDomainCounts` を更新する
+1. 教材JSONに問題を足す（ファイル名順 → 配列順に連結される）
+   - 公共・政治経済: `content/questions/*.json`
+   - 化学: `content/chemistry/questions/*.json`（項目の決まりは [docs/化学科目_実装計画.md](docs/化学科目_実装計画.md)）
+2. 図を使うなら `public/images/civics/`・`public/images/chemistry/` に置き、`imageAlt` を必ず付ける
+3. `public/subjects.js` のその科目の `expectQuestions` と `expectDomainCounts` を更新する
 
-`public/subjects/civics/questions.js` は**生成物なので直接編集しない**。
+`public/subjects/<科目>/questions.js` は**生成物なので直接編集しない**。
 
 ### 問題データの形
 
@@ -315,12 +332,15 @@ CSP の `connect-src` は `'self'` と同期の中継サーバー（`https://*.w
 npm test
 ```
 
-- `tests/civics-content.test.ts` — 収録教材そのものの検証（問数・分野配分・ID・出典・選択肢別解説）
+- `tests/civics-content.test.ts` — 公共・政治経済の収録教材の検証（問数・分野配分・ID・出典・選択肢別解説）
+- `tests/chemistry-content.test.ts` — 化学の収録教材の検証（問数・分野配分・ID・問い方・出典・選択肢別解説）
+- `tests/subject-picker.test.ts` — 科目えらび画面。`dist/` を起動し、2科目のタイルが並ぶこと・
+  化学を選ぶと化学の問題だけを読み込み、分野と「問い方別」がその科目の設定で並ぶことを確認する
 - `tests/backup.test.ts` — 手動バックアップの往復（暗記カード・デッキ・復習予定・分類）
 - `tests/sync.test.ts` — 端末間同期。中継サーバーをメモリ上に置き、2台の端末で
   記録が行き渡ること・平文を預けないこと・書き込みが競合したときに統合し直すことを確認する
 - `tests/app-smoke.test.ts` — ビルド済み `dist/` を jsdom で実際に起動し、
-  ログイン画面が出ないこと・演習と採点・バックアップ画面を確認する
+  科目えらびから公共政経へ入れること・演習と採点・バックアップ画面を確認する
   （`dist/` が必要なので、先に `npm run build` を実行しておく）
 - `tests/attempt-history.test.ts` — 同じ問題を解いた回数の記録。`dist/` を起動して実際に解き、
   「何回目をいつ解いたか」が出ること・履歴が直近5回に収まることを確認する

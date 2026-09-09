@@ -20,9 +20,12 @@ const civics = subjects.find((s) => s.id === "civics");
 const questions = loadBrowserData(path.join("public", civics.questions), "QUIZ_DATA");
 
 describe("公共・政治経済の収録教材", () => {
-  it("科目は公共・政治経済の1件だけで、科目えらび画面を挟まない", () => {
-    expect(subjects).toHaveLength(1);
+  it("科目えらびに公共・政治経済が並び、IDの接頭辞で学習記録が分かれている", () => {
+    // 科目が増えても、公共・政治経済のIDの接頭辞は変えない（進捗と復習予定がIDで紐づくため）
+    expect(subjects.map((s) => s.id)).toContain("civics");
     expect(civics.idPrefix).toBe("civics-");
+    const prefixes = subjects.map((s) => s.idPrefix);
+    expect(new Set(prefixes).size).toBe(prefixes.length);
   });
 
   it("収録数が subjects.js の宣言と合っている", () => {
