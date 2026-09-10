@@ -2775,8 +2775,6 @@
       stem: q.stem || "",
       stemTitle: q.stemTitle || "",
       stemImages: normFigures(q.stemImages),
-      // 既定で畳んでおく問題文（長いリード文と実験の図を「読む」ボタンの中へ入れる）
-      stemClosed: !!q.stemClosed,
       // --- 大問（原本で1つにまとまっている小問群）。同じ groupId は1画面へまとめて出す ---
       groupId: q.groupId ? String(q.groupId) : "",
       groupTitle: q.groupTitle || "",
@@ -4892,7 +4890,7 @@
   function qLetter(i){ return "abcde"[i]||String(i+1); }
   function qDetailHTML(q){
     const img=q.image?`<div class="fcImgWrap"><img class="fcImg" src="${esc(q.image)}" alt="${esc(q.imageAlt||"")}" loading="lazy"><span class="fcZoom" aria-hidden="true">🔍 拡大</span></div>`:"";
-    /* 折りたたみへ図ごと入れた問題文（化学の実験の図・構造式）は、一覧の詳細でも図といっしょに出す。
+    /* 問題文側に図をもつ問題（化学の実験の図・構造式）は、一覧の詳細でも図といっしょに出す。
        図を持たない stem（政治経済の会話文・資料）は従来どおり出さない。詳細は選択肢と解説を見比べる場所で、
        長い資料を毎回開くと選択肢が押し出されてしまうため。 */
     const stemFigs=(q.stemImages||[]).map(f=>`<div class="fcImgWrap"><img class="fcImg" src="${esc(f.src)}" alt="${esc(f.alt||"問題文の図")}" loading="lazy"><span class="fcZoom" aria-hidden="true">🔍 拡大</span></div>`).join("");
@@ -6358,8 +6356,8 @@
     }).catch(()=>{});
   }
 
-  /* 大問の共通資料（会話文・図表）。
-     大問のページでは小問の上に1回だけ出す。長いので折りたたみにして既定は開いておく。 */
+  /* 大問の共通資料（会話文・図表）と、問題文側の図（実験の手順・構造式）。
+     大問のページでは小問の上に1回だけ出す。折りたたみだが既定は開いておき、畳むかどうかは読む人に任せる。 */
   function renderStem(q,figures){
     const box=$("#qStem"); if(!box) return;
     const imgs=figures||q&&q.stemImages||[];
@@ -6370,9 +6368,10 @@
       </figure>`).join("");
     box.innerHTML=`<summary>📄 ${esc(q.stemTitle||"この大問に共通の問題文")}</summary>
       <div class="qStemBody">${q.stem?`<p class="qStemText">${esc(q.stem)}</p>`:""}${figs}</div>`;
-    // stemClosed の問題は畳んだ状態から始める（長いリード文と実験の図を「読む」ボタンの中へ入れる）。
-    // それ以外は従来どおり開いた状態。前の問題での開閉が残らないよう毎回そろえる。
-    box.open=!q.stemClosed;
+    // 問題文（とくに実験の図・構造式）は畳まずに開いた状態から始める。
+    // 図が畳まれていると、開くまで何を見ればよいのか分からないため。
+    // 畳みたい人は見出しを押せば畳める（details のまま）。前の問題での開閉が残らないよう毎回そろえる。
+    box.open=true;
     box.classList.remove("hidden");
     box.querySelectorAll(".qStemFig").forEach(f=>{
       const img=f.querySelector("img"); if(img) img.onclick=()=>f.classList.toggle("zoomed");

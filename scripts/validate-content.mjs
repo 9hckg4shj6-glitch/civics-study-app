@@ -80,10 +80,18 @@ export function validateContentCore(label, id, question, errors) {
   for (const [i, fig] of (question.groupFigures || []).entries()) {
     if (fig?.image && !String(fig.imageAlt ?? "").trim()) e(`groupFigures[${i}] に imageAlt がありません`);
   }
-  // 折りたたみの問題文に入れる図（リード文・実験の図）
+  // 問題文に入れる図（リード文・実験の図・構造式）
   for (const [i, fig] of (question.stemImages || []).entries()) {
     if (!fig?.src) e(`stemImages[${i}] に src がありません`);
     else if (!String(fig.alt ?? "").trim()) e(`stemImages[${i}] に alt（代替テキスト）がありません`);
+  }
+  // 図をもつ問題文は見出しを付ける（何の図なのかが分かる名前にする）
+  if ((question.stemImages || []).length && !String(question.stemTitle ?? "").trim()) {
+    e("stemImages があるのに stemTitle（問題文の見出し）がありません");
+  }
+  // 問題文は畳まずに開いた状態から始める決まりにしたので、stemClosed は使わない
+  if ("stemClosed" in question) {
+    e("stemClosed は使いません（問題文は開いた状態から始め、畳むかどうかは読む人に任せます）");
   }
 
   /* 選択肢そのものが図である問題（化学の構造式・反応式）。

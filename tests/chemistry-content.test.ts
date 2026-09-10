@@ -103,13 +103,14 @@ describe("化学の収録教材", () => {
     }
   });
 
-  it("問題文を折りたたむ問題（stemClosed）は、開く前でも何を問われているか分かる", () => {
+  it("問題文に図をもつ問題は、リード文と見出しがそろっていて畳まずに始まる", () => {
     for (const q of questions) {
-      if (!q.stemClosed) continue;
-      // 畳んだままでも設問として読めるよう、リード文と図・見出しをそろえておく
+      if (!(q.stemImages ?? []).length) continue;
+      // 図だけでは何の図か分からないので、リード文と見出しをそろえておく
       expect(String(q.stem ?? "").trim().length).toBeGreaterThan(0);
-      expect((q.stemImages ?? []).length).toBeGreaterThan(0);
       expect(String(q.stemTitle ?? "").trim().length).toBeGreaterThan(0);
+      // 開いた状態から始める決まりにしたので、畳む指定は残っていない
+      expect(q.stemClosed).toBeUndefined();
     }
   });
 });
