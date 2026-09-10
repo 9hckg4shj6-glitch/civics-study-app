@@ -106,7 +106,7 @@ describe("化学の演習範囲", () => {
     await tick(250);
 
     expect(labels(win, "domainList")).toEqual(["理論化学", "無機化学", "有機化学", "高分子化合物"]);
-    expect(labels(win, "sourceList")).toEqual(["自作の補強問題"]);
+    expect(labels(win, "sourceList")).toEqual(["共通テスト「化学」", "自作の補強問題"]);
     // 化学だけの枠。問い方（正しいもの／誤っているもの／正誤の組合せ）から選べる
     expect(win.document.getElementById("askSection")!.classList.contains("hidden")).toBe(false);
     expect(labels(win, "askList")).toEqual([
