@@ -80,6 +80,27 @@ export function validateContentCore(label, id, question, errors) {
   for (const [i, fig] of (question.groupFigures || []).entries()) {
     if (fig?.image && !String(fig.imageAlt ?? "").trim()) e(`groupFigures[${i}] に imageAlt がありません`);
   }
+  // 折りたたみの問題文に入れる図（リード文・実験の図）
+  for (const [i, fig] of (question.stemImages || []).entries()) {
+    if (!fig?.src) e(`stemImages[${i}] に src がありません`);
+    else if (!String(fig.alt ?? "").trim()) e(`stemImages[${i}] に alt（代替テキスト）がありません`);
+  }
+
+  /* 選択肢そのものが図である問題（化学の構造式・反応式）。
+     choices と同じ長さ・同じ並びで持たせる。ずれると別の式を指したまま採点してしまう。
+     図を持たない選択肢は null を置く。 */
+  if (question.choiceImages != null) {
+    if (!Array.isArray(question.choiceImages)) e("choiceImages は配列にしてください");
+    else if (Array.isArray(question.choices) && question.choiceImages.length !== question.choices.length) {
+      e(`choiceImages の件数が選択肢と一致しません (${question.choiceImages.length} / ${question.choices.length})`);
+    } else {
+      for (const [i, fig] of question.choiceImages.entries()) {
+        if (fig == null) continue;
+        if (!fig.src) e(`choiceImages[${i}] に src がありません（図が無い選択肢は null にしてください）`);
+        else if (!String(fig.alt ?? "").trim()) e(`choiceImages[${i}] に alt（代替テキスト）がありません`);
+      }
+    }
+  }
 }
 
 /* 共通テスト「公共，政治・経済」の教材に固有の検査。

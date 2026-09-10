@@ -79,4 +79,37 @@ describe("化学の収録教材", () => {
       if (q.askType === "true-false") expect(q.noShuffle).toBe(true);
     }
   });
+
+  /* 構造式・反応式・実験の図は、文章に書き起こさず問題冊子の原図をそのまま載せる方針
+     （docs/化学科目_実装計画.md）。参照が切れていると図なしの問題になってしまう。 */
+  it("選択肢の図（choiceImages）は選択肢と同じ並びで、ファイルが実在し代替テキストをもつ", () => {
+    for (const q of questions) {
+      if (!q.choiceImages) continue;
+      expect(q.choiceImages).toHaveLength(q.choices.length);
+      for (const fig of q.choiceImages) {
+        if (fig == null) continue;
+        expect(fs.existsSync(path.join("public", fig.src))).toBe(true);
+        expect(String(fig.alt ?? "").trim().length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("問題文の図（stemImages）は、ファイルが実在し代替テキストをもつ", () => {
+    for (const q of questions) {
+      for (const fig of q.stemImages ?? []) {
+        expect(fs.existsSync(path.join("public", fig.src))).toBe(true);
+        expect(String(fig.alt ?? "").trim().length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("問題文を折りたたむ問題（stemClosed）は、開く前でも何を問われているか分かる", () => {
+    for (const q of questions) {
+      if (!q.stemClosed) continue;
+      // 畳んだままでも設問として読めるよう、リード文と図・見出しをそろえておく
+      expect(String(q.stem ?? "").trim().length).toBeGreaterThan(0);
+      expect((q.stemImages ?? []).length).toBeGreaterThan(0);
+      expect(String(q.stemTitle ?? "").trim().length).toBeGreaterThan(0);
+    }
+  });
 });

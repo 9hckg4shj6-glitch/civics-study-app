@@ -740,6 +740,7 @@
   .qbCText{font-size:13.5px;font-weight:700;line-height:1.55;color:var(--text)}
   .qbOk{font-size:10.5px;font-weight:900;color:var(--good);margin-left:6px;white-space:nowrap}
   .qbCNote{font-size:12px;color:var(--muted);font-weight:600;line-height:1.55;margin-top:4px}
+  .qbStem{font-size:13px;line-height:1.75;color:var(--text);white-space:pre-wrap;background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
   .qbExpl{font-size:13px;line-height:1.7;color:var(--text);background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
   .qbExpl b{display:block;font-size:11px;color:var(--brand);margin-bottom:4px;font-weight:900}
   .qbPractice{border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;transition:.12s}
@@ -959,6 +960,11 @@
   .choice.correct{border-color:var(--good);background:var(--good-bg)} .choice.correct .key{background:var(--good);color:#fff;border-color:var(--good)}
   .choice.wrong{border-color:var(--bad);background:var(--bad-bg)} .choice.wrong .key{background:var(--bad);color:#fff;border-color:var(--bad)}
   .choice .choiceBody{display:flex;flex-direction:column;gap:4px;flex:1 1 auto;min-width:0}
+  /* 選択肢そのものが構造式・反応式の図である問題（化学の有機など）。
+     原本の図をそのまま出し、その下に読み上げ・検索用の短い読みを添える。 */
+  .choice .choiceFig{display:block;margin:0 0 2px;padding:8px;background:#fff;border:1px solid var(--line);border-radius:10px}
+  .choice .choiceFig img{max-width:100%;height:auto;display:block;margin:0 auto}
+  .choice .choiceText.cap{font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.6}
   .choice .revealHint{font-size:11px;font-weight:800;color:var(--brand)}
   .choiceNote{margin:2px 0 0;padding:10px 12px;border-radius:12px;background:var(--card2);
     border:1px dashed var(--line);font-size:13px;line-height:1.7;color:var(--text)}
@@ -981,6 +987,9 @@
   .choiceExplainList li.ce-wrongchosen .ekey{background:var(--bad);border-color:var(--bad);color:#fff}
   .choiceExplainList .etext{display:flex;flex-direction:column;gap:4px;font-size:13.5px;line-height:1.6;color:var(--text)}
   .choiceExplainList .echoice{font-weight:800}
+  /* 選択肢の図（解説の一覧・問題一覧の詳細で使う）。どちらの入れ物でも同じ見え方にする */
+  .echoiceFig{display:block;margin:0 0 4px;padding:6px;background:#fff;border:1px solid var(--line);border-radius:9px}
+  .echoiceFig img{max-width:100%;height:auto;display:block;margin:0 auto}
   .choiceExplainList .etag{display:inline-block;font-size:10px;font-weight:900;padding:2px 8px;
     border-radius:999px;margin-left:7px;background:var(--card);color:var(--muted);vertical-align:middle}
   .choiceExplainList li.ce-correct .etag{background:var(--good);color:#fff}
@@ -2719,6 +2728,15 @@
     addSource(window.QUIZ_DATA || [], "auto");
     const normFigures=(list)=>Array.isArray(list)
       ? list.map(f=>({src:String(f&&f.src||""),alt:String(f&&f.alt||""),label:String(f&&f.label||"")})).filter(f=>f.src) : [];
+    /* 選択肢そのものが図である問題（化学の構造式・反応式）。choices と同じ並びで持ち、
+       図を持たない選択肢は null にしておく。1つも図が無ければ欄ごと null。 */
+    const normChoiceImages=(list,count)=>{
+      if(!Array.isArray(list) || !list.some(f=>f&&f.src)) return null;
+      return Array.from({length:count},(_,i)=>{
+        const f=list[i];
+        return (f&&f.src) ? {src:String(f.src),alt:String(f.alt||"")} : null;
+      });
+    };
     DATA = src.map((q,i)=>({
       id: q.id != null ? String(q.id) : ("auto_"+i),
       year: q.year || "", field: q.field || "",
@@ -2739,6 +2757,7 @@
       verifiedAt: q.verifiedAt || "",
       question: q.question || "",
       choices: Array.isArray(q.choices) ? q.choices.slice() : [],
+      choiceImages: normChoiceImages(q.choiceImages, Array.isArray(q.choices) ? q.choices.length : 0),
       answer: (typeof q.answer==="number") ? q.answer : Number(q.answer)||0,
       answers: Array.isArray(q.answers)&&q.answers.length ? q.answers.map(Number) : null,
       explanation: q.explanation || "",
@@ -2756,6 +2775,8 @@
       stem: q.stem || "",
       stemTitle: q.stemTitle || "",
       stemImages: normFigures(q.stemImages),
+      // 既定で畳んでおく問題文（長いリード文と実験の図を「読む」ボタンの中へ入れる）
+      stemClosed: !!q.stemClosed,
       // --- 大問（原本で1つにまとまっている小問群）。同じ groupId は1画面へまとめて出す ---
       groupId: q.groupId ? String(q.groupId) : "",
       groupTitle: q.groupTitle || "",
@@ -4070,7 +4091,7 @@
   function searchMatches(query){
     const terms=searchTerms(query); if(!terms.length) return [];
     return DATA.filter(q=>{
-      const hay=normQ((q.question||"")+" "+(q.stem||"")+" "+(q.passage||"")+" "+((q.choices||[]).join(" "))+" "+(q.explanation||"")+" "+(q.modelAnswer||"")+" "+(q.field||"")+" "+(q.year||"")+" "+(q.mockTitle||"")+" "+(q.imageAlt||""));
+      const hay=normQ((q.question||"")+" "+(q.stem||"")+" "+(q.passage||"")+" "+((q.choices||[]).join(" "))+" "+(q.explanation||"")+" "+(q.modelAnswer||"")+" "+(q.field||"")+" "+(q.year||"")+" "+(q.mockTitle||"")+" "+(q.imageAlt||"")+" "+((q.stemImages||[]).map(f=>f.alt).join(" ")));
       return terms.every(t=>hay.includes(t));
     });
   }
@@ -4871,10 +4892,16 @@
   function qLetter(i){ return "abcde"[i]||String(i+1); }
   function qDetailHTML(q){
     const img=q.image?`<div class="fcImgWrap"><img class="fcImg" src="${esc(q.image)}" alt="${esc(q.imageAlt||"")}" loading="lazy"><span class="fcZoom" aria-hidden="true">🔍 拡大</span></div>`:"";
+    /* 折りたたみへ図ごと入れた問題文（化学の実験の図・構造式）は、一覧の詳細でも図といっしょに出す。
+       図を持たない stem（政治経済の会話文・資料）は従来どおり出さない。詳細は選択肢と解説を見比べる場所で、
+       長い資料を毎回開くと選択肢が押し出されてしまうため。 */
+    const stemFigs=(q.stemImages||[]).map(f=>`<div class="fcImgWrap"><img class="fcImg" src="${esc(f.src)}" alt="${esc(f.alt||"問題文の図")}" loading="lazy"><span class="fcZoom" aria-hidden="true">🔍 拡大</span></div>`).join("");
+    const stemText=(stemFigs&&q.stem)?`<div class="qbStem">${esc(q.stem)}</div>`:"";
     const notes=Array.isArray(q.choiceNotes)?q.choiceNotes:[];
+    const cimgs=Array.isArray(q.choiceImages)?q.choiceImages:null;
     const choices=(q.choices||[]).map((c,i)=>{
       const ok=ansIdxs(q).indexOf(i)>=0, note=notes[i]?`<div class="qbCNote">${esc(notes[i])}</div>`:"";
-      return `<li class="qbChoice${ok?' ok':''}"><span class="qbCL">${qLetter(i)}</span><span class="qbCBody"><span class="qbCText">${esc(c)}${ok?' <span class="qbOk">✓ 正解</span>':''}</span>${note}</span></li>`;
+      return `<li class="qbChoice${ok?' ok':''}"><span class="qbCL">${qLetter(i)}</span><span class="qbCBody">${choiceFigHTML(cimgs?{img:cimgs[i]}:null,"echoiceFig")}<span class="qbCText">${esc(c)}${ok?' <span class="qbOk">✓ 正解</span>':''}</span>${note}</span></li>`;
     }).join("");
     const expl=q.explanation?`<div class="qbExpl"><b>解説</b>${esc(q.explanation)}${explainFigureHTML(q)}${moreExplHTML(q)}</div>`:"";
     if(questionType(q)==="constructed"){
@@ -4882,9 +4909,9 @@
       const model=`<div class="qbExpl"><b>模範解答（${writtenPoints(q)}点）</b>${esc(q.modelAnswer||"")}</div>`;
       const figs=(q.responseParts||[]).filter(p=>p.kind==="drawing"&&p.modelImage)
         .map(p=>`<div class="fcImgWrap"><img class="fcImg" src="${esc(p.modelImage)}" alt="${esc(p.modelImageAlt||"模範図")}" loading="lazy"><span class="fcZoom" aria-hidden="true">🔍 拡大</span></div>`).join("");
-      return `${img}<ol class="qbChoices">${parts}</ol>${model}${figs}${expl}`;
+      return `${stemText}${stemFigs}${img}<ol class="qbChoices">${parts}</ol>${model}${figs}${expl}`;
     }
-    return `${img}<ol class="qbChoices">${choices}</ol>${expl}`;
+    return `${stemText}${stemFigs}${img}<ol class="qbChoices">${choices}</ol>${expl}`;
   }
   function writtenKindLabel(part){
     return part.kind==="drawing" ? "作図" : part.kind==="numeric" ? "数値" : part.kind==="short-text" ? "短答" : "論述";
@@ -4933,7 +4960,11 @@
       `<button type="button" class="btn small" id="qbPracticeGroup">▶ まとめて演習</button>`;
     $("#qbPracticeGroup").onclick=()=>openCountModal({items:items.slice(), label:g.label, key:g.key, kicker:"まとめて演習"}, g.mode||"playlist");
     $("#qbrowseList").innerHTML=slice.map((q,i)=>{
-      const fig=q.image?`<span class="brFig">🖼 図</span>`:"";
+      // 図は設問の image だけでなく、折りたたみの問題文（stemImages）や
+      // 選択肢そのもの（choiceImages）にも入るので、そのどれかがあれば図ありとする
+      const hasFig=!!q.image || (q.stemImages||[]).length>0
+        || (Array.isArray(q.choiceImages) && q.choiceImages.some(f=>f&&f.src));
+      const fig=hasFig?`<span class="brFig">🖼 図</span>`:"";
       // topic は listTitle の中に入っているので、チップは分野だけにする
       const field=[q.field].filter(Boolean).map(t=>`<span class="brField">${esc(t)}</span>`).join("");
       const r=progress[q.id], status=(r&&r.seen)?(r.correct>=r.wrong?'<span class="srOk">学習済</span>':'<span class="srNg">要復習</span>'):"";
@@ -5162,7 +5193,7 @@
       const ok=new Set(ansIdxs(q));
       // noShuffle: 選択肢が図中の記号そのもの（"A"〜"E"）の問題。並べ替えると
       // 表示上の見出し記号と選択肢の記号が食い違って読めなくなるので原本の順のまま出す。
-      let ch=q.choices.map((c,i)=>({text:c,correct:ok.has(i),idx:i})); if(SHUFFLE_CHOICES && !q.noShuffle) ch=shuffle(ch);
+      let ch=q.choices.map((c,i)=>({text:c,img:q.choiceImages?q.choiceImages[i]:null,correct:ok.has(i),idx:i})); if(SHUFFLE_CHOICES && !q.noShuffle) ch=shuffle(ch);
       return {q,qi,type:"choice",choices:ch,need:ok.size,picks:[],els:null,graded:false}; });
     // 控えから戻すときは、そのときの選択肢の並びを先に復元する（選んだ番号がずれないように）
     if(opts.restore){
@@ -5171,7 +5202,7 @@
         const e=saved.get(cur.q.id);
         if(!e || cur.type!=="choice" || !Array.isArray(e.order) || e.order.length!==cur.choices.length) return;
         const ok=new Set(ansIdxs(cur.q));
-        cur.choices=e.order.map(i=>({text:cur.q.choices[i],correct:ok.has(i),idx:i}));
+        cur.choices=e.order.map(i=>({text:cur.q.choices[i],img:cur.q.choiceImages?cur.q.choiceImages[i]:null,correct:ok.has(i),idx:i}));
       });
     }
     const pages=buildPages(queue);
@@ -5687,6 +5718,12 @@
     setupLessonQuickIndex(d,sects,s);
   }
 
+  /* 選択肢そのものが構造式・反応式の図である問題（化学の有機など）で、
+     その選択肢に添える原図。ch は {img:{src,alt}} を持つ選択肢オブジェクト。 */
+  function choiceFigHTML(ch,cls){
+    const f=ch&&ch.img; if(!f||!f.src) return "";
+    return `<span class="${cls}"><img src="${esc(f.src)}" alt="${esc(f.alt||"選択肢の構造式")}" loading="lazy"></span>`;
+  }
   // 授業スライドから切り出した補足図。問題の図と混同しないよう見出しを付けて解説内に出す。
   function explainFigureHTML(q){
     if(!q || !q.explainImage) return "";
@@ -5708,7 +5745,7 @@
       const mine=picked.indexOf(i)>=0;
       const cls=c.correct?"ce-correct":(mine?"ce-wrongchosen":"");
       const tag=c.correct?'<span class="etag">正解</span>':(mine?'<span class="etag">あなたの回答</span>':"");
-      return `<li class="${cls}"><span class="ekey">${choiceKey(i)}</span><span class="etext"><span class="echoice">${esc(c.text)}${tag}</span>${exp?`<span class="edesc">${esc(exp)}</span>`:""}</span></li>`;
+      return `<li class="${cls}"><span class="ekey">${choiceKey(i)}</span><span class="etext">${choiceFigHTML(c,"echoiceFig")}<span class="echoice">${esc(c.text)}${tag}</span>${exp?`<span class="edesc">${esc(exp)}</span>`:""}</span></li>`;
     }).join("");
     return `<div class="lead">選択肢別の解説</div><ul class="choiceExplainList">${rows}</ul>`;
   }
@@ -5720,7 +5757,7 @@
       const mine=picked.indexOf(i)>=0, note=q.choiceNotes[c.idx]||"";
       const cls=c.correct?"ce-correct":(mine?"ce-wrongchosen":"");
       const tag=c.correct?'<span class="etag">正解</span>':(mine?'<span class="etag">あなたの回答</span>':"");
-      return `<li class="${cls}"><span class="ekey">${keys[i]}</span><span class="etext">
+      return `<li class="${cls}"><span class="ekey">${keys[i]}</span><span class="etext">${choiceFigHTML(c,"echoiceFig")}
         <span class="echoice">${esc(c.text)}${tag}</span>${note?`<span class="edesc">${esc(note)}</span>`:""}</span></li>`;
     }).join("");
     return `<div class="lead">解説</div><p class="explainSummary">${esc(q.explanation)||"(解説なし)"}</p>${explainFigureHTML(q)}
@@ -6333,6 +6370,9 @@
       </figure>`).join("");
     box.innerHTML=`<summary>📄 ${esc(q.stemTitle||"この大問に共通の問題文")}</summary>
       <div class="qStemBody">${q.stem?`<p class="qStemText">${esc(q.stem)}</p>`:""}${figs}</div>`;
+    // stemClosed の問題は畳んだ状態から始める（長いリード文と実験の図を「読む」ボタンの中へ入れる）。
+    // それ以外は従来どおり開いた状態。前の問題での開閉が残らないよう毎回そろえる。
+    box.open=!q.stemClosed;
     box.classList.remove("hidden");
     box.querySelectorAll(".qStemFig").forEach(f=>{
       const img=f.querySelector("img"); if(img) img.onclick=()=>f.classList.toggle("zoomed");
@@ -6437,7 +6477,7 @@
     cur.picks=[];
     cur.choices.forEach((ch,idx)=>{
       const b=document.createElement("button"); b.className="choice";
-      b.innerHTML=`<span class="key">${choiceKey(idx)}</span><span class="choiceBody"><span class="choiceText">${esc(ch.text)}</span></span>`;
+      b.innerHTML=`<span class="key">${choiceKey(idx)}</span><span class="choiceBody">${choiceFigHTML(ch,"choiceFig")}<span class="choiceText${ch.img?" cap":""}">${esc(ch.text)}</span></span>`;
       b.onclick=()=>multi?togglePick(cur,idx):answer(cur,[idx]); box.appendChild(b);
       const note=document.createElement("div"); note.className="choiceNote hidden"; box.appendChild(note);
     });
