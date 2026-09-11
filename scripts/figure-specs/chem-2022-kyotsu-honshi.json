@@ -1,0 +1,23 @@
+{
+  "_note": "2022年度（令和4年度）大学入学共通テスト 本試験「化学」の図の切り出し。大学入試センターのサイトには直近3年分しか残っておらず（r4 は 404）、手元の問題冊子スキャン `kagaku-9.pdf`（~/Downloads/共通テスト本試験化学　問題解答解説/。テキスト層なし）を sources/chemistry/2022_kagaku_honshi_scan.pdf として置いて使う。スキャンだが点の除去（minComponent）は 2023年度と同じ 12 に抑える（濁点・半濁点を消さないため）。band は 100dpi で描いたページの画素座標。実行: python3 scripts/crop-figures.py scripts/figure-specs/chem-2022-kyotsu-honshi.json",
+  "pdf": "sources/chemistry/2022_kagaku_honshi_scan.pdf",
+  "outDir": "public/images/chemistry",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 12,
+  "figures": [
+    { "name": "2022-1-3-c1", "page": 7, "band": [205, 315, 415, 565] },
+    { "name": "2022-1-3-c2", "page": 7, "band": [505, 315, 715, 565] },
+    { "name": "2022-1-3-c3", "page": 7, "band": [205, 565, 415, 800] },
+    { "name": "2022-1-3-c4", "page": 7, "band": [505, 565, 715, 800] },
+    { "name": "2022-1-3-c5", "page": 7, "band": [205, 810, 415, 1050] },
+    { "name": "2022-2-4b-nenryou", "page": 13, "band": [230, 665, 660, 1055] },
+    { "name": "2022-3-3-soda", "page": 17, "band": [130, 340, 770, 685] },
+    { "name": "2022-4-4a-kouzou", "page": 21, "band": [230, 465, 660, 605] },
+    { "name": "2022-4-4a-graph", "page": 21, "band": [160, 630, 720, 945] },
+    { "name": "2022-5-2-alkene", "page": 26, "band": [170, 215, 600, 335] },
+    { "name": "2022-5-2-shiki", "page": 26, "band": [90, 500, 700, 635] }
+  ]
+}
