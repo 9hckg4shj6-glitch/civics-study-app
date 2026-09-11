@@ -16,7 +16,10 @@ spec.json の形:
   "minComponent": 60,        # これ未満の連結成分（画素数）は点として白く消す
                              # （スキャン冊子向け。ベクターPDFでは短い結合の線が消えるので 0 にする）
   "figures": [
-    {"name": "2025-4-2-c1", "page": 25, "band": [x0, y0, x1, y1]}
+    {"name": "2025-4-2-c1", "page": 25, "band": [x0, y0, x1, y1]},
+    {"name": "2024-5-3a-c1", "page": 31, "band": [x0, y0, x1, y1],
+     "erase": [[x0, y0, x1, y1]]}   # 帯の中で白く消す範囲（選択肢の円数字が
+                                    # 図のラベルと重なって帯で外せないとき）
   ]
 }
 
@@ -40,9 +43,13 @@ from scipy import ndimage
 INK = 190
 
 
-def crop_one(page_img, band, scale, pad, max_width, min_component):
+def crop_one(page_img, band, scale, pad, max_width, min_component, erase=()):
     x0, y0, x1, y1 = [int(round(v * scale)) for v in band]
-    arr = np.asarray(page_img.convert("L"))
+    arr = np.asarray(page_img.convert("L")).copy()
+    # 円数字などを先に白く塗る（座標は band と同じ bandDpi の画素。1画素ぶん広げて縁を残さない）
+    for ex0, ey0, ex1, ey1 in erase:
+        ex0, ey0, ex1, ey1 = [int(round(v * scale)) for v in (ex0, ey0, ex1, ey1)]
+        arr[max(ey0 - 1, 0):ey1 + 1, max(ex0 - 1, 0):ex1 + 1] = 255
     region = arr[y0:y1, x0:x1]
     ink = region < INK
     # 点を落とす（連結成分の面積が小さいものを白く塗る）
@@ -86,7 +93,7 @@ def main(spec_path):
         if page_no not in cache:
             pix = doc[page_no - 1].get_pixmap(dpi=render_dpi)
             cache[page_no] = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
-        img = crop_one(cache[page_no], fig["band"], scale, pad, max_width, min_component)
+        img = crop_one(cache[page_no], fig["band"], scale, pad, max_width, min_component, fig.get("erase", ()))
         out = out_dir / f"{fig['name']}.webp"
         img.save(out, "WEBP", quality=82, method=5)
         size = out.stat().st_size
