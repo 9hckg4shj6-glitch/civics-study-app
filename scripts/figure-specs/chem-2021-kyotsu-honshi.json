@@ -1,0 +1,18 @@
+{
+  "_note": "2021年度（令和3年度）大学入学共通テスト 本試験「化学」の図の切り出し。大学入試センターのサイトには直近3年分しか残っていないので、手元の問題冊子スキャン `kagaku-11.pdf`（~/Downloads/共通テスト本試験化学　問題解答解説/。約250dpi・テキスト層なし）を sources/chemistry/2021_kagaku_honshi_scan.pdf として置いて使う。スキャンだが点の除去（minComponent）は 2022・2023年度と同じ 12 に抑える（濁点・半濁点を消さないため）。第5問問2のグラフ4点は、円数字がグラフの縦軸ラベルの左上に付いていて帯では外せないので erase で消す。band・erase は 100dpi で描いたページの画素座標。実行: python3 scripts/crop-figures.py scripts/figure-specs/chem-2021-kyotsu-honshi.json",
+  "pdf": "sources/chemistry/2021_kagaku_honshi_scan.pdf",
+  "outDir": "public/images/chemistry",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 12,
+  "figures": [
+    { "name": "2021-4-3-alcohol", "page": 23, "band": [165, 225, 660, 495] },
+    { "name": "2021-5-2-kouzou", "page": 29, "band": [190, 355, 665, 530] },
+    { "name": "2021-5-2-c1", "page": 29, "band": [160, 590, 437, 800], "erase": [[166, 594, 187, 621]] },
+    { "name": "2021-5-2-c2", "page": 29, "band": [437, 590, 730, 800], "erase": [[455, 594, 476, 621]] },
+    { "name": "2021-5-2-c3", "page": 29, "band": [160, 840, 437, 1050], "erase": [[167, 844, 188, 871], [327, 890, 335, 898]] },
+    { "name": "2021-5-2-c4", "page": 29, "band": [437, 840, 730, 1050], "erase": [[456, 844, 477, 871]] }
+  ]
+}
