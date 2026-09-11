@@ -1,0 +1,120 @@
+{
+  "_note": "2023年度（令和5年度）大学入学共通テスト 本試験「化学」の図の切り出し。大学入試センターのサイトには直近3年分しか残っておらず（r5 は 404）、手元の問題冊子スキャン `kagaku-7.pdf`（約245dpi・テキスト層なし。~/Downloads/共通テスト本試験化学　問題解答解説/）を sources/chemistry/2023_kagaku_honshi_scan.pdf として置いて使う。スキャンだが、点の除去（minComponent）は 12 に抑える（60 だと「トリグリセリド」の濁点が消えた）。band は 100dpi で描いたページの画素座標。実行: python3 scripts/crop-figures.py scripts/figure-specs/chem-2023-kyotsu-honshi.json スキャンの小さな汚れは帯を狭めるか erase で外す。",
+  "pdf": "sources/chemistry/2023_kagaku_honshi_scan.pdf",
+  "outDir": "public/images/chemistry",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 12,
+  "figures": [
+    {
+      "name": "2023-1-4a-cas",
+      "page": 8,
+      "band": [
+        140,
+        470,
+        720,
+        705
+      ]
+    },
+    {
+      "name": "2023-2-2-denkai",
+      "page": 12,
+      "band": [
+        140,
+        115,
+        608,
+        505
+      ]
+    },
+    {
+      "name": "2023-3-2-bunri",
+      "page": 18,
+      "band": [
+        110,
+        375,
+        700,
+        930
+      ],
+      "erase": [
+        [
+          130,
+          378,
+          205,
+          404
+        ]
+      ]
+    },
+    {
+      "name": "2023-3-3b-souchi",
+      "page": 20,
+      "band": [
+        60,
+        265,
+        720,
+        440
+      ]
+    },
+    {
+      "name": "2023-4-1-c1",
+      "page": 21,
+      "band": [
+        222,
+        435,
+        370,
+        495
+      ]
+    },
+    {
+      "name": "2023-4-1-c2",
+      "page": 21,
+      "band": [
+        438,
+        462,
+        620,
+        495
+      ]
+    },
+    {
+      "name": "2023-4-1-c3",
+      "page": 21,
+      "band": [
+        222,
+        548,
+        370,
+        635
+      ]
+    },
+    {
+      "name": "2023-4-1-c4",
+      "page": 21,
+      "band": [
+        438,
+        552,
+        620,
+        610
+      ]
+    },
+    {
+      "name": "2023-4-4-triglyceride",
+      "page": 23,
+      "band": [
+        230,
+        215,
+        720,
+        415
+      ]
+    },
+    {
+      "name": "2023-4-4c-kasuibunkai",
+      "page": 25,
+      "band": [
+        190,
+        350,
+        760,
+        555
+      ]
+    }
+  ]
+}
