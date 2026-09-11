@@ -3,6 +3,7 @@
 
 使い方:
     python3 scripts/crop-figures.py spec.json
+    （収録済みの年度の spec は scripts/figure-specs/ にある）
 
 spec.json の形:
 {
@@ -13,6 +14,7 @@ spec.json の形:
   "pad": 26,                 # 余白（renderDpi の画素）
   "maxWidth": 1100,          # 幅の上限（renderDpi の画素）
   "minComponent": 60,        # これ未満の連結成分（画素数）は点として白く消す
+                             # （スキャン冊子向け。ベクターPDFでは短い結合の線が消えるので 0 にする）
   "figures": [
     {"name": "2025-4-2-c1", "page": 25, "band": [x0, y0, x1, y1]}
   ]
