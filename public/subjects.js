@@ -23,7 +23,7 @@
 window.SUBJECTS = [
   {
     id: "civics",
-    name: "公共・政治経済",
+    name: "公共・政治経済（共テ対策）",
     emoji: "⚖️",
     accent: "#3a4192",       // 藍
     learningMode: "cards",
@@ -55,7 +55,7 @@ window.SUBJECTS = [
     /* 化学。大学入試のマーク式のうち「正誤問題」「正しいものを選べ」「誤っているものを選べ」を集め、
        知識問題の対策に使う。方針と教材の作り方は docs/化学科目_実装計画.md が正本。 */
     id: "chemistry",
-    name: "化学",
+    name: "化学（共テ対策）",
     emoji: "🧪",
     accent: "#3f8f96",       // 青緑（画面の地の色も青緑と生成り。index.html の :root[data-subject="chemistry"]）
     learningMode: "cards",

@@ -91,7 +91,7 @@ describe("科目えらび画面", () => {
     const chemistry = win.SUBJECTS.find((s: any) => s.id === "chemistry");
     expect(win.QUIZ_DATA).toHaveLength(chemistry.expectQuestions);
     expect(win.QUIZ_DATA.every((q: any) => String(q.id).startsWith("chem-"))).toBe(true);
-    expect(win.document.getElementById("appTitle")!.textContent).toBe("化学");
+    expect(win.document.getElementById("appTitle")!.textContent).toBe("化学（共テ対策）");
     expect(win.document.getElementById("home")!.classList.contains("hidden")).toBe(false);
   }, 30_000);
 });

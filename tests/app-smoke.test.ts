@@ -131,7 +131,7 @@ describe("ビルド済みアプリの起動", () => {
     // 起動直後は科目えらび。公共政経と化学のタイルが並ぶ
     expect(bootScreen).toBe("subjectPicker");
     expect(bootSubjectTiles.map((t) => t.id)).toEqual(["civics", "chemistry"]);
-    expect(bootSubjectTiles.map((t) => t.name)).toEqual(["公共・政治経済", "化学"]);
+    expect(bootSubjectTiles.map((t) => t.name)).toEqual(["公共・政治経済（共テ対策）", "化学（共テ対策）"]);
     // 科目を選んだあとはホーム。科目えらびは閉じている
     expect(visibleScreen()).toBe("home");
     expect(win.document.getElementById("subjectPicker")!.classList.contains("hidden")).toBe(true);
