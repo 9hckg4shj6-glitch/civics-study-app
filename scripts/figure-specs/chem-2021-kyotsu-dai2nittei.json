@@ -1,0 +1,22 @@
+{
+  "_note": "2021年度（令和3年度）大学入学共通テスト 第2日程（1月30日・31日）「化学」の図の切り出し。PDFは大学入試センター公表のベクターPDF（~/Downloads の「R3_化学（１月30日・31日）の問題.pdf」）を sources/chemistry/2021_dai2nittei_kagaku.pdf に置く。ベクターPDFなので点の除去（minComponent）は 0 にする。band は 100dpi で描いたページの画素座標。PDFのページは冊子のページ（32始まり。35 は白紙で飛ぶ）とずれる。第4問問3a の選択肢の円数字は構造式の左上・図の外（テキスト層の私用領域の文字 Ǐ ǐ Ǒ ǒ の bbox: x 150〜164 / 300〜314 / 449〜463）にあるので、帯の左端をその右に置くだけで外せ、erase は要らない。実行: python3 scripts/crop-figures.py scripts/figure-specs/chem-2021-kyotsu-dai2nittei.json",
+  "pdf": "sources/chemistry/2021_dai2nittei_kagaku.pdf",
+  "outDir": "public/images/chemistry",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "minComponent": 0,
+  "figures": [
+    { "name": "2021d2-1-4a-fig1", "page": 5, "band": [80, 95, 650, 815] },
+    { "name": "2021d2-1-4b-fig2", "page": 6, "band": [130, 290, 640, 860] },
+    { "name": "2021d2-2-1-fig1", "page": 8, "band": [120, 380, 640, 630] },
+    { "name": "2021d2-2-3-fig2", "page": 10, "band": [140, 375, 600, 800] },
+    { "name": "2021d2-2-3b-fig3", "page": 11, "band": [150, 525, 622, 872] },
+    { "name": "2021d2-3-3-fig1", "page": 16, "band": [200, 450, 560, 850] },
+    { "name": "2021d2-4-3a-fig1", "page": 22, "band": [130, 380, 640, 855] },
+    { "name": "2021d2-4-3a-c1", "page": 23, "band": [168, 105, 290, 230] },
+    { "name": "2021d2-4-3a-c2", "page": 23, "band": [318, 105, 440, 230] },
+    { "name": "2021d2-4-3a-c3", "page": 23, "band": [468, 105, 600, 190] },
+    { "name": "2021d2-4-3a-c4", "page": 23, "band": [168, 240, 290, 315] },
+    { "name": "2021d2-5-2-fig2", "page": 28, "band": [120, 300, 620, 605] }
+  ]
+}

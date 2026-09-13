@@ -131,8 +131,9 @@ export function validateChemistry(label, id, question, errors) {
   if (!ASK_TYPES.has(question.askType)) e(`askType は ${[...ASK_TYPES].join(" / ")} のいずれかにしてください (${question.askType})`);
   // 過去問には必ず年度を入れる（年度別演習に出せなくなるため）。自作問題は年度を持たない。
   // 追・再試験は「2026年度 追試」のように末尾に付け、本試験とは別の年度の束にする（公共政経の「令和8年度 追試」と同じ）。
-  if (question.sourceType !== "original" && !/^\d{4}年度( 追試)?$/.test(String(question.year ?? ""))) {
-    e(`year は「2024年度」「2026年度 追試」のように西暦の年度で書いてください (${question.year})`);
+  // 2021年度だけは追試験ではなく第2日程が行われたので「2021年度 第2日程」を許す（公共政経の「令和3年度 第2日程」と同じ）。
+  if (question.sourceType !== "original" && !/^\d{4}年度( 追試| 第2日程)?$/.test(String(question.year ?? ""))) {
+    e(`year は「2024年度」「2026年度 追試」「2021年度 第2日程」のように西暦の年度で書いてください (${question.year})`);
   }
   validateContentCore(label, id, question, errors);
 
