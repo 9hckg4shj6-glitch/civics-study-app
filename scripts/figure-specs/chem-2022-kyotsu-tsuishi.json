@@ -1,0 +1,14 @@
+{
+  "_note": "2022年度（令和4年度）大学入学共通テスト 追・再試験「化学」の図の切り出し。PDFは大学入試センター公表のベクターPDF（~/Downloads の「R4 追・再試験 化学 問題」。ファイル名の日本語が壊れていたので 2022_tsuishi_kagaku.pdf と改名）を sources/chemistry/ に置く。ベクターPDFなので点の除去（minComponent）は 0 にする。band は 100dpi で描いたページの画素座標。PDFのページは冊子のページ（28始まり。31・49 は白紙で飛ぶ）とずれる。円数字が図にかかる設問は無いので erase は要らない。実行: python3 scripts/crop-figures.py scripts/figure-specs/chem-2022-kyotsu-tsuishi.json",
+  "pdf": "sources/chemistry/2022_tsuishi_kagaku.pdf",
+  "outDir": "public/images/chemistry",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "minComponent": 0,
+  "figures": [
+    { "name": "2022t-4-1-fig1", "page": 14, "band": [120, 285, 640, 615] },
+    { "name": "2022t-5-shiki1", "page": 18, "band": [100, 300, 630, 525] },
+    { "name": "2022t-5-1-fig1", "page": 19, "band": [90, 150, 640, 375] },
+    { "name": "2022t-5-3-fig2", "page": 21, "band": [150, 265, 600, 595] }
+  ]
+}
