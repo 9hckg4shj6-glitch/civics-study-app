@@ -1,0 +1,21 @@
+{
+  "_note": "2019年度（平成31年度）大学入試センター試験 本試験「化学」の図の切り出し。原本は手元の問題冊子スキャン `kagaku-2.pdf`（~/Downloads/センター化学２０１５〜2020問題解答解説/。1063×1518画素・約130dpi・テキスト層なし）を sources/chemistry/2019_kagaku_center_scan.pdf として置いて使う。2020年度と同じく300dpiで描いても線は拡大補間になるが、装置図・流れ図・分布のグラフ・構造式は読める。点の除去（minComponent）は 12。第4問問3の構造式①〜⑤は円数字が左に離れて付いているので、帯の左端を円数字の右にして外す（erase は不要）。PDFのページは冊子のページ（39始まり）から 35 を引いた番号。band は 100dpi で描いたページの画素座標。実行: python3 scripts/crop-figures.py scripts/figure-specs/chem-2019-center-honshi.json",
+  "pdf": "sources/chemistry/2019_kagaku_center_scan.pdf",
+  "outDir": "public/images/chemistry",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 12,
+  "figures": [
+    { "name": "2019c-2-4-fig3", "page": 17, "band": [200, 310, 650, 630] },
+    { "name": "2019c-3-4-fig1", "page": 22, "band": [150, 270, 700, 435] },
+    { "name": "2019c-4-3-c1", "page": 26, "band": [186, 392, 300, 442] },
+    { "name": "2019c-4-3-c2", "page": 26, "band": [341, 392, 460, 442] },
+    { "name": "2019c-4-3-c3", "page": 26, "band": [503, 392, 630, 442] },
+    { "name": "2019c-4-3-c4", "page": 26, "band": [186, 483, 300, 533] },
+    { "name": "2019c-4-3-c5", "page": 26, "band": [341, 483, 460, 533] },
+    { "name": "2019c-4-5-fig1", "page": 28, "band": [150, 298, 700, 700] },
+    { "name": "2019c-5-1-fig1", "page": 29, "band": [195, 418, 640, 897] }
+  ]
+}
