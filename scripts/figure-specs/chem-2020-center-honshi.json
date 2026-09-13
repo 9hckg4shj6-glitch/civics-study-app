@@ -1,0 +1,28 @@
+{
+  "_note": "2020年度（令和2年度）大学入試センター試験 本試験「化学」の図の切り出し。センターのサイトに2020年度のPDFは無いので、手元の問題冊子スキャン `kagaku.pdf`（~/Downloads/センター化学２０１５〜2020問題解答解説/。1075×1518画素・約130dpi・テキスト層なし）を sources/chemistry/2020_kagaku_center_scan.pdf として置いて使う。130dpiと低いので300dpiで描いても線は拡大補間になるが、構造式・グラフは読める。点の除去（minComponent）は 2021〜2023年度と同じ 12。第2問問4の選択肢①〜⑥の円数字はグラフの左上に付いていて帯では外せないので erase で消す（位置は100dpiで描いたページの連結成分の bbox を4画素ずつ広げた）。PDFのページは冊子のページ（33始まり）から 29 を引いた番号。band・erase は 100dpi で描いたページの画素座標。実行: python3 scripts/crop-figures.py scripts/figure-specs/chem-2020-center-honshi.json",
+  "pdf": "sources/chemistry/2020_kagaku_center_scan.pdf",
+  "outDir": "public/images/chemistry",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 12,
+  "figures": [
+    { "name": "2020c-1-2-fig1", "page": 6, "band": [190, 305, 620, 705] },
+    { "name": "2020c-2-4-fig4", "page": 17, "band": [230, 565, 600, 800] },
+    { "name": "2020c-2-4-c1", "page": 18, "band": [160, 180, 400, 350], "erase": [[167, 183, 188, 210]] },
+    { "name": "2020c-2-4-c2", "page": 18, "band": [428, 180, 668, 350], "erase": [[435, 184, 456, 211]] },
+    { "name": "2020c-2-4-c3", "page": 18, "band": [160, 372, 400, 542], "erase": [[166, 375, 187, 401]] },
+    { "name": "2020c-2-4-c4", "page": 18, "band": [428, 372, 668, 542], "erase": [[435, 376, 456, 402]] },
+    { "name": "2020c-2-4-c5", "page": 18, "band": [160, 563, 400, 735], "erase": [[165, 566, 186, 592]] },
+    { "name": "2020c-2-4-c6", "page": 18, "band": [428, 563, 668, 735], "erase": [[434, 567, 455, 593]] },
+    { "name": "2020c-2-5-fig5", "page": 20, "band": [160, 180, 660, 715] },
+    { "name": "2020c-3-3-fig1", "page": 23, "band": [170, 285, 660, 800] },
+    { "name": "2020c-3-4-fig2", "page": 25, "band": [140, 290, 690, 470] },
+    { "name": "2020c-4-3-kagoubutsu", "page": 28, "band": [150, 255, 640, 350] },
+    { "name": "2020c-4-5-fig1-2", "page": 29, "band": [140, 450, 690, 735] },
+    { "name": "2020c-4-5b-ketsugou", "page": 30, "band": [300, 625, 520, 730] },
+    { "name": "2020c-5-1-monomer", "page": 31, "band": [170, 515, 700, 710] },
+    { "name": "2020c-5-2-aminosan", "page": 32, "band": [240, 265, 560, 400] }
+  ]
+}
