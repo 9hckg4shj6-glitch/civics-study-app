@@ -1,0 +1,23 @@
+{
+  "_note": "2024年度（令和6年度）大学入学共通テスト 追・再試験「化学」の図の切り出し。PDFは大学入試センター公表の 2024_oq_29_kagaku.pdf（ベクター）を sources/chemistry/ に置く。ベクターPDFなので点の除去（minComponent）は 0 にする。band は 100dpi で描いたページの画素座標。第5問問2a の電気泳動の図と問2b の構造式は円数字が図の上（y=114〜128 / 252〜266 / 570〜585）に離れて付いているので、帯の上端をその下に置けば erase は要らない。実行: python3 scripts/crop-figures.py scripts/figure-specs/chem-2024-kyotsu-tsuishi.json",
+  "pdf": "sources/chemistry/2024_oq_29_kagaku.pdf",
+  "outDir": "public/images/chemistry",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "minComponent": 0,
+  "figures": [
+    { "name": "2024t-3-3b-fig1", "page": 13, "band": [120, 100, 650, 395] },
+    { "name": "2024t-4-3a-ester", "page": 17, "band": [240, 290, 480, 372] },
+    { "name": "2024t-4-3a-fig1", "page": 17, "band": [140, 385, 640, 785] },
+    { "name": "2024t-5-2a-glyala", "page": 23, "band": [180, 185, 540, 265] },
+    { "name": "2024t-5-2a-glu", "page": 23, "band": [90, 515, 640, 650] },
+    { "name": "2024t-5-2a-c1", "page": 24, "band": [148, 130, 352, 228] },
+    { "name": "2024t-5-2a-c2", "page": 24, "band": [388, 130, 602, 228] },
+    { "name": "2024t-5-2a-c3", "page": 24, "band": [148, 268, 352, 366] },
+    { "name": "2024t-5-2a-c4", "page": 24, "band": [388, 268, 602, 366] },
+    { "name": "2024t-5-2b-c1", "page": 24, "band": [138, 588, 258, 705] },
+    { "name": "2024t-5-2b-c2", "page": 24, "band": [262, 588, 382, 708] },
+    { "name": "2024t-5-2b-c3", "page": 24, "band": [386, 588, 506, 705] },
+    { "name": "2024t-5-2b-c4", "page": 24, "band": [508, 588, 628, 705] }
+  ]
+}
