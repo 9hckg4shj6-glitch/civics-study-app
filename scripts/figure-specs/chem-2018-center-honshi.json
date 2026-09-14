@@ -1,0 +1,21 @@
+{
+  "_note": "2018年度（平成30年度）大学入試センター試験 本試験「化学」の図の切り出し。センターのサイトに2018年度のPDFは無いので、手元の問題冊子スキャン `kagaku-3.pdf`（~/Downloads/センター化学２０１５〜2020問題解答解説/。2079×2953画素・300dpi・テキスト層なし）を sources/chemistry/2018_kagaku_center_scan.pdf として置いて使う。2019・2020年度（約130dpi）と違って300dpiの二値スキャンなので、300dpiで描いても拡大補間にならず線がきれい。300dpiの二値スキャンでノイズの点が無く、グラフの点線の目盛（1点が数画素）が 12 だと消えるので、点の除去（minComponent）は 0 にした。第1問問4の選択肢①〜⑥の円数字はグラフの左上に付いていて帯では外せないので erase で消す（位置は100dpiで描いたページの連結成分（幅13・高さ18画素）の bbox を4画素ずつ広げた）。PDFのページは冊子のページ（41始まり）から 37 を引いた番号。band・erase は 100dpi で描いたページの画素座標。実行: python3 scripts/crop-figures.py scripts/figure-specs/chem-2018-center-honshi.json",
+  "pdf": "sources/chemistry/2018_kagaku_center_scan.pdf",
+  "outDir": "public/images/chemistry",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 0,
+  "figures": [
+    { "name": "2018c-1-4-fig2", "page": 8, "band": [200, 195, 470, 332] },
+    { "name": "2018c-1-4-c1", "page": 8, "band": [105, 392, 345, 558], "erase": [[114, 401, 135, 427]] },
+    { "name": "2018c-1-4-c2", "page": 8, "band": [365, 392, 605, 558], "erase": [[374, 400, 395, 426]] },
+    { "name": "2018c-1-4-c3", "page": 8, "band": [105, 560, 345, 724], "erase": [[114, 569, 135, 595]] },
+    { "name": "2018c-1-4-c4", "page": 8, "band": [365, 560, 605, 724], "erase": [[374, 569, 395, 595]] },
+    { "name": "2018c-1-4-c5", "page": 8, "band": [105, 726, 345, 893], "erase": [[114, 735, 135, 761]] },
+    { "name": "2018c-1-4-c6", "page": 8, "band": [365, 726, 605, 893], "erase": [[374, 735, 395, 761]] },
+    { "name": "2018c-2-2-fig1", "page": 12, "band": [150, 455, 545, 607] },
+    { "name": "2018c-4-5-hannou", "page": 23, "band": [150, 255, 575, 362] }
+  ]
+}
