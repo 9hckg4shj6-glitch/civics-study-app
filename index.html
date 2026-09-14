@@ -1568,6 +1568,8 @@
   :root[data-subject="chemistry"] .sectToggle[data-toggle="predictionList"]{--accent:#a08248!important}
   :root[data-subject="chemistry"] .sectToggle[data-toggle="specialList"]{--accent:#8a7fae!important}
   :root[data-subject="chemistry"] .sectToggle[data-toggle="updatesHomePanel"]{--accent:#4b93a8!important}
+  :root[data-subject="chemistry"] .sectToggle[data-toggle="reviewDueList"]{--accent:#a08248!important}
+  :root[data-subject="chemistry"] .sectToggle[data-toggle="reviewScheduleBody"]{--accent:#3f7fa8!important}
   /* 「問題一覧（年度別・分野別）」の帯は若草に寄せる */
   :root[data-subject="chemistry"] .browseEntry{
     border-color:color-mix(in srgb,#4f9b7c 52%,var(--line));
@@ -2121,15 +2123,30 @@
       </button>
     </div>
 
-    <h3>本日復習すべき問題</h3>
-    <p>予定時刻を迎えた問題です。上のカードからまとめて復習できます。</p>
-    <div id="reviewDueList"></div>
-    <h3>これからの復習予定</h3>
-    <p>時間は目安です。時刻になると本日の復習に入ります。</p>
-    <label>大分野 <select id="reviewDomain"><option value="">すべて</option><option>公共</option><option>政治</option><option>経済</option></select></label>
-    <label>小分野 <select id="reviewField"><option value="">すべて</option></select></label>
-    <div id="reviewScheduleList"></div>
-    <button type="button" class="btn" id="reviewPractice">問題演習へ</button>
+    <!-- 一覧は学習が進むと数百件になるので、ホームの演習範囲と同じ折りたたみ枠に入れる。
+         開閉の状態は sectionOpenState（localStorage）に残る -->
+    <div class="homeSection rangeSection" id="reviewDueListSection">
+      <button type="button" class="sectToggle" data-toggle="reviewDueList" data-hint="static" aria-expanded="false" style="--accent:#c2410c">
+        <span class="stIcon" aria-hidden="true">↻</span>
+        <span class="stMain"><span class="stLabel">本日復習すべき問題</span><span class="stHint">予定時刻を迎えた問題。上のカードからまとめて復習できる</span></span>
+        <span class="stCount"></span><span class="stChev">›</span>
+      </button>
+      <div id="reviewDueList" class="reviewList hidden"></div>
+    </div>
+
+    <div class="homeSection rangeSection" id="reviewScheduleSection">
+      <button type="button" class="sectToggle" data-toggle="reviewScheduleBody" data-hint="static" aria-expanded="false" style="--accent:#3a4192">
+        <span class="stIcon" aria-hidden="true">◷</span>
+        <span class="stMain"><span class="stLabel">これからの復習予定</span><span class="stHint">時間は目安。時刻になると本日の復習に入る</span></span>
+        <span class="stCount"></span><span class="stChev">›</span>
+      </button>
+      <div id="reviewScheduleBody" class="reviewList hidden">
+        <label>大分野 <select id="reviewDomain"><option value="">すべて</option><option>公共</option><option>政治</option><option>経済</option></select></label>
+        <label>小分野 <select id="reviewField"><option value="">すべて</option></select></label>
+        <div id="reviewScheduleList"></div>
+        <button type="button" class="btn" id="reviewPractice">問題演習へ</button>
+      </div>
+    </div>
     <div class="homeMainLabel"><b>苦手・見直し</b><span>復習予定に関係なく、自分で選んで練習できます</span></div>
     <div class="hubGrid" id="reviewHubGrid"></div>
 
@@ -3056,6 +3073,9 @@
     const sig=due.map(q=>q.id).join(",")+"|"+domain+"|"+field+"|"+future.map(q=>q.id).join(",");
     if(root.dataset.sig===sig) return;
     root.dataset.sig=sig;
+    // 折りたたみ枠の件数バッジ。閉じたままでも中身の数がわかるようにする
+    updateSectionCount("reviewDueList", due.length);
+    updateSectionCount("reviewScheduleBody", future.length);
     const rows=items=>items.map(q=>'<button type="button" class="reviewQuestion" data-review-question="'+esc(q.id)+'"><small>'+esc(q.domain+" / "+q.field)+'</small><span>'+esc(qListTitle(q))+'</span>'+attemptLog(q,true)+scheduleBadge(q)+'</button>').join("");
     $("#reviewDueList").innerHTML=rows(due)||"<p>今すぐ復習する問題はありません。</p>";
     root.innerHTML=rows(future)||"<p>該当する復習予定はありません。</p>";

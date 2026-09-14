@@ -357,6 +357,7 @@ body:not(.has-subject) #subjectPicker{max-width:980px;margin-inline:auto}
   background:var(--card2);border:1px solid var(--line);
 }
 .rangeSection .grid:not(.hidden){margin-top:12px}
+.rangeSection .reviewList:not(.hidden){margin-top:12px}   /* 復習画面の折りたたみ一覧も同じ間隔 */
 .homeUtility{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
