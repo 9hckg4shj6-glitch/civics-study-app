@@ -9,7 +9,8 @@
    このファイルは scripts/build-questions.mjs が contentDir の JSON から
    生成するので、直接手で編集しないこと。
 
-   【重要】問題IDは科目ごとの idPrefix で始める（公共政経は "civics-"、化学は "chem-"）。
+   【重要】問題IDは科目ごとの idPrefix で始める（公共政経は "civics-"、化学（共テ）は "chem-"、
+   日本史は "jhist-"、化学（私立）は "chemp-"）。
    進捗（localStorage）とFSRSの復習予定（IndexedDB）はIDで紐づいているため、
    IDが衝突すると学習記録が混ざる。validate:content がこの規約を検査する。
 
@@ -18,7 +19,47 @@
      domainOrder      … 大分野の並び順
      fieldOrder       … 小分野（単元）の並び順
      contentDir       … 教材JSONの置き場所（build:questions が読む）
+     skin             … 画面の配色を借りる科目のid（無ければ自分のid）。
+                        index.html の :root[data-subject=…] と ACCENTS_BY_SUBJECT 等の表を引く鍵になる
+     draft            … true の間は科目えらびに「準備中」で出し、タップしても中へ入れない。
+                        問題を収録し始めたらこのフラグを外す（validate:content も0件を許す）
    ============================================================ */
+
+/* 化学の2科目（共テ対策・私立対策）で共有する設定。
+   分類・出典区分・称号は同じ表を使い、収録する問題だけを分ける。
+   docs/化学科目_実装計画.md「3. 分類」の表と同じ順に並べる（表を直したらここも直す） */
+const CHEM_SOURCE_TYPE_LABELS = {
+  "common-test": "共通テスト「化学」",
+  "center": "センター試験「化学」",
+  "national": "国公立大学 一般入試",
+  "private": "私立大学 一般入試",
+  "original": "自作の補強問題",
+};
+const CHEM_DOMAIN_ORDER = ["理論化学", "無機化学", "有機化学", "高分子化合物"];
+const CHEM_FIELD_ORDER = [
+  "物質の構成と化学結合", "物質量と化学反応式", "酸と塩基", "酸化還元", "電池と電気分解",
+  "物質の三態", "気体の性質", "溶液の性質", "熱化学", "反応速度", "化学平衡",
+  "周期表と元素の分類", "水素と貴ガス", "ハロゲン", "酸素と硫黄", "窒素とリン", "炭素とケイ素",
+  "気体の製法と性質",
+  "アルカリ金属", "2族元素とアルカリ土類金属", "両性元素（アルミニウム・亜鉛）",
+  "遷移元素と錯イオン", "鉄とその化合物", "銅・銀とその化合物", "クロム・マンガンとその他の金属",
+  "金属イオンの分離と検出", "セラミックスと合金", "無機工業化学",
+  "有機化合物の構造と異性体", "脂肪族炭化水素", "アルコールとカルボニル化合物", "カルボン酸とエステル",
+  "芳香族化合物", "有機化合物の分離と検出",
+  "糖類", "アミノ酸とタンパク質", "核酸", "合成高分子", "天然高分子と繊維",
+];
+// 称号（レベル帯で決まる）。学習量そのものは科目共通で数える
+const CHEM_RANKS = [
+  { min: 1, icon: "🧪", name: "化学入門" },
+  { min: 3, icon: "📘", name: "基礎固め" },
+  { min: 5, icon: "📝", name: "演習中級" },
+  { min: 8, icon: "⚗️", name: "理論に強い" },
+  { min: 12, icon: "🧱", name: "無機に強い" },
+  { min: 16, icon: "🧬", name: "有機に強い" },
+  { min: 21, icon: "🏫", name: "過去問上級" },
+  { min: 26, icon: "🎓", name: "入試実戦" },
+  { min: 31, icon: "👑", name: "化学マスター" },
+];
 
 window.SUBJECTS = [
   {
@@ -67,38 +108,59 @@ window.SUBJECTS = [
     hideExamDay: true,        // 共通テスト当日モードは公共政経だけの機能
     expectQuestions: 453,      // 収録を増やしたらこの数も更新する
     expectDomainCounts: { 理論化学: 154, 無機化学: 125, 有機化学: 118, 高分子化合物: 56 },
+    sourceTypeLabels: CHEM_SOURCE_TYPE_LABELS,
+    domainOrder: CHEM_DOMAIN_ORDER,
+    ranks: CHEM_RANKS,
+    fieldOrder: CHEM_FIELD_ORDER,
+  },
+  {
+    /* 日本史（共通テスト「歴史総合，日本史探究」対策）。まだ問題を入れていない準備中の科目。
+       収録を始めるときは draft を外し、expectQuestions と expectDomainCounts を実数に直す。
+       小分野（fieldOrder）の表は最初の収録と一緒に決める。 */
+    id: "japanese-history",
+    name: "日本史（共テ対策）",
+    emoji: "🏯",
+    accent: "#a8433a",       // 朱
+    learningMode: "cards",
+    contentDir: "content/japanese-history/questions",
+    questions: "subjects/japanese-history/questions.js",
+    idPrefix: "jhist-",
+    contentProfile: "japanese-history",
+    hideLearning: true,
+    hideExamDay: true,        // 共通テスト当日モードは公共政経だけの機能
+    draft: true,
+    expectQuestions: 0,
     sourceTypeLabels: {
-      "common-test": "共通テスト「化学」",
-      "center": "センター試験「化学」",
-      "national": "国公立大学 一般入試",
-      "private": "私立大学 一般入試",
+      "common-new": "共通テスト「歴史総合，日本史探究」（新課程）",
+      "common-legacy": "共通テスト「日本史B」（旧課程）",
+      "center": "センター試験「日本史B」",
       "original": "自作の補強問題",
     },
-    domainOrder: ["理論化学", "無機化学", "有機化学", "高分子化合物"],
-    // 称号（レベル帯で決まる）。学習量そのものは科目共通で数える
-    ranks: [
-      { min: 1, icon: "🧪", name: "化学入門" },
-      { min: 3, icon: "📘", name: "基礎固め" },
-      { min: 5, icon: "📝", name: "演習中級" },
-      { min: 8, icon: "⚗️", name: "理論に強い" },
-      { min: 12, icon: "🧱", name: "無機に強い" },
-      { min: 16, icon: "🧬", name: "有機に強い" },
-      { min: 21, icon: "🏫", name: "過去問上級" },
-      { min: 26, icon: "🎓", name: "入試実戦" },
-      { min: 31, icon: "👑", name: "化学マスター" },
-    ],
-    // docs/化学科目_実装計画.md「3. 分類」の表と同じ順に並べる（表を直したらここも直す）
-    fieldOrder: [
-      "物質の構成と化学結合", "物質量と化学反応式", "酸と塩基", "酸化還元", "電池と電気分解",
-      "物質の三態", "気体の性質", "溶液の性質", "熱化学", "反応速度", "化学平衡",
-      "周期表と元素の分類", "水素と貴ガス", "ハロゲン", "酸素と硫黄", "窒素とリン", "炭素とケイ素",
-      "気体の製法と性質",
-      "アルカリ金属", "2族元素とアルカリ土類金属", "両性元素（アルミニウム・亜鉛）",
-      "遷移元素と錯イオン", "鉄とその化合物", "銅・銀とその化合物", "クロム・マンガンとその他の金属",
-      "金属イオンの分離と検出", "セラミックスと合金", "無機工業化学",
-      "有機化合物の構造と異性体", "脂肪族炭化水素", "アルコールとカルボニル化合物", "カルボン酸とエステル",
-      "芳香族化合物", "有機化合物の分離と検出",
-      "糖類", "アミノ酸とタンパク質", "核酸", "合成高分子", "天然高分子と繊維",
-    ],
+    domainOrder: ["原始・古代", "中世", "近世", "近代", "現代"],
+    fieldOrder: [],
+  },
+  {
+    /* 化学（私立大学の一般入試対策）。共テ対策の化学と同じ分類・出典区分・称号を使い、
+       配色も共テ対策の化学のものを借りる（skin）。収録する問題だけを分ける。
+       まだ問題を入れていない準備中の科目。収録を始めるときは draft を外し、
+       expectQuestions と expectDomainCounts を実数に直す。 */
+    id: "chemistry-private",
+    name: "化学（私立対策）",
+    emoji: "⚗️",
+    accent: "#5a8f3f",       // 若草（科目えらびのタイルで共テ対策の青緑と見分けるため）
+    skin: "chemistry",
+    learningMode: "cards",
+    contentDir: "content/chemistry-private/questions",
+    questions: "subjects/chemistry-private/questions.js",
+    idPrefix: "chemp-",
+    contentProfile: "chemistry",
+    hideLearning: true,
+    hideExamDay: true,
+    draft: true,
+    expectQuestions: 0,
+    sourceTypeLabels: CHEM_SOURCE_TYPE_LABELS,
+    domainOrder: CHEM_DOMAIN_ORDER,
+    ranks: CHEM_RANKS,
+    fieldOrder: CHEM_FIELD_ORDER,
   },
 ];

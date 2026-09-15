@@ -76,13 +76,26 @@ beforeAll(async () => { await start(); }, 30_000);
 afterAll(() => { opened.forEach((d) => d.window.close()); server?.close(); });
 
 describe("科目えらび画面", () => {
-  it("起動直後に出て、公共政経と化学のタイルが並ぶ", async () => {
+  it("起動直後に出て、公共政経・化学・日本史・化学（私立）のタイルが並ぶ", async () => {
     const win = await boot();
     expect(win.document.getElementById("subjectPicker")!.classList.contains("hidden")).toBe(false);
     const tiles = [...win.document.querySelectorAll("#spGrid .spCard")] as any[];
-    expect(tiles.map((t) => t.dataset.subject)).toEqual(["civics", "chemistry"]);
+    expect(tiles.map((t) => t.dataset.subject)).toEqual(["civics", "chemistry", "japanese-history", "chemistry-private"]);
     // タイルを開く前は、その科目の問題データをまだ読み込んでいない
     expect(win.QUIZ_DATA ?? []).toHaveLength(0);
+  }, 30_000);
+
+  it("問題がまだ無い科目（draft）は「準備中」のタイルで出て、タップしても科目えらびに留まる", async () => {
+    const win = await boot();
+    for (const id of ["japanese-history", "chemistry-private"]) {
+      const tile = win.document.querySelector(`#spGrid .spCard[data-subject="${id}"]`) as any;
+      expect(tile.classList.contains("soon")).toBe(true);
+      expect(tile.querySelector(".spTag")!.textContent).toBe("準備中");
+      tile.click();
+      await tick(100);
+      expect(win.document.getElementById("subjectPicker")!.classList.contains("hidden")).toBe(false);
+      expect(win.QUIZ_DATA ?? []).toHaveLength(0);
+    }
   }, 30_000);
 
   it("化学を選ぶと化学の問題だけを読み込み、ホームの見出しも化学になる", async () => {

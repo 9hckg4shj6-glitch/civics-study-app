@@ -128,10 +128,12 @@ describe("ビルド済みアプリの起動", () => {
     expect(win.document.getElementById("accountChoiceBackdrop")).toBeNull();
     expect(win.document.getElementById("rankView")).toBeNull();
     expect(win.document.getElementById("communityView")).toBeNull();
-    // 起動直後は科目えらび。公共政経と化学のタイルが並ぶ
+    // 起動直後は科目えらび。公共政経・化学・日本史・化学（私立）のタイルが並ぶ
     expect(bootScreen).toBe("subjectPicker");
-    expect(bootSubjectTiles.map((t) => t.id)).toEqual(["civics", "chemistry"]);
-    expect(bootSubjectTiles.map((t) => t.name)).toEqual(["公共・政治経済（共テ対策）", "化学（共テ対策）"]);
+    expect(bootSubjectTiles.map((t) => t.id)).toEqual(["civics", "chemistry", "japanese-history", "chemistry-private"]);
+    expect(bootSubjectTiles.map((t) => t.name)).toEqual([
+      "公共・政治経済（共テ対策）", "化学（共テ対策）", "日本史（共テ対策）", "化学（私立対策）",
+    ]);
     // 科目を選んだあとはホーム。科目えらびは閉じている
     expect(visibleScreen()).toBe("home");
     expect(win.document.getElementById("subjectPicker")!.classList.contains("hidden")).toBe(true);
@@ -140,7 +142,7 @@ describe("ビルド済みアプリの起動", () => {
   it("subjects.js が宣言した問題数をそのまま読み込んでいる", () => {
     const civics = win.SUBJECTS.find((s: any) => s.id === "civics");
     expect(win.QUIZ_DATA).toHaveLength(civics.expectQuestions);
-    expect(win.SUBJECTS.map((s: any) => s.id)).toEqual(["civics", "chemistry"]);
+    expect(win.SUBJECTS.map((s: any) => s.id)).toEqual(["civics", "chemistry", "japanese-history", "chemistry-private"]);
     expect(win.document.getElementById("appTitle")!.textContent).toContain("公共・政治経済");
   });
 

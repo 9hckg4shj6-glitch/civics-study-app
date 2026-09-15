@@ -38,6 +38,29 @@ describe("化学の科目設定", () => {
   });
 });
 
+/* 化学（私立対策）は共テ対策の化学と分類・出典区分・称号・配色を共有し、IDと保存領域だけを分ける。
+   分類がずれると同じ単元が2科目で別の名前になるので、表そのものが同一であることを見る。 */
+describe("化学（私立対策）の科目設定", () => {
+  const priv = subjects.find((s) => s.id === "chemistry-private");
+  it("共テ対策の化学とは別のIDの接頭辞・保存領域を使う", () => {
+    expect(priv.idPrefix).toBe("chemp-");
+    expect(priv.contentDir).toBe("content/chemistry-private/questions");
+    expect(priv.questions).toBe("subjects/chemistry-private/questions.js");
+  });
+  it("分類・出典区分・称号は共テ対策の化学と同じ表を使い、配色も借りる", () => {
+    expect(priv.contentProfile).toBe("chemistry");
+    expect(priv.domainOrder).toEqual(chemistry.domainOrder);
+    expect(priv.fieldOrder).toEqual(chemistry.fieldOrder);
+    expect(priv.sourceTypeLabels).toEqual(chemistry.sourceTypeLabels);
+    expect(priv.ranks).toEqual(chemistry.ranks);
+    expect(priv.skin).toBe("chemistry");
+  });
+  it("問題を入れるまでは draft で、生成物は0問", () => {
+    expect(priv.draft).toBe(true);
+    expect(loadBrowserData(path.join("public", priv.questions), "QUIZ_DATA")).toHaveLength(0);
+  });
+});
+
 describe("化学の収録教材", () => {
   it("収録数と分野別の内訳が subjects.js の宣言と合っている", () => {
     expect(questions).toHaveLength(chemistry.expectQuestions);

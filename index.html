@@ -2423,13 +2423,14 @@
   const DAILY_GOAL  = 20;      // 1日の目標問題数
   const RANDOM_N    = 10;      // ランダム演習の問題数
   /* 分野別カードの配色(dataviz カテゴリ順)。科目ごとに一式そろえ、無い科目は既定（公共政経）を使う。
+     鍵は科目の id か、subjects.js の skin（配色を借りる科目）。
      地の色は <style> の :root[data-subject=…] が持つので、そちらと色みを合わせること。 */
   const ACCENTS_DEFAULT = ["#3a4192","#7a4aa8","#9c4a86","#a8791b","#b8474f","#5a5a9c","#6b4aa0","#7a6a2e"];
   const ACCENTS_BY_SUBJECT = {
     /* 青緑→若草→青→真鍮→藤。彩度を落としてあるので、並べても目がちらつかない。 */
     chemistry: ["#2f8290","#4f9b7c","#3f7fa8","#5aa39a","#6f86b8","#a08248","#8a7fae","#4b93a8"],
   };
-  function accents(){ return ACCENTS_BY_SUBJECT[currentSubjectId] || ACCENTS_DEFAULT; }
+  function accents(){ return ACCENTS_BY_SUBJECT[skinId()] || ACCENTS_DEFAULT; }
   /* ホームの大きなタイルの色。こちらは並び順ではなく役目ごとに決める。 */
   const HUB_ACCENTS_DEFAULT = {learn:"#3a4192",practice:"#6b4aa0",browse:"#9c4a86",review:"#b8474f",memory:"#b06a1e",search:"#7a6a2e",
     bookmark:"#b8860b",weak:"#c5525a",mistakes:"#6d5bd0",weakField:"#1f8a62"};
@@ -2438,7 +2439,7 @@
     chemistry: {learn:"#3f7fa8",practice:"#2f8290",browse:"#4f9b7c",review:"#a08248",memory:"#8a7fae",search:"#5aa39a",
       bookmark:"#a68a3f",weak:"#bd6b74",mistakes:"#6f86b8",weakField:"#4f9b7c"},
   };
-  function hubAccents(){ return HUB_ACCENTS_BY_SUBJECT[currentSubjectId] || HUB_ACCENTS_DEFAULT; }
+  function hubAccents(){ return HUB_ACCENTS_BY_SUBJECT[skinId()] || HUB_ACCENTS_DEFAULT; }
 
   /* 出典区分の表示名。questions.js の sourceType をそのまま画面に出さない。
      科目ごとの表は public/subjects.js（sourceTypeLabels / domainOrder / fieldOrder）に持たせ、
@@ -2538,6 +2539,10 @@
   function currentSubject(){ return subjectById(currentSubjectId); }
   // 科目ごとの機能フラグ（subjects.js の hideCards / hideExamDay など）。選択中の科目のものを見る。
   function subjectFlag(key){ const s=currentSubject(); return !!(s && s[key]); }
+  /* 配色の鍵。subjects.js で skin を持つ科目（化学の私立対策）は、その科目の配色を借りる。
+     <html data-subject> と ACCENTS_BY_SUBJECT・HUB_ACCENTS_BY_SUBJECT・THEME_COLORS・紙吹雪はこの鍵で引く。 */
+  function skinIdOf(sub){ return sub ? (sub.skin || sub.id) : null; }
+  function skinId(){ return skinIdOf(currentSubject()); }
   function savedSubjectId(){ try{ return localStorage.getItem(SUBJECT_KEY); }catch(e){ return null; } }
   function saveSubjectId(id){ try{ localStorage.setItem(SUBJECT_KEY, id); }catch(e){} }
 
@@ -2567,10 +2572,11 @@
     return data;
   }
   /* 科目ごとの見た目を当てる。<html data-subject="…"> が付くと、その科目用の配色ブロック
-     （<style> の「科目ごとの地の色」）が効く。sub が無いとき＝科目えらび画面は既定の見た目に戻す。 */
+     （<style> の「科目ごとの地の色」）が効く。skin を持つ科目は借り先の id を付ける。
+     sub が無いとき＝科目えらび画面は既定の見た目に戻す。 */
   function applySubjectSkin(sub){
     const root=document.documentElement;
-    if(sub) root.setAttribute("data-subject", sub.id); else root.removeAttribute("data-subject");
+    if(sub) root.setAttribute("data-subject", skinIdOf(sub)); else root.removeAttribute("data-subject");
     root.style.setProperty("--subject-accent", (sub && sub.accent) || "");
     updateThemeColor();
   }
@@ -7220,7 +7226,7 @@
 
   /* ---------- 演出 ---------- */
   function confetti(){
-    const cols=(currentSubjectId==="chemistry")
+    const cols=(skinId()==="chemistry")
       ? ["#2f8290","#6fae9c","#a7cfb0","#e6d9a8","#9fc9dc","#c9b6d8"]
       : ["#3a4192","#7a4aa8","#9c4a86","#a8791b","#2f7d4f","#c79ae8"];
     for(let i=0;i<60;i++){ const p=document.createElement("div"); p.className="confetti";

@@ -46,6 +46,10 @@ export const CHEM_DOMAINS = new Set(["理論化学", "無機化学", "有機化�
 export const CHEM_SOURCE_TYPES = new Set(["common-test", "center", "national", "private", "original"]);
 export const ASK_TYPES = new Set(["correct", "incorrect", "true-false"]);
 
+/* 日本史（共通テスト「歴史総合，日本史探究」対策）。時代の5区分で大分野を持つ */
+export const JHIST_DOMAINS = new Set(["原始・古代", "中世", "近世", "近代", "現代"]);
+export const JHIST_SOURCE_TYPES = new Set(["common-new", "common-legacy", "center", "original"]);
+
 /* 教材として最低限そろえる項目（科目共通）。
    出典・分類・確認日・選択肢別解説がそろっていない問題を収録させない。 */
 export function validateContentCore(label, id, question, errors) {
@@ -142,6 +146,26 @@ export function validateChemistry(label, id, question, errors) {
   const choices = Array.isArray(question.choices) ? question.choices.map((c) => String(c ?? "")) : [];
   const orderDependent = question.askType === "true-false"
     || choices.some((c) => /[①-⑨]|すべて|いずれも|上記|正しいものはない/.test(c));
+  if (orderDependent && question.noShuffle !== true) {
+    e("選択肢の順序に依存する問題です。noShuffle: true を付けてください");
+  }
+}
+
+/* 日本史の教材に固有の検査。大分野は時代区分、過去問は化学と同じ西暦の年度で持つ。
+   年代順の並べ替え（「Ⅰ→Ⅱ→Ⅲ」のような選択肢）が多い科目なので、
+   順序に依存する選択肢は化学と同じく noShuffle を必須にする。 */
+export function validateJapaneseHistory(label, id, question, errors) {
+  const e = (msg) => errors.push(`[${label}] 問題 ${id}: ${msg}`);
+
+  if (!JHIST_DOMAINS.has(question.domain)) e(`domain は ${[...JHIST_DOMAINS].join(" / ")} のいずれかにしてください (${question.domain})`);
+  if (!JHIST_SOURCE_TYPES.has(question.sourceType)) e(`sourceType は ${[...JHIST_SOURCE_TYPES].join(" / ")} のいずれかにしてください (${question.sourceType})`);
+  if (question.sourceType !== "original" && !/^\d{4}年度( 追試| 第2日程)?$/.test(String(question.year ?? ""))) {
+    e(`year は「2024年度」「2026年度 追試」「2021年度 第2日程」のように西暦の年度で書いてください (${question.year})`);
+  }
+  validateContentCore(label, id, question, errors);
+
+  const choices = Array.isArray(question.choices) ? question.choices.map((c) => String(c ?? "")) : [];
+  const orderDependent = choices.some((c) => /[①-⑨]|[Ⅰ-Ⅲ].*→|すべて|いずれも|上記|正しいものはない/.test(c));
   if (orderDependent && question.noShuffle !== true) {
     e("選択肢の順序に依存する問題です。noShuffle: true を付けてください");
   }
@@ -275,6 +299,7 @@ for (const subject of subjects) {
     else validateChoice(label, id, question, errors);
     if (subject.contentProfile === "civics") validateCivics(label, id, question, errors);
     if (subject.contentProfile === "chemistry") validateChemistry(label, id, question, errors);
+    if (subject.contentProfile === "japanese-history") validateJapaneseHistory(label, id, question, errors);
   }
 
   // グループ問題（共通資料＋複数小問）の件数と並びが宣言どおりかを見る
