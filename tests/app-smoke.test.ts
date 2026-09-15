@@ -151,6 +151,33 @@ describe("ビルド済みアプリの起動", () => {
     expect(names).toEqual(expect.arrayContaining(["問題演習", "問題一覧", "復習", "暗記カード", "問題検索"]));
   });
 
+  it("復習画面の「本日復習すべき問題」「これからの復習予定」は別画面に飛ぶ", async () => {
+    hub("復習").click();
+    await tick(250);
+    const shown = (id: string) => !win.document.getElementById(id)!.classList.contains("hidden");
+    expect(shown("reviewView")).toBe(true);
+
+    click("#reviewDueEntry");
+    await tick(250);
+    expect(shown("reviewDueView")).toBe(true);
+    expect(shown("reviewView")).toBe(false);
+    expect(win.document.querySelector("#reviewDueList")!.textContent).toContain("今すぐ復習する問題はありません");
+    click("#reviewDueBack");
+    await tick(250);
+    expect(shown("reviewView")).toBe(true);
+
+    click("#reviewScheduleEntry");
+    await tick(250);
+    expect(shown("reviewScheduleView")).toBe(true);
+    expect(win.document.querySelector("#reviewScheduleView #reviewDomain")).not.toBeNull();
+    click("#reviewScheduleBack");
+    await tick(250);
+    expect(shown("reviewView")).toBe(true);
+    click("#reviewView .viewBack");
+    await tick(250);
+    expect(visibleScreen()).toBe("home");
+  });
+
   it("演習画面に分野・出典・年度・テーマの絞り込みが並ぶ", async () => {
     hub("問題演習").click();
     await tick(250);

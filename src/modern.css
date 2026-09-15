@@ -357,7 +357,6 @@ body:not(.has-subject) #subjectPicker{max-width:980px;margin-inline:auto}
   background:var(--card2);border:1px solid var(--line);
 }
 .rangeSection .grid:not(.hidden){margin-top:12px}
-.rangeSection .reviewList:not(.hidden){margin-top:12px}   /* 復習画面の折りたたみ一覧も同じ間隔 */
 .homeUtility{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
@@ -538,6 +537,7 @@ section.screen-enter-tab{animation:screenTab var(--motion-ui) ease both}
 .reviewQuestion{display:flex;flex-direction:column;gap:8px;width:100%;text-align:left;padding:14px;margin:8px 0;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);font:inherit;overflow-wrap:anywhere}
 .reviewSchedule{font-size:14px;color:var(--brand);white-space:normal;margin:8px 0}
 .attemptLog{font-size:13px;color:var(--muted);font-weight:700;white-space:normal;margin:6px 0}
-#reviewView select{max-width:100%;padding:8px;margin:8px;border-radius:8px}
+#reviewScheduleView select{max-width:100%;padding:8px;margin:8px;border-radius:8px}
+.reviewList{margin-top:12px}
 .reviewSaveError{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;max-width:min(560px,calc(100vw - 24px));padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.18)}
 .reviewSaveError button{flex:0 0 auto}

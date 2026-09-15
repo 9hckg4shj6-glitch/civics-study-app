@@ -18,6 +18,8 @@ const SCREEN_TO_NAV: Record<string, PrimaryNavKey> = {
   reviewView: "review",
   mistakesView: "review",
   weakFieldView: "review",
+  reviewDueView: "review",
+  reviewScheduleView: "review",
 };
 
 export function learningDestination(mode: unknown): "cardsView" | "inputView" {
