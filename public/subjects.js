@@ -65,8 +65,8 @@ window.SUBJECTS = [
     contentProfile: "chemistry",
     hideLearning: true,       // 授業要点も用語カードも無いので「学習」の枠は出さない
     hideExamDay: true,        // 共通テスト当日モードは公共政経だけの機能
-    expectQuestions: 327,      // 収録を増やしたらこの数も更新する
-    expectDomainCounts: { 理論化学: 112, 無機化学: 87, 有機化学: 78, 高分子化合物: 50 },
+    expectQuestions: 347,      // 収録を増やしたらこの数も更新する
+    expectDomainCounts: { 理論化学: 118, 無機化学: 92, 有機化学: 83, 高分子化合物: 54 },
     sourceTypeLabels: {
       "common-test": "共通テスト「化学」",
       "center": "センター試験「化学」",
