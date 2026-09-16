@@ -87,7 +87,7 @@ describe("科目えらび画面", () => {
 
   it("問題がまだ無い科目（draft）は「準備中」のタイルで出て、タップしても科目えらびに留まる", async () => {
     const win = await boot();
-    for (const id of ["japanese-history", "chemistry-private"]) {
+    for (const id of ["chemistry-private"]) {
       const tile = win.document.querySelector(`#spGrid .spCard[data-subject="${id}"]`) as any;
       expect(tile.classList.contains("soon")).toBe(true);
       expect(tile.querySelector(".spTag")!.textContent).toBe("準備中");
@@ -96,6 +96,16 @@ describe("科目えらび画面", () => {
       expect(win.document.getElementById("subjectPicker")!.classList.contains("hidden")).toBe(false);
       expect(win.QUIZ_DATA ?? []).toHaveLength(0);
     }
+  }, 30_000);
+
+  it("日本史を選ぶと日本史の問題だけを読み込み、ホームの見出しも日本史になる", async () => {
+    const win = await boot();
+    await enterSubject(win, "japanese-history");
+    const jhist = win.SUBJECTS.find((s: any) => s.id === "japanese-history");
+    expect(win.QUIZ_DATA).toHaveLength(jhist.expectQuestions);
+    expect(win.QUIZ_DATA.every((q: any) => String(q.id).startsWith("jhist-"))).toBe(true);
+    expect(win.document.getElementById("appTitle")!.textContent).toBe("日本史（共テ対策）");
+    expect(win.document.getElementById("home")!.classList.contains("hidden")).toBe(false);
   }, 30_000);
 
   it("化学を選ぶと化学の問題だけを読み込み、ホームの見出しも化学になる", async () => {
