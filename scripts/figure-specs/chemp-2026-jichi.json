@@ -1,0 +1,16 @@
+{
+  "_note": "2026年度 自治医科大学 医学部 一般選抜（1次試験）「理科」のうち化学（問題1〜25）の図の切り出し。原本は東進の過去問データベースのスキャンPDF（~/Downloads/ の c8v261001m0.pdf。テキスト層あり・15ページ）を sources/chemistry-private/2026_jichi_rika_scan.pdf として置いて使う。冊子の化学は13ページ始まりで、PDFのページは冊子のページから 11 を引いた番号（冊子15ページ＝PDF 4ページ）。2025〜2020年度と同じ刷りなので点の除去（minComponent）は 0。band は 100dpi で描いたページの画素座標。問題5は NaCl の単位格子、問題11はナトリウム化合物の流れ図、問題14は金属イオンの分離の流れ図、問題24はイオン交換樹脂 X の構造（いずれも stemImages）。実行: python3 scripts/crop-figures.py scripts/figure-specs/chemp-2026-jichi.json",
+  "pdf": "sources/chemistry-private/2026_jichi_rika_scan.pdf",
+  "outDir": "public/images/chemistry-private",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 0,
+  "figures": [
+    { "name": "2026-jichi-5-nacl", "page": 4, "band": [240, 185, 500, 380] },
+    { "name": "2026-jichi-11-natrium", "page": 7, "band": [120, 155, 590, 385] },
+    { "name": "2026-jichi-14-bunri", "page": 9, "band": [80, 245, 630, 630] },
+    { "name": "2026-jichi-24-jushi", "page": 14, "band": [220, 435, 500, 685] }
+  ]
+}
