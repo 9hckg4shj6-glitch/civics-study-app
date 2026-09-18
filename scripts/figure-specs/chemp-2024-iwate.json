@@ -1,0 +1,14 @@
+{
+  "_note": "2024年度 岩手医科大学 一般選抜「理科」のうち化学（第1問〜第3問、解答番号1〜25）の図の切り出し。原本は東進の過去問データベースのスキャンPDF（~/Downloads/ の c8g241001m0.pdf。テキスト層なし・26ページ）を sources/chemistry-private/2024_iwate_rika_scan.pdf として置いて使う。冊子の化学は20ページ始まりで、PDFのページは冊子のページから 15 を引いた番号（冊子24ページ＝PDF 9ページ）。自治医科大と同じ東進のスキャンで紙面にノイズの点が無いので点の除去（minComponent）は 0。band は 100dpi で描いたページの画素座標。第1問問5は密度のグラフ ア〜エ、第1問問6は金属結晶の格子 A〜C の模型（いずれも stemImages）。実行: python3 scripts/crop-figures.py scripts/figure-specs/chemp-2024-iwate.json",
+  "pdf": "sources/chemistry-private/2024_iwate_rika_scan.pdf",
+  "outDir": "public/images/chemistry-private",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 0,
+  "figures": [
+    { "name": "2024-iwate-5-mitsudo", "page": 9, "band": [95, 335, 620, 750] },
+    { "name": "2024-iwate-6-kessho", "page": 10, "band": [115, 335, 600, 505] }
+  ]
+}

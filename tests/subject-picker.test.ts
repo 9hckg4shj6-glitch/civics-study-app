@@ -178,16 +178,18 @@ describe("大学別の演習と一覧", () => {
     expect(shown(win, "universitySection")).toBe(true);
     if (!shown(win, "universityList")) win.document.querySelector('.sectToggle[data-toggle="universityList"]').click();
     await tick(120);
-    expect(labels(win, "universityList")).toEqual(["自治医科大学"]);
-    expect(win.document.querySelector('.sectToggle[data-toggle="universityList"] .stCount')!.textContent).toBe("1件");
+    // 問題数の多い大学から並ぶ（自治医科大99問 → 岩手医科大22問）
+    expect(labels(win, "universityList")).toEqual(["自治医科大学", "岩手医科大学"]);
+    expect(win.document.querySelector('.sectToggle[data-toggle="universityList"] .stCount')!.textContent).toBe("2件");
+    const jichi = win.QUIZ_DATA.filter((q: any) => q.university === "自治医科大学").length;
 
-    // 大学を押すと別画面へ移り、ランダム演習（全問数）と年度別の2項目が出る
+    // 大学を押すと別画面へ移り、ランダム演習（その大学の全問数）と年度別の2項目が出る
     (win.document.querySelector("#universityList .cat") as any).click();
     await tick(250);
     expect(shown(win, "universityView")).toBe(true);
     expect(shown(win, "practiceView")).toBe(false);
     expect(win.document.getElementById("universityTitle")!.textContent).toBe("自治医科大学");
-    expect(win.document.getElementById("universityRandomCount")!.textContent).toBe(String(win.QUIZ_DATA.length));
+    expect(win.document.getElementById("universityRandomCount")!.textContent).toBe(String(jichi));
 
     // 年度別を開くと、その大学の年度が新しい順に並ぶ
     win.document.getElementById("universityYearToggle").click();
@@ -206,11 +208,11 @@ describe("大学別の演習と一覧", () => {
     win.document.getElementById("countClose")?.click();
     await tick(100);
 
-    // ランダム演習は大学の全問が対象
+    // ランダム演習はその大学の全問が対象（他の大学の問題は含まない）
     win.document.getElementById("universityRandom").click();
     await tick(150);
     expect(win.document.getElementById("countTitle")!.textContent).toBe("自治医科大学 ・ ランダム演習");
-    expect(win.document.getElementById("countTotal")!.textContent).toBe(String(win.QUIZ_DATA.length));
+    expect(win.document.getElementById("countTotal")!.textContent).toBe(String(jichi));
     win.document.getElementById("countStart").click();
     await tick(400);
     expect(shown(win, "quiz")).toBe(true);
@@ -258,7 +260,12 @@ describe("大学別の演習と一覧", () => {
     (win.document.querySelector("#qbrowseIndex .qbUnivRandom") as any).click(); await tick(150);
     expect(shown(win, "countModal")).toBe(true);
     expect(win.document.getElementById("countKicker")!.textContent).toBe("大学別演習");
-    expect(win.document.getElementById("countTotal")!.textContent).toBe(String(win.QUIZ_DATA.length));
+    expect(win.document.getElementById("countTotal")!.textContent)
+      .toBe(String(win.QUIZ_DATA.filter((q: any) => q.university === "自治医科大学").length));
+    win.document.getElementById("countClose")?.click(); await tick(100);
+    // 岩手医科大学のフォルダも並ぶ（問題数の多い順なので自治医科大学の次）
+    win.document.getElementById("qbrowseBack").click(); await tick(120);
+    expect(folder("岩手医科大学")).toBeTruthy();
   }, 40_000);
 
   it("共テ対策の化学には大学別の枠も一覧のフォルダも出ない", async () => {
