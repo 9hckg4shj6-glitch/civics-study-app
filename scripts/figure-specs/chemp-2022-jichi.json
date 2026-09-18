@@ -1,0 +1,14 @@
+{
+  "_note": "2022年度 自治医科大学 医学部 一般選抜（1次試験）「理科」のうち化学（問題1〜25）の図の切り出し。原本は東進の過去問データベースのスキャンPDF（~/Downloads/ の c8v221001m0.pdf。テキスト層あり・14ページ）を sources/chemistry-private/2022_jichi_rika_scan.pdf として置いて使う。冊子の化学は12ページ始まりで、PDFのページは冊子のページから 8 を引いた番号（冊子18ページ＝PDF 10ページ）。2025〜2023年度と同じ刷りなので点の除去（minComponent）は 0。band は 100dpi で描いたページの画素座標。問題17は芳香族化合物①〜④の構造式だけを切り出す（流れ図は問題18用で、問題18は収録しない）。問題23は第E文のアミノ酸2つの構造式（くさび形の立体表記）を切り出す。実行: python3 scripts/crop-figures.py scripts/figure-specs/chemp-2022-jichi.json",
+  "pdf": "sources/chemistry-private/2022_jichi_rika_scan.pdf",
+  "outDir": "public/images/chemistry-private",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 0,
+  "figures": [
+    { "name": "2022-jichi-17-houkouzoku", "page": 10, "band": [130, 225, 600, 335] },
+    { "name": "2022-jichi-23-aminosan", "page": 13, "band": [225, 715, 505, 815] }
+  ]
+}
