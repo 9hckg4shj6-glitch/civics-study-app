@@ -22,7 +22,8 @@
      skin             … 画面の配色を借りる科目のid（無ければ自分のid）。
                         index.html の :root[data-subject=…] と ACCENTS_BY_SUBJECT 等の表を引く鍵になる
      draft            … true の間は科目えらびに「準備中」で出し、タップしても中へ入れない。
-                        問題を収録し始めたらこのフラグを外す（validate:content も0件を許す）
+                        問題を収録し始めたらこのフラグを外す（validate:content も0件を許す）。
+                        いまはどの科目にも付いていない
    ============================================================ */
 
 /* 化学の2科目（共テ対策・私立対策）で共有する設定。
@@ -154,8 +155,8 @@ window.SUBJECTS = [
   {
     /* 化学（私立大学の一般入試対策）。共テ対策の化学と同じ分類・出典区分・称号を使い、
        配色も共テ対策の化学のものを借りる（skin）。収録する問題だけを分ける。
-       まだ問題を入れていない準備中の科目。収録を始めるときは draft を外し、
-       expectQuestions と expectDomainCounts を実数に直す。 */
+       私立の入試問題は「分野別」（テーマ別）の演習を主役にするので、分類（domain / field）を
+       共テ対策と同じ表でそろえ、年度別の束は出典どおりの year を持たせるだけにしている。 */
     id: "chemistry-private",
     name: "化学（私立対策）",
     emoji: "⚗️",
@@ -168,8 +169,8 @@ window.SUBJECTS = [
     contentProfile: "chemistry",
     hideLearning: true,
     hideExamDay: true,
-    draft: true,
-    expectQuestions: 0,
+    expectQuestions: 15,      // 収録を増やしたらこの数も更新する
+    expectDomainCounts: { 理論化学: 4, 無機化学: 4, 有機化学: 4, 高分子化合物: 3 },
     sourceTypeLabels: CHEM_SOURCE_TYPE_LABELS,
     domainOrder: CHEM_DOMAIN_ORDER,
     ranks: CHEM_RANKS,

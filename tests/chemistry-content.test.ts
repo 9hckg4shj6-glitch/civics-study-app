@@ -55,9 +55,32 @@ describe("化学（私立対策）の科目設定", () => {
     expect(priv.ranks).toEqual(chemistry.ranks);
     expect(priv.skin).toBe("chemistry");
   });
-  it("問題を入れるまでは draft で、生成物は0問", () => {
-    expect(priv.draft).toBe(true);
-    expect(loadBrowserData(path.join("public", priv.questions), "QUIZ_DATA")).toHaveLength(0);
+  it("準備中ではなく、収録数・分野別の内訳が宣言と合い、私立の出典で年度を持つ", () => {
+    expect(priv.draft).toBeUndefined();
+    const privQuestions = loadBrowserData(path.join("public", priv.questions), "QUIZ_DATA");
+    expect(privQuestions).toHaveLength(priv.expectQuestions);
+    const counts: Record<string, number> = {};
+    for (const q of privQuestions) counts[q.domain] = (counts[q.domain] ?? 0) + 1;
+    expect(counts).toEqual(priv.expectDomainCounts);
+    for (const q of privQuestions) {
+      expect(String(q.id).startsWith("chemp-")).toBe(true);
+      expect(q.sourceType).toBe("private");
+      expect(q.field && priv.fieldOrder.includes(q.field)).toBe(true);
+    }
+  });
+
+  it("私立対策の教材も共テ対策と同じ検証（分野・出典・問い方・解説・確認日・図）を通る", () => {
+    const privQuestions = loadBrowserData(path.join("public", priv.questions), "QUIZ_DATA");
+    const errors: string[] = [];
+    for (const q of privQuestions) {
+      validateChoice("化学（私立）", q.id, q, errors);
+      validateChemistry("化学（私立）", q.id, q, errors);
+      for (const fig of q.stemImages ?? []) {
+        expect(fs.existsSync(path.join("public", fig.src))).toBe(true);
+        expect(String(fig.alt ?? "").trim().length).toBeGreaterThan(0);
+      }
+    }
+    expect(errors).toEqual([]);
   });
 });
 
