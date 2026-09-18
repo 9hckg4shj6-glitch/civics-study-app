@@ -160,3 +160,117 @@ describe("化学の演習範囲", () => {
     expect(hint).toBe("理論化学・無機化学・有機化学・高分子化合物から選ぶ");
   }, 30_000);
 });
+
+/* 大学別（化学（私立対策））。複数の大学の過去問を入れる科目では、問題演習と問題一覧に
+   「大学別」の分類が出て、大学 → ランダム演習／年度別 の順に選べる。
+   共テ対策の化学には university を持つ問題が無いので、枠そのものが出ない。 */
+describe("大学別の演習と一覧", () => {
+  const hubBtn = (win: any, name: string) => [...win.document.querySelectorAll("#hubGrid .hubBtn")]
+    .find((b: any) => b.querySelector(".hubName")?.textContent === name) as any;
+  const shown = (win: any, id: string) => !win.document.getElementById(id)!.classList.contains("hidden");
+
+  it("問題演習：大学別 → 自治医科大学 → ランダム演習と年度別（新しい年度から）が選べる", async () => {
+    const win = await boot();
+    await enterSubject(win, "chemistry-private");
+    hubBtn(win, "問題演習").click();
+    await tick(250);
+
+    expect(shown(win, "universitySection")).toBe(true);
+    if (!shown(win, "universityList")) win.document.querySelector('.sectToggle[data-toggle="universityList"]').click();
+    await tick(120);
+    expect(labels(win, "universityList")).toEqual(["自治医科大学"]);
+    expect(win.document.querySelector('.sectToggle[data-toggle="universityList"] .stCount')!.textContent).toBe("1件");
+
+    // 大学を押すと別画面へ移り、ランダム演習（全問数）と年度別の2項目が出る
+    (win.document.querySelector("#universityList .cat") as any).click();
+    await tick(250);
+    expect(shown(win, "universityView")).toBe(true);
+    expect(shown(win, "practiceView")).toBe(false);
+    expect(win.document.getElementById("universityTitle")!.textContent).toBe("自治医科大学");
+    expect(win.document.getElementById("universityRandomCount")!.textContent).toBe(String(win.QUIZ_DATA.length));
+
+    // 年度別を開くと、その大学の年度が新しい順に並ぶ
+    win.document.getElementById("universityYearToggle").click();
+    await tick(120);
+    expect(labels(win, "universityYearList")).toEqual(["2026年度", "2025年度", "2024年度", "2023年度", "2022年度", "2021年度", "2020年度"]);
+    const badges = [...win.document.querySelectorAll("#universityYearList .cat .badge")].map((e: any) => e.textContent);
+    expect(badges).toEqual(["11問", "15問", "12問", "12問", "14問", "17問", "18問"]);
+
+    // 年度を押すと出題数のモーダルが「大学別演習」として開く
+    (win.document.querySelector("#universityYearList .cat") as any).click();
+    await tick(150);
+    expect(shown(win, "countModal")).toBe(true);
+    expect(win.document.getElementById("countKicker")!.textContent).toBe("大学別演習");
+    expect(win.document.getElementById("countTitle")!.textContent).toBe("自治医科大学 ・ 2026年度");
+    expect(win.document.getElementById("countTotal")!.textContent).toBe("11");
+    win.document.getElementById("countClose")?.click();
+    await tick(100);
+
+    // ランダム演習は大学の全問が対象
+    win.document.getElementById("universityRandom").click();
+    await tick(150);
+    expect(win.document.getElementById("countTitle")!.textContent).toBe("自治医科大学 ・ ランダム演習");
+    expect(win.document.getElementById("countTotal")!.textContent).toBe(String(win.QUIZ_DATA.length));
+    win.document.getElementById("countStart").click();
+    await tick(400);
+    expect(shown(win, "quiz")).toBe(true);
+
+    // 「← 問題演習」で戻れる
+    win.history.back(); await tick(300);
+  }, 40_000);
+
+  it("問題一覧：大学別 → 自治医科大学 → ランダム演習／年度別 → 年度の問題が並ぶ", async () => {
+    const win = await boot();
+    await enterSubject(win, "chemistry-private");
+    expect(hubBtn(win, "問題一覧").querySelector(".hubSub")?.textContent).toContain("大学別");
+    hubBtn(win, "問題一覧").click();
+    await tick(250);
+    const folder = (title: string) => [...win.document.querySelectorAll("#qbrowseIndex .qbFolder")]
+      .find((b: any) => b.querySelector(".brDeckTitle")?.textContent === title) as any;
+
+    expect(folder("大学別")).toBeTruthy();
+    folder("大学別").click(); await tick(150);
+    expect(win.document.getElementById("qbrowseTitle")!.textContent).toBe("大学別");
+    expect(folder("自治医科大学")).toBeTruthy();
+    folder("自治医科大学").click(); await tick(150);
+    expect(win.document.getElementById("qbrowseTitle")!.textContent).toBe("大学別 ・ 自治医科大学");
+    expect(win.document.getElementById("qbrowseBackLabel")!.textContent).toBe("← 大学別");
+    // 大学の中はランダム演習と年度別の2項目
+    const entries = [...win.document.querySelectorAll("#qbrowseIndex .brDeck2 .brDeckTitle")].map((e: any) => e.textContent);
+    expect(entries).toEqual(["ランダム演習", "年度別"]);
+
+    folder("年度別").click(); await tick(150);
+    expect(win.document.getElementById("qbrowseTitle")!.textContent).toBe("自治医科大学 ・ 年度別");
+    const years = [...win.document.querySelectorAll("#qbrowseIndex .brDeck2[data-key] .brDeckTitle")].map((e: any) => e.textContent);
+    expect(years).toEqual(["2026年度", "2025年度", "2024年度", "2023年度", "2022年度", "2021年度", "2020年度"]);
+    (win.document.querySelector('#qbrowseIndex .brDeck2[data-key="__u__自治医科大学::2025年度"]') as any).click();
+    await tick(200);
+    expect(win.document.getElementById("qbrowseTitle")!.textContent).toBe("自治医科大学 ・ 2025年度");
+    expect(win.document.querySelector("#qbrowseInfo .srCount")!.textContent).toContain("全15問");
+    expect(win.document.querySelectorAll("#qbrowseList .qbItem").length).toBe(10);   // 1ページ10問
+
+    // 戻るは 年度別 → 大学 → 大学別 → 最上位 の順
+    win.document.getElementById("qbrowseBack").click(); await tick(120);
+    expect(win.document.getElementById("qbrowseTitle")!.textContent).toBe("自治医科大学 ・ 年度別");
+    win.document.getElementById("qbrowseBack").click(); await tick(120);
+    expect(win.document.getElementById("qbrowseTitle")!.textContent).toBe("大学別 ・ 自治医科大学");
+    // ランダム演習はその大学の全問を出題数モーダルへ渡す
+    (win.document.querySelector("#qbrowseIndex .qbUnivRandom") as any).click(); await tick(150);
+    expect(shown(win, "countModal")).toBe(true);
+    expect(win.document.getElementById("countKicker")!.textContent).toBe("大学別演習");
+    expect(win.document.getElementById("countTotal")!.textContent).toBe(String(win.QUIZ_DATA.length));
+  }, 40_000);
+
+  it("共テ対策の化学には大学別の枠も一覧のフォルダも出ない", async () => {
+    const win = await boot();
+    await enterSubject(win, "chemistry");
+    hubBtn(win, "問題演習").click();
+    await tick(250);
+    expect(shown(win, "universitySection")).toBe(false);
+    expect(win.document.getElementById("qbrowseBtnTitle")!.textContent).toBe("問題一覧（年度別・分野別）");
+    win.document.getElementById("qbrowseBtn").click();
+    await tick(250);
+    const titles = [...win.document.querySelectorAll("#qbrowseIndex .qbFolder .brDeckTitle")].map((e: any) => e.textContent);
+    expect(titles).toEqual(["年度別", "分野別"]);
+  }, 30_000);
+});

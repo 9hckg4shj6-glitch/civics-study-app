@@ -143,6 +143,10 @@ export function validateChemistry(label, id, question, errors) {
   if ((question.sourceType === "private" || question.sourceType === "national") && !String(question.sourceShort ?? "").trim()) {
     e("私大・国公立の過去問には sourceShort（見出しに出す短い出典名。例: 自治医科大2025年）を付けてください");
   }
+  // 「大学別」の演習・一覧は university で束ねる。sourceLabel から大学名を切り出すのは表記のゆれに弱いので、欄として必ず持たせる
+  if ((question.sourceType === "private" || question.sourceType === "national") && !/大学$/.test(String(question.university ?? "").trim())) {
+    e(`私大・国公立の過去問には university（大学別の演習で束ねる正式な大学名。例: 自治医科大学）を付けてください (${question.university})`);
+  }
   validateContentCore(label, id, question, errors);
 
   /* 選択肢の並べ替え事故を防ぐ。「a 正・b 誤」型の組合せや、

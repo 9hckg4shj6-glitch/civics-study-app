@@ -677,6 +677,10 @@
   /* ===== カード一覧（ライブラリ） ===== */
   .browseEntry{border-color:color-mix(in srgb,#2f9e7d 52%,var(--line));background:color-mix(in srgb,#2f9e7d 10%,var(--card))}
   .browseEntry:hover{border-color:#2f9e7d}
+  /* 大学別の中の「ランダム演習」。年度別のトグルと並ぶので、同じ高さ・暖色の帯にする */
+  .univEntry{--accent:#b0632e;border-color:color-mix(in srgb,var(--accent) 52%,var(--line));background:color-mix(in srgb,var(--accent) 10%,var(--card))}
+  .univEntry:hover{border-color:var(--accent)}
+  .univEntry .dueCount{color:var(--accent)}
   #browseDeckGrid{display:grid;gap:9px;margin-top:6px}
   .browseCert{font-size:12.5px;font-weight:800;color:var(--muted);margin:0 2px 4px}
   .browseCert b{color:var(--gold)}
@@ -1566,6 +1570,8 @@
   :root[data-subject="chemistry"] .sectToggle[data-toggle="askList"]{--accent:#4f9b7c!important}
   :root[data-subject="chemistry"] .sectToggle[data-toggle="domainList"]{--accent:#3f7fa8!important}
   :root[data-subject="chemistry"] .sectToggle[data-toggle="sourceList"]{--accent:#5aa39a!important}
+  :root[data-subject="chemistry"] .sectToggle[data-toggle="universityList"]{--accent:#b07a3c!important}
+  :root[data-subject="chemistry"] #universityYearToggle{--accent:#6f86b8!important}
   :root[data-subject="chemistry"] .sectToggle[data-toggle="yearList"]{--accent:#6f86b8!important}
   :root[data-subject="chemistry"] .sectToggle[data-toggle="predictionList"]{--accent:#a08248!important}
   :root[data-subject="chemistry"] .sectToggle[data-toggle="specialList"]{--accent:#8a7fae!important}
@@ -1931,8 +1937,8 @@
       <button type="button" class="dueCard browseEntry" id="qbrowseBtn">
         <span class="dueIcon">📖</span>
         <span class="dueBody">
-          <span class="dueTitle">問題一覧（年度別・分野別）</span>
-          <span class="dueSub">収録した過去問を年度別・分野別に、1ページ10問で通して確認できます</span>
+          <span class="dueTitle" id="qbrowseBtnTitle">問題一覧（年度別・分野別）</span>
+          <span class="dueSub" id="qbrowseBtnSub">収録した過去問を年度別・分野別に、1ページ10問で通して確認できます</span>
         </span>
         <span class="dueRight"><span class="dueUnit" style="font-size:15px">一覧 →</span></span>
       </button>
@@ -1995,6 +2001,16 @@
       <div id="sourceList" class="grid hidden"></div>
     </div>
 
+    <!-- 大学別（私立対策のように複数の大学の過去問を入れる科目だけ。university を持つ問題が無ければ枠ごと隠す） -->
+    <div class="homeSection rangeSection" id="universitySection">
+      <button type="button" class="sectToggle" data-toggle="universityList" data-hint="static" aria-expanded="false" style="--accent:#b0632e">
+        <span class="stIcon" aria-hidden="true">⌂</span>
+        <span class="stMain"><span class="stLabel">大学別</span><span class="stHint">大学を選ぶと、ランダム演習と年度別が選べる</span></span>
+        <span class="stCount"></span><span class="stChev">›</span>
+      </button>
+      <div id="universityList" class="grid hidden"></div>
+    </div>
+
     <div class="homeSection rangeSection" id="yearSection">
       <button type="button" class="sectToggle" data-toggle="yearList" data-hint="static" aria-expanded="false" style="--accent:#9c4a86">
         <span class="stIcon" aria-hidden="true">◷</span>
@@ -2031,6 +2047,35 @@
     </div>
     <div class="homeMainLabel"><b id="themeFieldTitle">テーマ別</b><span id="themeFieldSub">項目を選んで演習を始める</span></div>
     <div id="themeFieldList" class="grid"></div>
+  </section>
+
+  <!-- ===== VIEW: 大学別の中（大学を選んだあとに開く）。ランダム演習と、その大学の年度別の2項目 ===== -->
+  <section id="universityView" class="hidden">
+    <div class="reviewTop">
+      <button class="btn ghost small" id="universityBack">← 問題演習</button>
+      <span class="pill" id="universityPill">大学別</span>
+    </div>
+    <div class="homeMainLabel"><b id="universityTitle">大学別</b><span id="universitySub">ランダム演習か年度別を選んで始める</span></div>
+
+    <div class="homeSection">
+      <button type="button" class="dueCard univEntry" id="universityRandom">
+        <span class="dueIcon">🎲</span>
+        <span class="dueBody">
+          <span class="dueTitle">ランダム演習</span>
+          <span class="dueSub" id="universityRandomSub">この大学の全問からランダムに出題</span>
+        </span>
+        <span class="dueRight"><b class="dueCount" id="universityRandomCount">–</b><span class="dueUnit">問</span></span>
+      </button>
+    </div>
+
+    <div class="homeSection rangeSection" id="universityYearSection">
+      <button type="button" class="sectToggle" id="universityYearToggle" aria-expanded="false" aria-controls="universityYearList" style="--accent:#9c4a86">
+        <span class="stIcon" aria-hidden="true">◷</span>
+        <span class="stMain"><span class="stLabel">年度別</span><span class="stHint" id="universityYearHint">出題された年度から選ぶ</span></span>
+        <span class="stCount" id="universityYearCount"></span><span class="stChev">›</span>
+      </button>
+      <div id="universityYearList" class="grid hidden"></div>
+    </div>
   </section>
 
   <!-- ===== VIEW: カード ===== -->
@@ -2796,6 +2841,7 @@
       sourceLabel: q.sourceLabel || "",
       sourceQuestion: q.sourceQuestion || "",
       sourceShort: q.sourceShort || "",          // 問題の見出しに年度の代わりに出す短い出典名（例: 自治医科大2025年）
+      university: q.university || "",            // 出典の大学名（例: 自治医科大学）。私大・国公立の問題を「大学別」に束ねる鍵
       sourceUrl: q.sourceUrl || "",
       sourceNote: q.sourceNote || "",
       verifiedAt: q.verifiedAt || "",
@@ -2937,7 +2983,7 @@
     const unseenLeft = g.items.some(q=>{ const r=progress[q.id]; return !(r&&r.seen>0); });
     pendingSel={items:g.items, baseItems:g.items, label:g.label, mode, key:g.key, total:g.items.length, defaultN:g.defaultN, startAll:!!g.startAll,
       order:(mode==="playlist"&&unseenLeft)?"unseen":"random", gradingMode:"immediate"};
-    $("#countKicker").textContent=g.kicker||(mode==="year"?"年度別演習":mode==="prediction"?"予想問題":mode==="special"?"直前スペシャル":mode==="domain"?"分野別演習":mode==="source"?"出典別演習":mode==="ask"?"問い方別演習":mode==="field"?"テーマ別演習":mode==="due"?"今日の復習":mode==="examday"?"試験日モード":mode==="playlist"?"プレイリスト":"演習");
+    $("#countKicker").textContent=g.kicker||(mode==="year"?"年度別演習":mode==="prediction"?"予想問題":mode==="special"?"直前スペシャル":mode==="domain"?"分野別演習":mode==="source"?"出典別演習":mode==="ask"?"問い方別演習":mode==="field"?"テーマ別演習":mode==="university"?"大学別演習":mode==="due"?"今日の復習":mode==="examday"?"試験日モード":mode==="playlist"?"プレイリスト":"演習");
     $("#countTitle").textContent=g.label;
     // 復習・試験日モードは出題順に意味があるので、順番を選べるのはそれ以外の範囲だけ
     const orderable=(mode!=="due"&&mode!=="examday");
@@ -3417,9 +3463,34 @@
       .filter(d=>d.items.length)
       .map((d,i)=>({...d, idx:i}));
   }
+  /* --- 大学別：出典の大学（university）→ ランダム演習／その大学の年度別 ---
+     私立対策のように複数の大学の過去問を入れる科目で使う。大学のキーは大学名そのもの、
+     年度別のキーは「大学名::年度」。university を持たない問題（共テ・センター）は入らない。 */
+  function universityGroups(){
+    const map=new Map();
+    DATA.forEach(q=>{ const u=q.university; if(!u) return; if(!map.has(u)) map.set(u,[]); map.get(u).push(q); });
+    // 問題数の多い大学から並べる（同数なら名前順）。追加したばかりの大学は末尾に来る
+    return [...map.keys()]
+      .sort((a,b)=>map.get(b).length-map.get(a).length||a.localeCompare(b,"ja"))
+      .map((u,i)=>({key:u, label:u, idx:i, items:map.get(u), years:universityYearGroups(u, map.get(u))}));
+  }
+  function universityYearGroups(u, items){
+    const list=items||DATA.filter(q=>q.university===u);
+    const map=new Map();
+    list.forEach(q=>{ if(!q.year) return; if(!map.has(q.year)) map.set(q.year,[]); map.get(q.year).push(q); });
+    return [...map.keys()]
+      .sort((a,b)=>yearOrder(b)-yearOrder(a) || (a<b?-1:a>b?1:0))
+      .map((y,i)=>({key:u+THEME_SEP+y, label:u+" ・ "+y, short:y, university:u, idx:i, items:map.get(y)}));
+  }
   // 「続きから」やカード再取得で、年度キーだけでなく小分けキーも引けるようにする
   function resolveGroup(mode,key){
-    const gs=groups(mode), k=String(key);
+    const k=String(key);
+    if(mode==="university"){
+      const u=k.includes(THEME_SEP)?k.slice(0,k.indexOf(THEME_SEP)):k;
+      const ug=universityGroups().find(x=>x.key===u); if(!ug) return null;
+      return k===u ? ug : (ug.years.find(y=>y.key===k)||null);
+    }
+    const gs=groups(mode);
     const hit=gs.find(x=>String(x.key)===k); if(hit) return hit;
     if(mode==="field" && k.includes(THEME_SEP)){
       const t=themeFieldGroups(k.slice(0,k.indexOf(THEME_SEP))).find(x=>x.key===k);
@@ -3443,7 +3514,7 @@
   }
 
   /* ---------- ホーム（ハブ）と各画面（ビュー） ---------- */
-  const VIEWS=["inputView","practiceView","themeFieldView","memoryCardsView","cardsView","reviewView","reviewDueView","reviewScheduleView","weakFieldView","statsView","mistakesView","moreView"];
+  const VIEWS=["inputView","practiceView","themeFieldView","universityView","memoryCardsView","cardsView","reviewView","reviewDueView","reviewScheduleView","weakFieldView","statsView","mistakesView","moreView"];
   const SCREEN_IDS=["home","quiz","result","search","flash","browse","qbrowse","subjectPicker","slideView","lessonView"].concat(VIEWS);
   let currentScreenId=null;
   let historyNavigation=false;
@@ -3457,7 +3528,7 @@
     if(ui&&ui.primaryNavKey) return ui.primaryNavKey(id);
     if(id==="home") return "home";
     if(["inputView","lessonView","memoryCardsView","cardsView","browse","flash"].includes(id)) return "learn";
-    if(["practiceView","themeFieldView","quiz","result"].includes(id)) return "practice";
+    if(["practiceView","themeFieldView","universityView","quiz","result"].includes(id)) return "practice";
     if(id==="qbrowse") return qbrowseState.origin==="reviewView" ? "review" : "questions";
     if(id==="search") return "search";
     if(["reviewView","reviewDueView","reviewScheduleView","mistakesView","weakFieldView"].includes(id)) return "review";
@@ -3542,6 +3613,7 @@
     home:()=>{ renderLead(); renderDue(); renderResumeCard(); },
     practiceView:()=>{ renderScopeLists(); renderQuick(); renderExamDay(); },
     themeFieldView:()=>{ renderThemeFieldView(); },
+    universityView:()=>{ renderUniversityView(); },
     statsView:()=>{ renderHero(); renderKpis(); renderHeatmap(); renderAch(); },
     reviewView:()=>{ renderDue(); renderPlaylists(); renderReviewHub(); },
     reviewDueView:()=>{ renderDue(); },
@@ -3600,7 +3672,7 @@
     const items=[
       learnTile,
       {icon:"▶",name:"問題演習",accent:hubAccents().practice,sub:`${DATA.length}問から範囲を選んで解く`,go:()=>openView("practiceView")},
-      {icon:"☷",name:"問題一覧",accent:hubAccents().browse,sub:`全${DATA.length}問を年度別・分野別に確認`,go:openQBrowse},
+      {icon:"☷",name:"問題一覧",accent:hubAccents().browse,sub:`全${DATA.length}問を${qbWaysLabel()}に確認`,go:openQBrowse},
       {icon:"↻",name:"復習",accent:hubAccents().review,
         sub:reviewN?`今すぐ復習 ${reviewN}件`:(()=>{const nx=nextDueInfo();return nx?`次の復習：${reviewText(progress[nx.id])}`:"問題を解くと復習予定が表示されます";})(),
         go:()=>openView("reviewView")},
@@ -3838,9 +3910,9 @@
     // 問題が1問も無い科目では、開発者向けの空メッセージではなく案内パネルを出す
     const empty = DATA.length===0;
     const notice=$("#emptySubjectNotice"); if(notice) notice.classList.toggle("hidden", !empty);
-    ["domainSection","sourceSection","yearSection","predictionSection","specialSection","fieldSection","askSection","qbrowseSection","quickSection","examDaySection"]
+    ["domainSection","sourceSection","yearSection","predictionSection","specialSection","fieldSection","askSection","universitySection","qbrowseSection","quickSection","examDaySection"]
       .forEach(id=>{ const el=$("#"+id); if(el && empty) el.classList.add("hidden"); });
-    if(empty){ ["#domainList","#sourceList","#yearList","#predictionList","#fieldList","#specialList","#askList"]
+    if(empty){ ["#domainList","#sourceList","#yearList","#predictionList","#fieldList","#specialList","#askList","#universityList"]
       .forEach(sel=>{ const el=$(sel); if(el) el.innerHTML=""; }); return; }
     ["qbrowseSection","quickSection","examDaySection"]
       .forEach(id=>{ const el=$("#"+id); if(el) el.classList.remove("hidden"); });
@@ -3855,11 +3927,16 @@
     renderGroupList("prediction", "#predictionList");
     renderGroupList("special", "#specialList");
     renderThemeDomainList();
+    renderUniversityList();
   }
   /* 枠の説明文は科目によって変わる（公共・政治経済／理論化学・無機化学…）。
      大分野の名前は subjects.js の domainOrder から作るので、科目を足しても直さなくてよい。 */
   function renderScopeHints(){
     const names=domainOrder().join("・");
+    // 大学別（university を持つ問題）がある科目では、問題一覧の入口にもその分類を書く
+    const ways=qbWaysLabel();
+    const bt=$("#qbrowseBtnTitle"); if(bt) bt.textContent=`問題一覧（${ways}）`;
+    const bs=$("#qbrowseBtnSub"); if(bs) bs.textContent=`収録した過去問を${ways}に、1ページ10問で通して確認できます`;
     const set=(toggle,text)=>{ const el=document.querySelector(`.sectToggle[data-toggle="${toggle}"] .stHint`); if(el) el.textContent=text; };
     set("fieldList", `${names}を選ぶと、その分野の項目が開く`);
     set("domainList", `${names}から選ぶ`);
@@ -3985,6 +4062,74 @@
     list.querySelectorAll(".cat").forEach(el=>{ el.onclick=()=>{
       const g=themeFieldGroups(themeDomain).find(x=>x.key===el.dataset.key); if(!g) return;
       if(g.items.length>1){ openCountModal(g,"field"); } else { startQuiz(g.items,g.label,{mode:"field",key:g.key}); } }; });
+  }
+
+  /* --- 大学別（1段目）：出典の大学を選ぶ。university を持つ問題が無い科目では枠ごと隠れる（OPTIONAL_SECTIONS） --- */
+  function renderUniversityList(){
+    const list=$("#universityList"); if(!list) return;
+    const us=universityGroups();
+    updateSectionCount("universityList", us.length);
+    if(!us.length){ list.innerHTML=""; return; }
+    list.innerHTML=us.map(u=>{
+      const st=catStats(u.items);
+      return themeCard({
+        key:u.key, accent:accents()[u.idx%accents().length], kicker:"大学別演習", title:u.label,
+        items:u.items, chev:"選ぶ",
+        meta:[`${u.years.length}年度`, `${st.seen}/${st.total}問 学習`].concat(st.seen?[`正答率 ${st.acc}%`]:[]).concat(st.weak?[`苦手 ${st.weak}問`]:[])
+      });
+    }).join("");
+    list.querySelectorAll(".cat").forEach(el=>{ el.onclick=()=>openUniversity(el.dataset.key); });
+  }
+
+  /* --- 大学別（2段目）：選んだ大学の「ランダム演習」と「年度別」 --- */
+  let universityKey=null;
+  function openUniversity(u){
+    if(!u) return;
+    if(u!==universityKey){ const box=$("#universityYearList"), btn=$("#universityYearToggle"); if(box) box.classList.add("hidden"); if(btn) btn.setAttribute("aria-expanded","false"); }
+    universityKey=u;
+    openView("universityView");
+  }
+  function renderUniversityView(){
+    // 戻る操作などで大学が失われたときは、先頭の大学を開いておく
+    const us=universityGroups();
+    let ug=us.find(x=>x.key===universityKey);
+    if(!ug){ ug=us[0]||null; universityKey=ug?ug.key:null; }
+    const pill=$("#universityPill"); if(pill) pill.textContent=ug?`大学別 ・ ${ug.label}`:"大学別";
+    const title=$("#universityTitle"); if(title) title.textContent=ug?ug.label:"大学別";
+    const sub=$("#universitySub");
+    const list=$("#universityYearList"); if(!list) return;
+    if(!ug){
+      if(sub) sub.textContent="この科目には大学別の問題がありません";
+      $("#universityRandomCount").textContent="0"; list.innerHTML=""; return;
+    }
+    const st=catStats(ug.items);
+    if(sub) sub.textContent=`${ug.years.length}年度 ・ 全${ug.items.length}問${st.seen?` ・ 学習 ${st.seen}問 ・ 正答率 ${st.acc}%`:""}`;
+    $("#universityRandomCount").textContent=String(ug.items.length);
+    $("#universityRandomSub").textContent=`${ug.label}の全${ug.items.length}問からランダムに出題`;
+    $("#universityYearHint").textContent=`${ug.years.map(y=>y.short.replace(/年度$/,"")).slice(0,3).join("・")}${ug.years.length>3?"…":""}の${ug.years.length}年度から選ぶ`;
+    $("#universityYearCount").textContent=ug.years.length?`${ug.years.length}件`:"";
+    list.innerHTML=ug.years.map(y=>{
+      const s=catStats(y.items), pct=Math.round(s.seen/s.total*100);
+      const accent=accents()[y.idx%accents().length];
+      const mastered=s.mastered?`<span class="mastered">${s.mastered}問定着</span>`:`<span class="mastered" style="color:var(--muted)">開始前</span>`;
+      return `<button type="button" class="cat cat-year" data-key="${esc(y.key)}" style="--accent:${accent};--pct:${pct}%">
+        <div class="info">
+          <div class="cat-kicker">${esc(ug.label)}の年度別演習</div>
+          <h3>${esc(y.short)}</h3>
+          <div class="meta"><span>${s.seen}/${s.total}問 学習</span><span>${s.seen?`正答率 ${s.acc}%`:"未学習"}</span>${s.weak?`<span>苦手 ${s.weak}問</span>`:''}</div>
+          <div class="pbar"><i></i></div>
+        </div>
+        <div class="rt"><span class="badge">${s.total}問</span>${mastered}<span class="chev">開始</span></div>
+      </button>`;
+    }).join("");
+    list.querySelectorAll(".cat").forEach(el=>{ el.onclick=()=>{
+      const y=resolveGroup("university", el.dataset.key); if(!y) return;
+      if(y.items.length>1){ openCountModal(y,"university"); } else { startQuiz(y.items,y.label,{mode:"university",key:y.key}); } }; });
+  }
+  function startUniversityRandom(){
+    const ug=universityGroups().find(x=>x.key===universityKey);
+    if(!ug||!ug.items.length){ toast("この大学の問題がありません"); return; }
+    openCountModal({items:ug.items, label:`${ug.label} ・ ランダム演習`, key:ug.key, kicker:"大学別演習"}, "university");
   }
 
   const ACH=[
@@ -4754,6 +4899,7 @@
   /* ---------- 問題一覧（年度別ブラウズ） ---------- */
   // origin は戻り先（"home"＝問題一覧タブ / "reviewView"＝復習画面の見直し・苦手の一覧）
   // folder は一覧の階層。"" = 最上位 ／ "year" = 年度別 ／ "field" = 分野別 ／ "field::公共" = その分野の項目
+  //   ／ "university" = 大学別 ／ "university::自治医科大学" = その大学（ランダム演習・年度別）／ "university::自治医科大学::year" = その大学の年度別
   let qbrowseState={group:null,folder:"",page:0,selected:new Set(),origin:"home"};
   const QB_PAGE=10;
   const QB_EXAM_ICONS=["📄","📝","🗓"];
@@ -4765,6 +4911,8 @@
   // 分野別グループのキーは年度キーと混ざらないよう接頭辞を付けて一覧内だけで使う
   const QB_F_PREFIX="__f__";
   const QB_W_PREFIX="__w__";
+  const QB_U_PREFIX="__u__";   // 大学別の年度グループ（"__u__自治医科大学::2025年度"）
+  const QB_UNIV_ICONS=["🏫","🎓","🏛"];
   // 原本の出題順に並べる。IDの「末尾の数字だけ」で並べると 問7(2)・問13(2)・問14(2) が
   // どれも 2 になって順序が崩れるので、IDに含まれる数字を上位から順に比べる。
   //   plantphysiology-r7-q13-02 → [7,13,2] ／ 2024-001 → [2024,1]
@@ -4822,8 +4970,18 @@
   function qbFieldDomains(){
     return themeDomains().map(d=>({key:d.key,label:d.label,items:d.items,fields:qbFieldGroups(d.key)}));
   }
+  // 大学別の年度グループ。演習に渡す key は問題演習の大学別と同じ「大学名::年度」、一覧の中だけ browseKey で区別する
+  function qbUniversityYearGroups(u){
+    return universityYearGroups(u).map(g=>({
+      key:g.key, browseKey:QB_U_PREFIX+g.key, label:g.label, short:g.short, university:g.university, items:g.items, mode:"university"
+    }));
+  }
   function qbFindGroup(key){
     const k=String(key);
+    if(k.indexOf(QB_U_PREFIX)===0){
+      const t=k.slice(QB_U_PREFIX.length);
+      return qbUniversityYearGroups(t.slice(0,t.indexOf(THEME_SEP))).find(x=>x.browseKey===k)||null;
+    }
     if(k.indexOf(QB_F_PREFIX)===0){
       const t=k.slice(QB_F_PREFIX.length);
       return qbFieldGroups(t.slice(0,t.indexOf(THEME_SEP))).find(x=>x.browseKey===k)||null;
@@ -4836,10 +4994,23 @@
     if(f==="year") return "年度別";
     if(f==="field") return "分野別";
     if(f&&f.indexOf("field"+THEME_SEP)===0) return "分野別 ・ "+f.slice(("field"+THEME_SEP).length);
+    if(f==="university") return "大学別";
+    const u=qbUniversityOf(f);
+    if(u) return qbIsUniversityYear(f) ? u+" ・ 年度別" : "大学別 ・ "+u;
     return "問題一覧";
   }
+  // "university::自治医科大学" / "university::自治医科大学::year" から大学名を取り出す（大学別のフォルダでなければ ""）
+  function qbUniversityOf(f){
+    const p="university"+THEME_SEP;
+    if(!f||f.indexOf(p)!==0) return "";
+    return f.slice(p.length).split(THEME_SEP)[0]||"";
+  }
+  function qbIsUniversityYear(f){ return !!qbUniversityOf(f) && f.endsWith(THEME_SEP+"year"); }
   function qbParentFolder(f){
-    return (f&&f.indexOf("field"+THEME_SEP)===0) ? "field" : "";
+    if(f&&f.indexOf("field"+THEME_SEP)===0) return "field";
+    if(qbIsUniversityYear(f)) return "university"+THEME_SEP+qbUniversityOf(f);
+    if(qbUniversityOf(f)) return "university";
+    return "";
   }
   function renderQBrowse(){
     const g=qbrowseState.group, f=qbrowseState.folder||"";
@@ -4877,6 +5048,8 @@
     </button>`;
   }
   // 最上位：年度別・分野別のフォルダと、それ以外の区分
+  // 問題一覧の入口に書く分類の名前。大学別は university を持つ問題がある科目だけ
+  function qbWaysLabel(){ return DATA.some(q=>q.university) ? "年度別・分野別・大学別" : "年度別・分野別"; }
   function qbTopHTML(){
     const g=qbGroups(), ds=qbFieldDomains();
     let html="";
@@ -4885,6 +5058,9 @@
       sub:`${g.exam.length}年度`, items:g.exam.flatMap(x=>x.items)}));
     if(ds.length) folders.push(qbFolderBtn({folder:"field",icon:"🗂",title:"分野別",
       sub:`${ds.length}分野 ・ ${ds.reduce((n,d)=>n+d.fields.length,0)}項目`, items:ds.flatMap(d=>d.items)}));
+    const us=universityGroups();
+    if(us.length) folders.push(qbFolderBtn({folder:"university",icon:"🏫",title:"大学別",
+      sub:`${us.length}大学 ・ ${us.map(u=>u.label).slice(0,3).join("・")}${us.length>3?"…":""}`, items:us.flatMap(u=>u.items)}));
     if(folders.length) html+=`<div class="qbSectLabel">📂 分類から選ぶ</div><div class="qbGroupList">${folders.join("")}</div>`;
     if(g.written.length){
       html+=`<div class="qbSectLabel">✎ 記述問題</div><div class="qbGroupList">`+
@@ -4915,6 +5091,39 @@
       ds.map((d,i)=>qbFolderBtn({folder:"field"+THEME_SEP+d.key, icon:QB_DOMAIN_ICONS[i%QB_DOMAIN_ICONS.length],
         title:d.label, sub:`${d.fields.length}項目`, items:d.items})).join("")+`</div>`;
   }
+  // 大学別フォルダの中身（大学の一覧）
+  function qbUniversityFolderHTML(){
+    const us=universityGroups();
+    if(!us.length) return `<div class="empty">大学別の問題がありません。<br>questions.js に <b>university</b> を設定してください。</div>`;
+    return `<div class="qbSectLabel">🏫 大学別</div><div class="qbGroupList">`+
+      us.map((u,i)=>qbFolderBtn({folder:"university"+THEME_SEP+u.key, icon:QB_UNIV_ICONS[i%QB_UNIV_ICONS.length],
+        title:u.label, sub:`${u.years.length}年度`, items:u.items})).join("")+`</div>`;
+  }
+  // 大学の中：ランダム演習（その大学の全問から出題）と年度別（フォルダ）の2項目
+  function qbUniversityHTML(u){
+    const ug=universityGroups().find(x=>x.key===u);
+    if(!ug) return `<div class="empty">この大学の問題はまだありません。</div>`;
+    const st=catStats(ug.items), pct=st.total?Math.round(st.seen/st.total*100):0;
+    const random=`<button type="button" class="brDeck2 qbUnivRandom" data-university="${esc(ug.key)}">
+      <span class="brDeckHead">
+        <span class="fcDeckIcon">🎲</span>
+        <span class="brDeckTitle">ランダム演習</span>
+        <span class="brDeckN">${ug.items.length}問</span>
+      </span>
+      <span class="brDeckSub">${esc(ug.label)}の全${ug.items.length}問からランダムに出題 ・ 学習 ${st.seen}/${st.total}問${st.acc?` ・ 正答 ${st.acc}%`:""}</span>
+      <span class="brDeckBar"><i style="width:${pct}%"></i></span>
+    </button>`;
+    const years=qbFolderBtn({folder:"university"+THEME_SEP+ug.key+THEME_SEP+"year", icon:"📅", title:"年度別",
+      sub:`${ug.years.length}年度`, items:ug.items});
+    return `<div class="qbSectLabel">🏫 ${esc(ug.label)}</div><div class="qbGroupList">${random}${years}</div>`;
+  }
+  // 大学の年度別の中身
+  function qbUniversityYearHTML(u){
+    const gs=qbUniversityYearGroups(u);
+    if(!gs.length) return `<div class="empty">この大学の問題はまだありません。</div>`;
+    return `<div class="qbSectLabel">📅 ${esc(u)}の年度別</div><div class="qbGroupList">`+
+      gs.map((g,i)=>qbGroupBtn({...g,label:g.short},QB_EXAM_ICONS[i%QB_EXAM_ICONS.length])).join("")+`</div>`;
+  }
   // 分野の中の単元一覧
   function qbFieldDomainHTML(domain){
     const gs=qbFieldGroups(domain);
@@ -4930,10 +5139,17 @@
     const html = f==="year" ? qbYearFolderHTML()
       : f==="field" ? qbFieldFolderHTML()
       : f.indexOf("field"+THEME_SEP)===0 ? qbFieldDomainHTML(f.slice(("field"+THEME_SEP).length))
+      : f==="university" ? qbUniversityFolderHTML()
+      : qbIsUniversityYear(f) ? qbUniversityYearHTML(qbUniversityOf(f))
+      : qbUniversityOf(f) ? qbUniversityHTML(qbUniversityOf(f))
       : qbTopHTML();
     box.innerHTML=html||`<div class="empty">問題データがありません。</div>`;
     box.querySelectorAll(".qbFolder").forEach(el=>{ el.onclick=()=>{
       qbrowseState.folder=el.dataset.folder; qbrowseState.page=0; renderQBrowse(); window.scrollTo(0,0);
+    }; });
+    box.querySelectorAll(".qbUnivRandom").forEach(el=>{ el.onclick=()=>{
+      const ug=universityGroups().find(x=>x.key===el.dataset.university); if(!ug) return;
+      openCountModal({items:ug.items, label:`${ug.label} ・ ランダム演習`, key:ug.key, kicker:"大学別演習"}, "university");
     }; });
     box.querySelectorAll(".brDeck2[data-key]").forEach(el=>{ el.onclick=()=>{
       const grp=qbFindGroup(el.dataset.key); if(!grp)return;
@@ -6889,6 +7105,14 @@
   $("#reviewScheduleEntry").onclick=()=>openView("reviewScheduleView");
   $("#weakFieldBack").onclick=()=>openView("reviewView");
   $("#themeFieldBack").onclick=()=>openView("practiceView");
+  $("#universityBack").onclick=()=>openView("practiceView");
+  $("#universityRandom").onclick=startUniversityRandom;
+  // 大学の中の「年度別」は演習範囲のトグルと同じ見た目だが、大学を替えても開いた状態は引き継がない
+  $("#universityYearToggle").onclick=()=>{
+    const btn=$("#universityYearToggle"), box=$("#universityYearList");
+    const open=box.classList.contains("hidden");
+    box.classList.toggle("hidden",!open); btn.setAttribute("aria-expanded",open?"true":"false");
+  };
   /* 問題検索 */
   $("#slideBack").onclick=closeSlideView;
   $("#lessonGroupBack").onclick=()=>{ lessonGroupOpen=null; renderLessonList(); window.scrollTo({top:0,behavior:"smooth"}); };
@@ -7353,7 +7577,7 @@
   });
   // 科目によっては「予想問題」「直前スペシャル」が存在しないので、
   // 0件のときはセクションごと隠す（空の案内文を出さない）。
-  const OPTIONAL_SECTIONS={ predictionList:"predictionSection", specialList:"specialSection", askList:"askSection" };
+  const OPTIONAL_SECTIONS={ predictionList:"predictionSection", specialList:"specialSection", askList:"askSection", universityList:"universitySection" };
   function updateSectionCount(key, count){
     const badge=document.querySelector(`.sectToggle[data-toggle="${key}"] .stCount`);
     if(badge) badge.textContent = count>0 ? count+"件" : "";

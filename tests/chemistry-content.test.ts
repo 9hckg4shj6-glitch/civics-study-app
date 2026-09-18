@@ -68,6 +68,8 @@ describe("化学（私立対策）の科目設定", () => {
       // 見出しには年度ではなく「自治医科大2025年」のような短い出典名（大学名＋年度）を出す
       expect(["自治医科大2025年", "自治医科大2024年", "自治医科大2023年", "自治医科大2022年", "自治医科大2021年", "自治医科大2020年", "自治医科大2026年"]).toContain(q.sourceShort);
       expect(q.sourceShort).toBe(`自治医科大${String(q.year).replace("年度", "")}年`);
+      // 「大学別」の演習・一覧はこの欄で束ねる（sourceLabel からの切り出しはしない）
+      expect(q.university).toBe("自治医科大学");
       expect(q.field && priv.fieldOrder.includes(q.field)).toBe(true);
     }
   });
