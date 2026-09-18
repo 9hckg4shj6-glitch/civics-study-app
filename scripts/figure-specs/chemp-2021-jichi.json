@@ -1,0 +1,16 @@
+{
+  "_note": "2021年度 自治医科大学 医学部 一般選抜（1次試験）「理科」のうち化学（問題1〜25）の図の切り出し。原本は東進の過去問データベースのスキャンPDF（~/Downloads/ の c8v211001m0.pdf。テキスト層あり・13ページ）を sources/chemistry-private/2021_jichi_rika_scan.pdf として置いて使う。冊子の化学は11ページ始まりで、PDFのページは冊子のページから 9 を引いた番号（冊子14ページ＝PDF 5ページ）。2025〜2022年度と同じ刷りなので点の除去（minComponent）は 0。band は 100dpi で描いたページの画素座標。問題8は燃料電池の装置図、問題16は第E文の乳酸2つの構造式（くさび形の立体表記）、問題20は二糖①〜⑤の構造式、問題22は合成高分子①〜④の構造式。実行: python3 scripts/crop-figures.py scripts/figure-specs/chemp-2021-jichi.json",
+  "pdf": "sources/chemistry-private/2021_jichi_rika_scan.pdf",
+  "outDir": "public/images/chemistry-private",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 0,
+  "figures": [
+    { "name": "2021-jichi-8-nenryou", "page": 5, "band": [120, 280, 620, 545] },
+    { "name": "2021-jichi-16-nyuusan", "page": 8, "band": [230, 690, 520, 800] },
+    { "name": "2021-jichi-20-nitou", "page": 10, "band": [95, 150, 640, 535] },
+    { "name": "2021-jichi-22-koubunshi", "page": 11, "band": [120, 195, 600, 450] }
+  ]
+}
