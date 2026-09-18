@@ -1,0 +1,14 @@
+{
+  "_note": "2023年度 岩手医科大学 一般選抜「理科」のうち化学（第1問〜第3問、解答番号1〜25）の図の切り出し。原本は東進の過去問データベースのスキャンPDF（~/Downloads/ の c8g231001m0.pdf。テキスト層あり・24ページ）を sources/chemistry-private/2023_iwate_rika_scan.pdf として置いて使う。冊子の化学は24ページ始まりで、PDFのページは冊子のページから 21 を引いた番号（冊子24ページ＝PDF 3ページ）。2024年度と同じ東進のスキャンで紙面にノイズの点が無いので点の除去（minComponent）は 0。band は 100dpi で描いたページの画素座標。第1問問1はろ過の装置の模式図、第1問問6は発生した水素の体積と加えた希塩酸の体積のグラフ ア〜オ（いずれも stemImages）。「図」の札は帯の外。実行: python3 scripts/crop-figures.py scripts/figure-specs/chemp-2023-iwate.json",
+  "pdf": "sources/chemistry-private/2023_iwate_rika_scan.pdf",
+  "outDir": "public/images/chemistry-private",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 0,
+  "figures": [
+    { "name": "2023-iwate-1-roka", "page": 3, "band": [290, 600, 430, 772] },
+    { "name": "2023-iwate-6-suiso", "page": 8, "band": [190, 300, 515, 580] }
+  ]
+}

@@ -178,7 +178,7 @@ describe("大学別の演習と一覧", () => {
     expect(shown(win, "universitySection")).toBe(true);
     if (!shown(win, "universityList")) win.document.querySelector('.sectToggle[data-toggle="universityList"]').click();
     await tick(120);
-    // 問題数の多い大学から並ぶ（自治医科大99問 → 岩手医科大22問）
+    // 問題数の多い大学から並ぶ（自治医科大99問 → 岩手医科大45問）
     expect(labels(win, "universityList")).toEqual(["自治医科大学", "岩手医科大学"]);
     expect(win.document.querySelector('.sectToggle[data-toggle="universityList"] .stCount')!.textContent).toBe("2件");
     const jichi = win.QUIZ_DATA.filter((q: any) => q.university === "自治医科大学").length;
