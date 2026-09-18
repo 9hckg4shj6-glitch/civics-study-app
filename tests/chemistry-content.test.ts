@@ -65,6 +65,8 @@ describe("化学（私立対策）の科目設定", () => {
     for (const q of privQuestions) {
       expect(String(q.id).startsWith("chemp-")).toBe(true);
       expect(q.sourceType).toBe("private");
+      // 見出しには年度ではなく「自治医科大2025年」のような短い出典名を出す
+      expect(q.sourceShort).toBe("自治医科大2025年");
       expect(q.field && priv.fieldOrder.includes(q.field)).toBe(true);
     }
   });

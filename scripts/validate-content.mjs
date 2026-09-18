@@ -139,6 +139,10 @@ export function validateChemistry(label, id, question, errors) {
   if (question.sourceType !== "original" && !/^\d{4}年度( 追試| 第2日程)?$/.test(String(question.year ?? ""))) {
     e(`year は「2024年度」「2026年度 追試」「2021年度 第2日程」のように西暦の年度で書いてください (${question.year})`);
   }
+  // 私大・国公立の過去問は、問題の見出しに年度だけ出しても出典が分からないので、短い出典名を必ず持たせる
+  if ((question.sourceType === "private" || question.sourceType === "national") && !String(question.sourceShort ?? "").trim()) {
+    e("私大・国公立の過去問には sourceShort（見出しに出す短い出典名。例: 自治医科大2025年）を付けてください");
+  }
   validateContentCore(label, id, question, errors);
 
   /* 選択肢の並べ替え事故を防ぐ。「a 正・b 誤」型の組合せや、

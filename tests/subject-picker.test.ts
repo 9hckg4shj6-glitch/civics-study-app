@@ -101,6 +101,19 @@ describe("科目えらび画面", () => {
     expect(win.QUIZ_DATA.every((q: any) => String(q.id).startsWith("chemp-"))).toBe(true);
     expect(win.document.getElementById("appTitle")!.textContent).toBe("化学（私立対策）");
     expect(win.document.getElementById("home")!.classList.contains("hidden")).toBe(false);
+    // 問題の見出しには年度ではなく大学名入りの短い出典名が出る
+    const hub = [...win.document.querySelectorAll("#hubGrid .hubBtn")]
+      .find((b: any) => b.querySelector(".hubName")?.textContent === "問題検索") as any;
+    hub.click();
+    await tick(200);
+    const inp = win.document.getElementById("searchInput") as any;
+    inp.value = "電気分解"; inp.dispatchEvent(new win.Event("input", { bubbles: true }));
+    await tick(300);
+    const item = win.document.querySelector('.srItem[data-id="chemp-2025-jichi-6"]') as any;
+    expect(item.querySelector(".srMeta span").textContent.startsWith("自治医科大2025年 ・ ")).toBe(true);
+    item.click();
+    await tick(400);
+    expect(win.document.getElementById("qtag")!.textContent).toBe("自治医科大2025年 ・ 電池と電気分解");
   }, 30_000);
 
   it("日本史を選ぶと日本史の問題だけを読み込み、ホームの見出しも日本史になる", async () => {

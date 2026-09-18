@@ -2795,6 +2795,7 @@
       sourceType: q.sourceType || "",            // common-new / common-legacy / center / original
       sourceLabel: q.sourceLabel || "",
       sourceQuestion: q.sourceQuestion || "",
+      sourceShort: q.sourceShort || "",          // 問題の見出しに年度の代わりに出す短い出典名（例: 自治医科大2025年）
       sourceUrl: q.sourceUrl || "",
       sourceNote: q.sourceNote || "",
       verifiedAt: q.verifiedAt || "",
@@ -4162,6 +4163,9 @@
   function qUnderlineHTML(q){ return underlineHTML(q&&q.question, q&&q.underlines); }
   // 一覧では設問文をそのまま並べると長すぎて見比べられない。教材が持つ短い問題名
   //（listTitle。「〜に関する正誤問題」の形）を出し、設問文は問題を開いてから読ませる。
+  /* 問題の見出し・検索結果に出す出典の短い名前。私大・国公立の過去問は年度だけでは
+     どこの問題か分からないので sourceShort（例: 自治医科大2025年）を優先し、無ければ年度（共テ・センター）を出す。 */
+  function qSourceTag(q){ return (q&&(q.sourceShort||q.year||q.mockTitle))||""; }
   function qListTitle(q){ const t=q&&q.listTitle; return (t&&String(t).trim())||((q&&q.question)||""); }
   function highlight(text, query, spans){
     let h=underlineHTML(text, spans);
@@ -4188,7 +4192,7 @@
     $("#srPracticeAll").onclick=()=>startQuiz(matches, `「${qs}」の検索結果`);
     const cap=matches.slice(0,80);
     box.innerHTML=cap.map(q=>{
-      const r=progress[q.id], tag=[q.year||q.mockTitle,q.field,q.topic].filter(Boolean).join(" ・ ");
+      const r=progress[q.id], tag=[qSourceTag(q),q.field,q.topic].filter(Boolean).join(" ・ ");
       const status=(r&&r.seen)?(r.correct>=r.wrong?'<span class="srOk">学習済</span>':'<span class="srNg">要復習</span>'):"";
       return `<button type="button" class="srItem" data-id="${esc(q.id)}"><div class="srQ">${esc(qListTitle(q))}</div><div class="srSnippet">${highlight(q.question,qs,q.underlines)}</div><div class="srMeta"><span>${esc(tag)}</span>${status}</div></button>`;
     }).join("") + (matches.length>cap.length?`<div class="srMore">ほか ${matches.length-cap.length} 問（キーワードを絞ると探しやすくなります）</div>`:"");
@@ -5358,7 +5362,7 @@
   }
   function renderSlideView(q){
     const ansIdx=ansIdxs(q), ansText_=ansIdx.map(i=>q.choices[i]).join(" ／ ");
-    $("#slideViewQ").innerHTML=`<div class="svQLabel">${esc([q.year,q.field].filter(Boolean).join(" ・ "))}</div>
+    $("#slideViewQ").innerHTML=`<div class="svQLabel">${esc([qSourceTag(q),q.field].filter(Boolean).join(" ・ "))}</div>
       <div class="svQText">${qUnderlineHTML(q)}</div>
       <div class="svExpl"><b>正解：</b>${esc(ansText_)}<br>${esc(q.explanation.replace(/▶該当スライド：.*$/,"").trim())}</div>`;
     const body=$("#slideViewBody");
@@ -6475,7 +6479,7 @@
       ? `${done+1}〜${done+entries.length} / ${s.queue.length}`
       : `${done+1} / ${s.queue.length}`;
     $("#streakPill").textContent=`🔥 ${s.streak}`;
-    const baseTag=[first.year,first.field].filter(Boolean).join(" ・ ")||s.label;
+    const baseTag=[qSourceTag(first),first.field].filter(Boolean).join(" ・ ")||s.label;
     $("#qtag").textContent=s.batch?`${baseTag} ・ まとめて採点`:baseTag;
     updateBookmarkBtn(first.id);
 
