@@ -66,7 +66,7 @@ describe("化学（私立対策）の科目設定", () => {
       expect(String(q.id).startsWith("chemp-")).toBe(true);
       expect(q.sourceType).toBe("private");
       // 見出しには年度ではなく「自治医科大2025年」のような短い出典名（大学名＋年度）を出す
-      expect(["自治医科大2025年", "自治医科大2024年"]).toContain(q.sourceShort);
+      expect(["自治医科大2025年", "自治医科大2024年", "自治医科大2023年"]).toContain(q.sourceShort);
       expect(q.sourceShort).toBe(`自治医科大${String(q.year).replace("年度", "")}年`);
       expect(q.field && priv.fieldOrder.includes(q.field)).toBe(true);
     }
@@ -78,7 +78,7 @@ describe("化学（私立対策）の科目設定", () => {
     for (const q of privQuestions) {
       validateChoice("化学（私立）", q.id, q, errors);
       validateChemistry("化学（私立）", q.id, q, errors);
-      // 問題文の図も選択肢の図（2024年度の問題25）も、ファイルが実在し代替テキストをもつ
+      // 問題文の図も選択肢の図（2024年度の問題25・2023年度の問題19）も、ファイルが実在し代替テキストをもつ
       for (const fig of [...(q.stemImages ?? []), ...(q.choiceImages ?? [])]) {
         expect(fs.existsSync(path.join("public", fig.src))).toBe(true);
         expect(String(fig.alt ?? "").trim().length).toBeGreaterThan(0);
