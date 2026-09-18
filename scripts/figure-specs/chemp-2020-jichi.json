@@ -1,0 +1,19 @@
+{
+  "_note": "2020年度 自治医科大学 医学部 一般選抜（1次試験）「理科」のうち化学（問題1〜25）の図の切り出し。原本は東進の過去問データベースのスキャンPDF（~/Downloads/ の c8v201001m0.pdf。テキスト層なし・14ページ）を sources/chemistry-private/2020_jichi_rika_scan.pdf として置いて使う。冊子の化学は11ページ始まりで、PDFのページは冊子のページから 9 を引いた番号（冊子13ページ＝PDF 4ページ）。2025〜2021年度と同じ刷りなので点の除去（minComponent）は 0。band は 100dpi で描いたページの画素座標。問題1は周期表の概略図、問題5は蒸留装置の図（stemImages）。問題7は選択肢がグラフなので、ア〜オの5枚をそれぞれ切り出して choiceImages に載せる（丸付きの記号が縦書きの軸ラベルの真上にあり帯で外せないので erase で白く消す）。実行: python3 scripts/crop-figures.py scripts/figure-specs/chemp-2020-jichi.json",
+  "pdf": "sources/chemistry-private/2020_jichi_rika_scan.pdf",
+  "outDir": "public/images/chemistry-private",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 0,
+  "figures": [
+    { "name": "2020-jichi-1-shuukihyou", "page": 2, "band": [95, 415, 640, 650] },
+    { "name": "2020-jichi-5-jouryuu", "page": 4, "band": [120, 420, 620, 785] },
+    { "name": "2020-jichi-7-c1", "page": 5, "band": [100, 595, 275, 752], "erase": [[108, 597, 125, 615]] },
+    { "name": "2020-jichi-7-c2", "page": 5, "band": [285, 595, 462, 752], "erase": [[294, 597, 312, 615]] },
+    { "name": "2020-jichi-7-c3", "page": 5, "band": [472, 595, 650, 752], "erase": [[481, 597, 498, 615]] },
+    { "name": "2020-jichi-7-c4", "page": 5, "band": [100, 757, 275, 910], "erase": [[108, 758, 125, 776]] },
+    { "name": "2020-jichi-7-c5", "page": 5, "band": [285, 757, 462, 910], "erase": [[294, 758, 312, 776]] }
+  ]
+}

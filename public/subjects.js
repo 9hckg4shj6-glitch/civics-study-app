@@ -169,8 +169,8 @@ window.SUBJECTS = [
     contentProfile: "chemistry",
     hideLearning: true,
     hideExamDay: true,
-    expectQuestions: 70,      // 収録を増やしたらこの数も更新する
-    expectDomainCounts: { 理論化学: 22, 無機化学: 17, 有機化学: 15, 高分子化合物: 16 },
+    expectQuestions: 88,      // 収録を増やしたらこの数も更新する
+    expectDomainCounts: { 理論化学: 29, 無機化学: 20, 有機化学: 16, 高分子化合物: 23 },
     sourceTypeLabels: CHEM_SOURCE_TYPE_LABELS,
     domainOrder: CHEM_DOMAIN_ORDER,
     ranks: CHEM_RANKS,
