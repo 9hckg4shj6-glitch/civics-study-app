@@ -1,0 +1,17 @@
+{
+  "_note": "2021年度 岩手医科大学 一般選抜「理科」のうち化学（第1問〜第3問、解答番号1〜25）の図の切り出し。原本は東進の過去問データベースのスキャンPDF（~/Downloads/ の c8g211001m0.pdf。テキスト層なし・24ページ）を sources/chemistry-private/2021_iwate_rika_scan.pdf として置いて使う。冊子の化学は26ページ始まりで、PDFのページは冊子のページから 24 を引いた番号（冊子26ページ＝PDF 2ページ）。2022〜2024年度と同じ東進のスキャンなので点の除去（minComponent）は 0。band は 100dpi で描いたページの画素座標。第3問問6は実験の図（図1。「図1」の札は帯の外）を stemImages に、選択肢(A)の構造式 3 種類（塩化ベンゼンジアゾニウム・p-ヒドロキシアゾベンゼン・ニトロベンゼン）を choiceImages に使う（同じ構造の選択肢は同じ図。表の罫線は帯の外）。第3問問7は分離の流れ図（図2）と陽イオンの構造式（図3）を札ごと 1 枚に切り出して stemImages に使う。実行: python3 scripts/crop-figures.py scripts/figure-specs/chemp-2021-iwate.json",
+  "pdf": "sources/chemistry-private/2021_iwate_rika_scan.pdf",
+  "outDir": "public/images/chemistry-private",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 0,
+  "figures": [
+    { "name": "2021-iwate-22-jikken", "page": 19, "band": [110, 340, 650, 585] },
+    { "name": "2021-iwate-22-c-diazo", "page": 20, "band": [170, 115, 300, 160] },
+    { "name": "2021-iwate-22-c-azo", "page": 20, "band": [138, 280, 332, 326] },
+    { "name": "2021-iwate-22-c-nitro", "page": 20, "band": [185, 447, 290, 492] },
+    { "name": "2021-iwate-23-bunri", "page": 21, "band": [120, 255, 620, 545] }
+  ]
+}
