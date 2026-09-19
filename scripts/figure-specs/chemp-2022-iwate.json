@@ -1,0 +1,15 @@
+{
+  "_note": "2022年度 岩手医科大学 一般選抜「理科」のうち化学（第1問〜第3問、解答番号1〜25）の図の切り出し。原本は東進の過去問データベースのスキャンPDF（~/Downloads/ の c8g221001m0.pdf。テキスト層なし・24ページ）を sources/chemistry-private/2022_iwate_rika_scan.pdf として置いて使う。冊子の化学は22ページ始まりで、PDFのページは冊子のページから 20 を引いた番号（冊子22ページ＝PDF 2ページ）。2023・2024年度と同じ東進のスキャンで、安全ピペッターの図は網点の灰色なので点の除去（minComponent）は 0。band は 100dpi で描いたページの画素座標。第1問問4は面心立方格子の単位格子の図（図1）、問5は状態図（図2。「圧力」「温度」の軸名は入れ、「図2」の札は帯の外）、問7は安全ピペッターの模式図（図3。A・S・E の札を含む）。いずれも stemImages。実行: python3 scripts/crop-figures.py scripts/figure-specs/chemp-2022-iwate.json",
+  "pdf": "sources/chemistry-private/2022_iwate_rika_scan.pdf",
+  "outDir": "public/images/chemistry-private",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 0,
+  "figures": [
+    { "name": "2022-iwate-5-koushi", "page": 5, "band": [215, 260, 525, 528] },
+    { "name": "2022-iwate-6-joutaizu", "page": 6, "band": [215, 345, 460, 527] },
+    { "name": "2022-iwate-8-pipetter", "page": 8, "band": [300, 205, 400, 346] }
+  ]
+}
