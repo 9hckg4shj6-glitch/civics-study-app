@@ -1,0 +1,20 @@
+{
+  "_note": "2020年度 岩手医科大学 一般選抜「理科」のうち化学（第1問〜第3問、解答番号1〜25）の図の切り出し。原本は東進の過去問データベースのスキャンPDF（~/Downloads/ の c8g201001m0.pdf。テキスト層なし・23ページ）を sources/chemistry-private/2020_iwate_rika_scan.pdf として置いて使う。冊子の化学は30ページ始まりで、PDFのページは冊子のページから 28 を引いた番号（冊子30ページ＝PDF 2ページ）。2021〜2024年度と同じ東進のスキャンなので点の除去（minComponent）は 0。band は 100dpi で描いたページの画素座標。第3問問2 a は元素分析の装置の図（図1。「図1」の札は帯の外）を stemImages に、第3問問5 は選択肢①〜⑦の芳香族化合物の構造式を 1 枚ずつ choiceImages に使う（丸付き数字は帯の外）。実行: python3 scripts/crop-figures.py scripts/figure-specs/chemp-2020-iwate.json",
+  "pdf": "sources/chemistry-private/2020_iwate_rika_scan.pdf",
+  "outDir": "public/images/chemistry-private",
+  "renderDpi": 300,
+  "bandDpi": 100,
+  "pad": 26,
+  "maxWidth": 1100,
+  "minComponent": 0,
+  "figures": [
+    { "name": "2020-iwate-17-bunseki", "page": 17, "band": [130, 150, 570, 352] },
+    { "name": "2020-iwate-23-c1", "page": 21, "band": [160, 462, 300, 528] },
+    { "name": "2020-iwate-23-c2", "page": 21, "band": [405, 462, 540, 540] },
+    { "name": "2020-iwate-23-c3", "page": 21, "band": [160, 580, 300, 656] },
+    { "name": "2020-iwate-23-c4", "page": 21, "band": [405, 580, 540, 662] },
+    { "name": "2020-iwate-23-c5", "page": 21, "band": [160, 692, 300, 762] },
+    { "name": "2020-iwate-23-c6", "page": 21, "band": [405, 692, 540, 762] },
+    { "name": "2020-iwate-23-c7", "page": 21, "band": [160, 802, 300, 868] }
+  ]
+}

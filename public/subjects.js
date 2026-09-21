@@ -179,8 +179,8 @@ window.SUBJECTS = [
     practiceScopes: ["field", "university", "ask"],
     // 問題一覧も分野別を先頭に。年度別は出典どおりの year で束ねるだけなので末尾
     browseFolders: ["field", "university", "year"],
-    expectQuestions: 189,     // 収録を増やしたらこの数も更新する
-    expectDomainCounts: { 理論化学: 56, 無機化学: 56, 有機化学: 43, 高分子化合物: 34 },
+    expectQuestions: 211,     // 収録を増やしたらこの数も更新する
+    expectDomainCounts: { 理論化学: 61, 無機化学: 64, 有機化学: 50, 高分子化合物: 36 },
     sourceTypeLabels: CHEM_SOURCE_TYPE_LABELS,
     domainOrder: CHEM_DOMAIN_ORDER,
     ranks: CHEM_RANKS,
