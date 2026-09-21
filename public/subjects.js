@@ -24,6 +24,12 @@
      draft            … true の間は科目えらびに「準備中」で出し、タップしても中へ入れない。
                         問題を収録し始めたらこのフラグを外す（validate:content も0件を許す）。
                         いまはどの科目にも付いていない
+     practiceScopes   … 問題演習「演習範囲」の枠を、この順に並べて、ここに無い枠は出さない
+                        （field=テーマ別 / ask=問い方別 / domain=分野別 / source=出典別 /
+                          university=大学別 / year=年度別 / prediction=予想問題 / special=直前スペシャル）。
+                        無い科目は既定の順（テーマ別 → 問い方別 → 分野別 → 出典別 → 大学別 → 年度別 → …）で全部出す
+     browseFolders    … 問題一覧の最上位フォルダの並び（year=年度別 / field=分野別 / university=大学別）。
+                        無い科目は 年度別 → 分野別 → 大学別 の順
    ============================================================ */
 
 /* 化学の2科目（共テ対策・私立対策）で共有する設定。
@@ -169,6 +175,10 @@ window.SUBJECTS = [
     contentProfile: "chemistry",
     hideLearning: true,
     hideExamDay: true,
+    // 私立対策は分野（テーマ）と大学で解くのが主なので、演習範囲はこの3つだけをこの順に出す
+    practiceScopes: ["field", "university", "ask"],
+    // 問題一覧も分野別を先頭に。年度別は出典どおりの year で束ねるだけなので末尾
+    browseFolders: ["field", "university", "year"],
     expectQuestions: 189,     // 収録を増やしたらこの数も更新する
     expectDomainCounts: { 理論化学: 56, 無機化学: 56, 有機化学: 43, 高分子化合物: 34 },
     sourceTypeLabels: CHEM_SOURCE_TYPE_LABELS,

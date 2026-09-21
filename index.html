@@ -3928,6 +3928,24 @@
     renderGroupList("special", "#specialList");
     renderThemeDomainList();
     renderUniversityList();
+    arrangeScopeSections();
+  }
+  /* 演習範囲の枠の並び。subjects.js の practiceScopes（例：["field","university","ask"]）を持つ科目は
+     その順に並べ、書いていない枠は隠す。持たない科目は既定の順で全部出す。
+     科目は再読み込みなしで切り替わるので、毎回この既定の順から並べ直す。 */
+  const SCOPE_SECTIONS={ field:"fieldSection", ask:"askSection", domain:"domainSection", source:"sourceSection",
+    university:"universitySection", year:"yearSection", prediction:"predictionSection", special:"specialSection" };
+  const SCOPE_DEFAULT_ORDER=["field","ask","domain","source","university","year","prediction","special"];
+  function practiceScopes(){ const s=currentSubject(); return (s && Array.isArray(s.practiceScopes)) ? s.practiceScopes.filter(k=>SCOPE_SECTIONS[k]) : null; }
+  function arrangeScopeSections(){
+    const chosen=practiceScopes();
+    const order=chosen ? chosen.concat(SCOPE_DEFAULT_ORDER.filter(k=>chosen.indexOf(k)<0)) : SCOPE_DEFAULT_ORDER;
+    const view=$("#practiceView"); if(!view) return;
+    order.forEach(k=>{
+      const el=$("#"+SCOPE_SECTIONS[k]); if(!el) return;
+      view.appendChild(el);   // 末尾へ移すだけで、order の順に並ぶ
+      if(chosen && chosen.indexOf(k)<0) el.classList.add("hidden");
+    });
   }
   /* 枠の説明文は科目によって変わる（公共・政治経済／理論化学・無機化学…）。
      大分野の名前は subjects.js の domainOrder から作るので、科目を足しても直さなくてよい。 */
@@ -5048,19 +5066,31 @@
     </button>`;
   }
   // 最上位：年度別・分野別のフォルダと、それ以外の区分
+  // フォルダの並びは subjects.js の browseFolders（例：["field","university","year"]）。無い科目は既定の順
+  const QB_FOLDER_DEFAULT_ORDER=["year","field","university"];
+  const QB_FOLDER_NAMES={ year:"年度別", field:"分野別", university:"大学別" };
+  function qbFolderOrder(){
+    const s=currentSubject();
+    const o=(s && Array.isArray(s.browseFolders)) ? s.browseFolders.filter(k=>QB_FOLDER_NAMES[k]) : [];
+    return o.length ? o.concat(QB_FOLDER_DEFAULT_ORDER.filter(k=>o.indexOf(k)<0)) : QB_FOLDER_DEFAULT_ORDER;
+  }
   // 問題一覧の入口に書く分類の名前。大学別は university を持つ問題がある科目だけ
-  function qbWaysLabel(){ return DATA.some(q=>q.university) ? "年度別・分野別・大学別" : "年度別・分野別"; }
+  function qbWaysLabel(){
+    const hasUniv=DATA.some(q=>q.university);
+    return qbFolderOrder().filter(k=>k!=="university"||hasUniv).map(k=>QB_FOLDER_NAMES[k]).join("・");
+  }
   function qbTopHTML(){
     const g=qbGroups(), ds=qbFieldDomains();
     let html="";
-    const folders=[];
-    if(g.exam.length) folders.push(qbFolderBtn({folder:"year",icon:"📅",title:"年度別",
-      sub:`${g.exam.length}年度`, items:g.exam.flatMap(x=>x.items)}));
-    if(ds.length) folders.push(qbFolderBtn({folder:"field",icon:"🗂",title:"分野別",
-      sub:`${ds.length}分野 ・ ${ds.reduce((n,d)=>n+d.fields.length,0)}項目`, items:ds.flatMap(d=>d.items)}));
+    const btn={};
+    if(g.exam.length) btn.year=qbFolderBtn({folder:"year",icon:"📅",title:"年度別",
+      sub:`${g.exam.length}年度`, items:g.exam.flatMap(x=>x.items)});
+    if(ds.length) btn.field=qbFolderBtn({folder:"field",icon:"🗂",title:"分野別",
+      sub:`${ds.length}分野 ・ ${ds.reduce((n,d)=>n+d.fields.length,0)}項目`, items:ds.flatMap(d=>d.items)});
     const us=universityGroups();
-    if(us.length) folders.push(qbFolderBtn({folder:"university",icon:"🏫",title:"大学別",
-      sub:`${us.length}大学 ・ ${us.map(u=>u.label).slice(0,3).join("・")}${us.length>3?"…":""}`, items:us.flatMap(u=>u.items)}));
+    if(us.length) btn.university=qbFolderBtn({folder:"university",icon:"🏫",title:"大学別",
+      sub:`${us.length}大学 ・ ${us.map(u=>u.label).slice(0,3).join("・")}${us.length>3?"…":""}`, items:us.flatMap(u=>u.items)});
+    const folders=qbFolderOrder().map(k=>btn[k]).filter(Boolean);
     if(folders.length) html+=`<div class="qbSectLabel">📂 分類から選ぶ</div><div class="qbGroupList">${folders.join("")}</div>`;
     if(g.written.length){
       html+=`<div class="qbSectLabel">✎ 記述問題</div><div class="qbGroupList">`+

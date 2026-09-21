@@ -268,12 +268,36 @@ describe("大学別の演習と一覧", () => {
     expect(folder("岩手医科大学")).toBeTruthy();
   }, 40_000);
 
+  /* 私立対策は subjects.js の practiceScopes / browseFolders で、演習範囲を
+     テーマ別 → 大学別 → 問い方別 の3つだけに、問題一覧を 分野別 → 大学別 → 年度別 の順にしている。
+     共テ対策の化学は同じ配色を借りるだけで、こちらの並びは既定のまま。 */
+  it("私立対策の演習範囲は テーマ別・大学別・問い方別 の3つだけ、問題一覧は 分野別・大学別・年度別 の順", async () => {
+    const win = await boot();
+    await enterSubject(win, "chemistry-private");
+    hubBtn(win, "問題演習").click();
+    await tick(250);
+    const visible = [...win.document.querySelectorAll("#practiceView .rangeSection")]
+      .filter((el: any) => !el.classList.contains("hidden"))
+      .map((el: any) => el.querySelector(".stLabel")!.textContent);
+    expect(visible).toEqual(["テーマ別", "大学別", "問い方別"]);
+    // 一覧の入口の説明もフォルダの順に合わせる
+    expect(win.document.getElementById("qbrowseBtnTitle")!.textContent).toBe("問題一覧（分野別・大学別・年度別）");
+    win.document.getElementById("qbrowseBtn").click();
+    await tick(250);
+    const titles = [...win.document.querySelectorAll("#qbrowseIndex .qbFolder .brDeckTitle")].map((e: any) => e.textContent);
+    expect(titles).toEqual(["分野別", "大学別", "年度別"]);
+  }, 30_000);
+
   it("共テ対策の化学には大学別の枠も一覧のフォルダも出ない", async () => {
     const win = await boot();
     await enterSubject(win, "chemistry");
     hubBtn(win, "問題演習").click();
     await tick(250);
     expect(shown(win, "universitySection")).toBe(false);
+    const visible = [...win.document.querySelectorAll("#practiceView .rangeSection")]
+      .filter((el: any) => !el.classList.contains("hidden"))
+      .map((el: any) => el.querySelector(".stLabel")!.textContent);
+    expect(visible).toEqual(["テーマ別", "問い方別", "分野別", "出典別", "年度別"]);
     expect(win.document.getElementById("qbrowseBtnTitle")!.textContent).toBe("問題一覧（年度別・分野別）");
     win.document.getElementById("qbrowseBtn").click();
     await tick(250);
